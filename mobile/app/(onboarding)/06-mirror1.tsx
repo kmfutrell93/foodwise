@@ -1,65 +1,174 @@
-import { View, Text, StyleSheet } from 'react-native';
+import React from 'react';
+import { View, Text, Image, StyleSheet, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { OnboardingShell } from '@/components/ui/OnboardingShell';
 import { Button } from '@/components/ui/Button';
-import { Colors, FontSize, Spacing, Radius } from '@/constants/theme';
 import { useOnboarding } from '@/context/OnboardingContext';
+import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
+import { useThemeColors } from '@/context/ThemeContext';
 
-const mirrorCopy: Record<string, { emoji: string; headline: string; body: string }> = {
+type Struggle = 'protein' | 'nausea' | 'confusion' | 'muscle';
+
+const COPY: Record<Struggle, {
+  headline: string;
+  pct: number;
+  statText: string;
+  reassurance: string;
+}> = {
   protein: {
-    emoji: '🥩',
-    headline: "You're not failing — your medication is suppressing your hunger signals.",
-    body: "Getting 100g+ of protein on 400-600 calories is nearly impossible without a plan. That's exactly what FoodWise solves.",
+    headline: '"Not hitting my protein" is the #1 challenge for GLP-1 users.',
+    pct: 78,
+    statText: 'of GLP-1 users struggle to hit their daily protein goal due to appetite suppression.',
+    reassurance: "You're not failing. The medication itself makes protein goals harder. FoodWise was built to solve exactly this.",
   },
   nausea: {
-    emoji: '🤢',
-    headline: "Injection day nausea is real, and it wrecks your nutrition.",
-    body: "FoodWise schedules softer, smaller, high-protein meals on dose days — so you still hit your goals when nausea peaks.",
+    headline: 'Nausea on injection day affects your whole week — not just one meal.',
+    pct: 65,
+    statText: 'of GLP-1 users report that nausea significantly disrupts their eating for 2–3 days after each dose.',
+    reassurance: "Nausea on injection day is a real side effect — not a weakness. FoodWise schedules softer foods when it hits hardest.",
   },
   confusion: {
-    emoji: '🤷',
-    headline: "Generic meal plans weren't built for you.",
-    body: "FoodWise is the only planner that knows your injection schedule, appetite level, and protein target — and plans around all three.",
+    headline: 'Most nutrition apps weren\'t built for GLP-1 users — and it shows.',
+    pct: 71,
+    statText: 'of GLP-1 users feel that standard nutrition guidance doesn\'t apply to their appetite patterns.',
+    reassurance: "Generic meal plans weren't designed around your injection schedule. FoodWise knows exactly how your hunger changes each week.",
   },
   muscle: {
-    emoji: '💪',
-    headline: "Losing muscle isn't inevitable — it's preventable with the right nutrition.",
-    body: "FoodWise enforces your protein floor every single day, even on low-appetite days, to keep muscle on your frame.",
+    headline: 'Losing muscle on GLP-1 is common — but it\'s not inevitable.',
+    pct: 60,
+    statText: 'of GLP-1 users lose more muscle than expected because they don\'t prioritize protein on low-appetite days.',
+    reassurance: "Muscle loss isn't your fault. Without a plan, appetite suppression silently steals your protein — FoodWise prevents that.",
   },
 };
 
 export default function Mirror1() {
+  const colors = useThemeColors();
+  const s = makeStyles(colors);
   const router = useRouter();
   const { data } = useOnboarding();
-  const copy = mirrorCopy[data.primary_struggle ?? 'protein'];
+  const struggle = (data.primary_struggle ?? 'protein') as Struggle;
+  const copy = COPY[struggle] ?? COPY.protein;
 
   return (
-    <OnboardingShell step={6}>
-      <View style={styles.container}>
-        <Text style={styles.emoji}>{copy.emoji}</Text>
-        <Text style={styles.title}>{copy.headline}</Text>
-        <Text style={styles.body}>{copy.body}</Text>
+    <OnboardingShell step={6} skipRoute="/(onboarding)/10-restrictions">
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.content}>
 
-        <View style={styles.spacer} />
+        {/* Nori + empathy header */}
+        <View style={s.header}>
+          <Image
+            source={require('@/assets/images/nori_character.png')}
+            style={s.nori}
+            resizeMode="contain"
+          />
+          <Text style={s.weHear}>We hear you.</Text>
+          <Text style={s.headline}>{copy.headline}</Text>
+        </View>
 
-        <View style={styles.divider} />
-        <Text style={styles.bridge}>
-          Let's build a plan around <Text style={styles.highlight}>exactly</Text> how your body works right now.
-        </Text>
-        <View style={{ height: Spacing.lg }} />
-        <Button label="Build my plan" onPress={() => router.push('/(onboarding)/07-question2')} />
-      </View>
+        {/* Stat card with bar */}
+        <View style={s.statCard}>
+          <View style={s.statCardTop}>
+            <View style={s.statCircle}>
+              <Text style={s.statCircleIcon}>👥</Text>
+            </View>
+            <Text style={s.statCardLabel}>From our community</Text>
+          </View>
+          <View style={s.statRow}>
+            <Text style={s.statPct}>{copy.pct}%</Text>
+            <Text style={s.statOfText}>of GLP-1 users</Text>
+          </View>
+          <Text style={s.statText}>{copy.statText}</Text>
+          <View style={s.barBg}>
+            <View style={[s.barFill, { width: `${copy.pct}%` as any }]} />
+          </View>
+          <View style={s.barLabels}>
+            <Text style={s.barLeft}>Struggling</Text>
+            <Text style={s.barRight}>{copy.pct}%</Text>
+          </View>
+        </View>
+
+        {/* Reassurance card */}
+        <View style={s.reassureCard}>
+          <Text style={s.reassureCheck}>✓</Text>
+          <Text style={s.reassureText}>
+            <Text style={s.reassureStrong}>You're not failing. </Text>
+            {copy.reassurance}
+          </Text>
+        </View>
+
+        <Button label="Good to know" onPress={() => router.push('/(onboarding)/07-question2')} />
+      </ScrollView>
     </OnboardingShell>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, paddingTop: Spacing.lg, paddingBottom: Spacing.xl },
-  emoji: { fontSize: 56, marginBottom: Spacing.xl },
-  title: { fontSize: FontSize['2xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: Colors.foreground, lineHeight: 32, marginBottom: Spacing.lg },
-  body: { fontSize: FontSize.base, color: Colors.mutedForeground, lineHeight: 26 },
-  spacer: { flex: 1 },
-  divider: { height: 1, backgroundColor: Colors.border, marginBottom: Spacing.lg },
-  bridge: { fontSize: FontSize.base, color: Colors.foreground, lineHeight: 24 },
-  highlight: { color: Colors.primary, fontFamily: 'PlusJakartaSans-Bold' },
-});
+function makeStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    content: { paddingTop: Spacing.md, paddingBottom: Spacing['2xl'] },
+
+    header: { alignItems: 'center', textAlign: 'center', marginBottom: Spacing['2xl'] },
+    nori: { width: 56, height: 56, marginBottom: Spacing.md },
+    weHear: {
+      fontSize: FontSize.lg,
+      fontFamily: 'PlusJakartaSans-Bold',
+      color: c.primary,
+      marginBottom: Spacing.sm,
+    },
+    headline: {
+      fontSize: FontSize['2xl'],
+      fontFamily: 'PlusJakartaSans-ExtraBold',
+      color: c.foreground,
+      lineHeight: 32,
+      textAlign: 'center',
+    },
+
+    statCard: {
+      padding: Spacing['2xl'],
+      borderRadius: Radius.xl,
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.border,
+      marginBottom: Spacing.lg,
+    },
+    statCardTop: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, marginBottom: Spacing.md },
+    statCircle: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: 'rgba(232,157,53,0.10)',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    statCircleIcon: { fontSize: 16 },
+    statCardLabel: {
+      fontSize: FontSize.xs,
+      fontFamily: 'PlusJakartaSans-Bold',
+      color: c.mutedForeground,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+    },
+    statRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, marginBottom: Spacing.sm },
+    statPct: { fontSize: 48, fontFamily: 'PlusJakartaSans-ExtraBold', color: c.primary, lineHeight: 52 },
+    statOfText: { fontSize: FontSize.sm, color: c.mutedForeground, paddingBottom: 8 },
+    statText: { fontSize: FontSize.sm, color: c.foreground, lineHeight: 20, marginBottom: Spacing.lg },
+    barBg: { height: 12, borderRadius: 6, backgroundColor: c.muted, overflow: 'hidden' },
+    barFill: { height: '100%', borderRadius: 6, backgroundColor: c.primary },
+    barLabels: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
+    barLeft: { fontSize: FontSize.xs, color: c.mutedForeground },
+    barRight: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-Bold', color: c.primary },
+
+    reassureCard: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: Spacing.md,
+      padding: Spacing.lg,
+      borderRadius: Radius.xl,
+      backgroundColor: 'rgba(138,154,124,0.10)',
+      borderWidth: 1,
+      borderColor: 'rgba(138,154,124,0.20)',
+      marginBottom: Spacing['2xl'],
+    },
+    reassureCheck: { fontSize: 20, color: c.secondary, marginTop: 2 },
+    reassureText: { flex: 1, fontSize: FontSize.sm, color: c.foreground, lineHeight: 20 },
+    reassureStrong: { color: c.secondary, fontFamily: 'PlusJakartaSans-Bold' },
+  });
+}

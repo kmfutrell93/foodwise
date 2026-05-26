@@ -1,26 +1,39 @@
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
 import { OnboardingShell } from '@/components/ui/OnboardingShell';
 import { Button } from '@/components/ui/Button';
-import { Colors, FontSize, Spacing, Radius } from '@/constants/theme';
 import { useOnboarding } from '@/context/OnboardingContext';
+import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
+import { useThemeColors } from '@/context/ThemeContext';
 import * as Haptics from 'expo-haptics';
 
-const restrictions = [
-  { key: 'gluten-free', label: '🌾 Gluten-Free' },
-  { key: 'dairy-free', label: '🥛 Dairy-Free' },
-  { key: 'high-protein', label: '🥩 High Protein' },
-  { key: 'vegetarian', label: '🌱 Vegetarian' },
-  { key: 'vegan', label: '🌿 Vegan' },
-  { key: 'nut-free', label: '🥜 Nut-Free' },
-  { key: 'pescatarian', label: '🐟 Pescatarian' },
-  { key: 'low-fodmap', label: '🔥 Low FODMAP' },
-  { key: 'keto', label: '🥑 Keto' },
-  { key: 'paleo', label: '🦴 Paleo' },
+const RESTRICTIONS = [
+  'gluten-free','dairy-free','egg-free','nut-free','shellfish-free','soy-free',
+  'vegetarian','vegan','pescatarian','low-fodmap','halal','kosher',
 ];
+const LABELS: Record<string, string> = {
+  'gluten-free':   '🌾 Gluten-Free',
+  'dairy-free':    '🥛 Dairy-Free',
+  'egg-free':      '🥚 Egg-Free',
+  'nut-free':      '🥜 Nut-Free',
+  'shellfish-free':'🦐 Shellfish-Free',
+  'soy-free':      '🫘 Soy-Free',
+  'vegetarian':    '🌱 Vegetarian',
+  'vegan':         '🌿 Vegan',
+  'pescatarian':   '🐟 Pescatarian',
+  'low-fodmap':    '🫙 Low FODMAP',
+  'halal':         '☪️ Halal',
+  'kosher':        '✡️ Kosher',
+};
+const DESCRIPTIONS: Partial<Record<string, string>> = {
+  'halal':  'No pork / alcohol',
+  'kosher': 'No pork / shellfish',
+};
 
 export default function Restrictions() {
+  const colors = useThemeColors();
+  const s = makeStyles(colors);
   const router = useRouter();
   const { setField, saveStep } = useOnboarding();
   const [selected, setSelected] = useState<string[]>([]);
@@ -29,72 +42,88 @@ export default function Restrictions() {
   function toggle(key: string) {
     Haptics.selectionAsync();
     setNoneSelected(false);
-    setSelected(prev =>
-      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
-    );
-  }
-
-  function selectNone() {
-    Haptics.selectionAsync();
-    setSelected([]);
-    setNoneSelected(true);
+    setSelected(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
   }
 
   async function handleNext() {
     setField('dietary_restrictions', selected);
     await saveStep(10);
-    router.push('/(onboarding)/11-budget');
+    router.push('/(onboarding)/10b-aversions');
   }
 
   return (
     <OnboardingShell step={10}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-        <Text style={styles.label}>Dietary needs</Text>
-        <Text style={styles.title}>Any dietary{'\n'}restrictions?</Text>
-        <Text style={styles.sub}>Select all that apply. We'll exclude these from every meal.</Text>
-
-        <View style={styles.tags}>
-          {restrictions.map((r) => (
-            <TouchableOpacity
-              key={r.key}
-              style={[styles.tag, selected.includes(r.key) && styles.tagSelected]}
-              onPress={() => toggle(r.key)}
-              activeOpacity={0.75}
-            >
-              <Text style={[styles.tagText, selected.includes(r.key) && styles.tagTextSelected]}>{r.label}</Text>
-            </TouchableOpacity>
-          ))}
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.content}>
+        <Text style={s.label}>Step 1 of 3</Text>
+        <Text style={s.title}>Any dietary{'\n'}<Text style={s.titleHighlight}>needs or restrictions?</Text></Text>
+        <Text style={s.sub}>Select all that apply. Your plan will be built around these.</Text>
+        <View style={s.tags}>
+          {RESTRICTIONS.map(r => {
+            const desc = DESCRIPTIONS[r];
+            const sel = selected.includes(r);
+            return (
+              <TouchableOpacity
+                key={r}
+                style={[s.tag, desc && s.tagWithDesc, sel && s.tagSelected]}
+                onPress={() => toggle(r)}
+                activeOpacity={0.75}
+              >
+                <Text style={[s.tagText, sel && s.tagTextSelected]}>{LABELS[r]}</Text>
+                {desc && (
+                  <Text style={[s.tagDesc, sel && s.tagDescSelected]}>{desc}</Text>
+                )}
+              </TouchableOpacity>
+            );
+          })}
           <TouchableOpacity
-            style={[styles.tag, styles.tagNone, noneSelected && styles.tagSelected]}
-            onPress={selectNone}
+            style={[s.tag, s.tagNone, noneSelected && s.tagSelected]}
+            onPress={() => { setSelected([]); setNoneSelected(true); Haptics.selectionAsync(); }}
             activeOpacity={0.75}
           >
-            <Text style={[styles.tagText, noneSelected && styles.tagTextSelected]}>✓ No restrictions</Text>
+            <Text style={[s.tagText, noneSelected && s.tagTextSelected]}>✅ No restrictions — surprise me!</Text>
           </TouchableOpacity>
         </View>
 
-        <Button label="Continue" onPress={handleNext} />
+        {/* GLP-1 note */}
+        <View style={s.note}>
+          <Text style={s.noteIcon}>💉</Text>
+          <Text style={s.noteText}>
+            All meals are automatically optimized for GLP-1 users — small portions, high nutrient density, injection-day aware.
+          </Text>
+        </View>
+
+        <Button label="Next: Set my budget" onPress={handleNext} />
       </ScrollView>
     </OnboardingShell>
   );
 }
 
-const styles = StyleSheet.create({
-  content: { paddingTop: Spacing.lg, paddingBottom: Spacing['3xl'], gap: 0 },
-  label: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: Colors.primary, letterSpacing: 2, textTransform: 'uppercase', marginBottom: Spacing.md },
-  title: { fontSize: FontSize['3xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: Colors.foreground, lineHeight: 38, marginBottom: Spacing.sm },
-  sub: { fontSize: FontSize.sm, color: Colors.mutedForeground, marginBottom: Spacing['2xl'] },
+function makeStyles(c: ThemeColors) {
+  return StyleSheet.create({
+  content: { paddingTop: Spacing.lg, paddingBottom: Spacing['3xl'] },
+  label: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: c.primary, letterSpacing: 2, textTransform: 'uppercase', marginBottom: Spacing.md },
+  title: { fontSize: FontSize['2xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground, lineHeight: 32, marginBottom: Spacing.sm },
+  titleHighlight: { color: c.primary },
+  sub: { fontSize: FontSize.sm, color: c.mutedForeground, marginBottom: Spacing['2xl'] },
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginBottom: Spacing['2xl'] },
-  tag: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: 12,
-    borderRadius: Radius.full,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    backgroundColor: Colors.card,
-  },
+  tag: { paddingHorizontal: Spacing.lg, paddingVertical: 12, borderRadius: Radius.full, borderWidth: 1.5, borderColor: c.border, backgroundColor: c.card },
+  tagWithDesc: { borderRadius: Radius.lg, paddingVertical: 8 },
   tagNone: { borderStyle: 'dashed' },
-  tagSelected: { borderColor: Colors.primary, backgroundColor: 'rgba(232,157,53,0.12)' },
-  tagText: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-SemiBold', color: Colors.foreground },
-  tagTextSelected: { color: Colors.primary },
+  tagSelected: { borderColor: c.primary, backgroundColor: 'rgba(232,157,53,0.12)' },
+  tagText: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-SemiBold', color: c.foreground },
+  tagTextSelected: { color: c.primary },
+  tagDesc: { fontSize: 10, color: c.mutedForeground, marginTop: 1 },
+  tagDescSelected: { color: c.primary + 'CC' },
+  note: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.md,
+    padding: Spacing.lg,
+    borderRadius: Radius.lg,
+    backgroundColor: c.muted,
+    marginBottom: Spacing['2xl'],
+  },
+  noteIcon: { fontSize: 16, marginTop: 1 },
+  noteText: { flex: 1, fontSize: FontSize.xs, color: c.mutedForeground, lineHeight: 18 },
 });
+}

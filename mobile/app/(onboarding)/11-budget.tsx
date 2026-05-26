@@ -1,24 +1,25 @@
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
 import Slider from '@react-native-community/slider';
 import { OnboardingShell } from '@/components/ui/OnboardingShell';
 import { Button } from '@/components/ui/Button';
-import { Colors, FontSize, Spacing, Radius } from '@/constants/theme';
 import { useOnboarding } from '@/context/OnboardingContext';
+import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
+import { useThemeColors } from '@/context/ThemeContext';
 
-const presets = [
-  { label: 'Tight', value: 55, sub: '~$7.86/day' },
-  { label: 'Sweet spot', value: 75, sub: '~$10.71/day' },
-  { label: 'Flexible', value: 100, sub: '~$14.29/day' },
+const PRESETS = [
+  { label: 'Budget', value: 55, sub: '~$7.86/day' },
+  { label: 'Most popular', value: 75, sub: '~$10.71/day' },
+  { label: 'Premium', value: 100, sub: '~$14.29/day' },
 ];
 
 export default function Budget() {
+  const colors = useThemeColors();
+  const s = makeStyles(colors);
   const router = useRouter();
   const { setField, saveStep } = useOnboarding();
   const [budget, setBudget] = useState(75);
-
-  const perDay = (budget / 7).toFixed(2);
 
   async function handleNext() {
     setField('weekly_budget', budget);
@@ -28,78 +29,67 @@ export default function Budget() {
 
   return (
     <OnboardingShell step={11}>
-      <View style={styles.container}>
-        <Text style={styles.label}>Grocery budget</Text>
-        <Text style={styles.title}>Weekly grocery{'\n'}budget?</Text>
-        <Text style={styles.sub}>We'll build your meal plan to stay under this.</Text>
-
-        <View style={styles.display}>
-          <Text style={styles.amount}>${budget}</Text>
-          <Text style={styles.perDay}>~${perDay}/day · 7 days of meals</Text>
+      <View style={s.container}>
+        <Text style={s.label}>Step 2 of 3</Text>
+        <Text style={s.title}>What's your{'\n'}<Text style={s.titleHighlight}>weekly grocery budget?</Text></Text>
+        <Text style={s.sub}>We'll build meals that maximize nutrition within your budget.</Text>
+        <View style={s.display}>
+          <Text style={s.amount}>${budget}</Text>
+          <Text style={s.perDay}>~${(budget / 7).toFixed(2)}/day · 7 days of meals</Text>
         </View>
-
-        <View style={styles.sliderWrap}>
+        <View style={s.sliderWrap}>
           <Slider
             style={{ width: '100%', height: 44 }}
-            minimumValue={40}
-            maximumValue={200}
-            step={5}
-            value={budget}
+            minimumValue={40} maximumValue={200} step={5} value={budget}
             onValueChange={setBudget}
-            minimumTrackTintColor={Colors.primary}
-            maximumTrackTintColor={Colors.border}
-            thumbTintColor={Colors.primary}
+            minimumTrackTintColor={colors.primary}
+            maximumTrackTintColor={colors.border}
+            thumbTintColor={colors.primary}
           />
-          <View style={styles.sliderLabels}>
-            <Text style={styles.sliderMin}>$40</Text>
-            <Text style={styles.sliderMax}>$200</Text>
+          <View style={s.sliderLabels}>
+            <Text style={s.sliderMin}>$40</Text>
+            <Text style={s.sliderMax}>$200</Text>
           </View>
         </View>
-
-        <View style={styles.presets}>
-          {presets.map((p) => (
-            <View
+        <View style={s.presets}>
+          {PRESETS.map(p => (
+            <TouchableOpacity
               key={p.label}
-              style={[styles.preset, budget === p.value && styles.presetSelected]}
+              style={[s.preset, budget === p.value && s.presetSelected]}
+              onPress={() => setBudget(p.value)}
+              activeOpacity={0.75}
             >
-              <Text style={[styles.presetLabel, budget === p.value && { color: Colors.primary }]}>{p.label}</Text>
-              <Text style={styles.presetSub}>{p.sub}</Text>
-            </View>
+              <Text style={[s.presetLabel, budget === p.value && { color: colors.primary }]}>{p.label}</Text>
+              <Text style={s.presetSub}>{p.sub}</Text>
+            </TouchableOpacity>
           ))}
         </View>
-
-        <View style={styles.spacer} />
-        <Button label="Set my budget" onPress={handleNext} />
+        <View style={s.spacer} />
+        <Button label="Next: My appetite level" onPress={handleNext} />
       </View>
     </OnboardingShell>
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ThemeColors) {
+  return StyleSheet.create({
   container: { flex: 1, paddingTop: Spacing.lg, paddingBottom: Spacing.xl },
-  label: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: Colors.primary, letterSpacing: 2, textTransform: 'uppercase', marginBottom: Spacing.md },
-  title: { fontSize: FontSize['3xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: Colors.foreground, lineHeight: 38, marginBottom: Spacing.sm },
-  sub: { fontSize: FontSize.sm, color: Colors.mutedForeground, marginBottom: Spacing['2xl'] },
+  label: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: c.primary, letterSpacing: 2, textTransform: 'uppercase', marginBottom: Spacing.md },
+  title: { fontSize: FontSize['2xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground, lineHeight: 32, marginBottom: Spacing.sm },
+  titleHighlight: { color: c.primary },
+  sub: { fontSize: FontSize.sm, color: c.mutedForeground, marginBottom: Spacing['2xl'] },
   display: { alignItems: 'center', marginBottom: Spacing.xl },
-  amount: { fontSize: 72, fontFamily: 'PlusJakartaSans-ExtraBold', color: Colors.primary, lineHeight: 80 },
-  perDay: { fontSize: FontSize.sm, color: Colors.mutedForeground, marginTop: Spacing.xs },
+  amount: { fontSize: 72, fontFamily: 'PlusJakartaSans-ExtraBold', color: c.primary, lineHeight: 80 },
+  perDay: { fontSize: FontSize.sm, color: c.mutedForeground, marginTop: Spacing.xs },
   sliderWrap: { marginBottom: Spacing.xl },
   sliderLabels: { flexDirection: 'row', justifyContent: 'space-between', marginTop: -Spacing.sm },
-  sliderMin: { fontSize: FontSize.xs, color: Colors.mutedForeground },
-  sliderMax: { fontSize: FontSize.xs, color: Colors.mutedForeground },
+  sliderMin: { fontSize: FontSize.xs, color: c.mutedForeground },
+  sliderMax: { fontSize: FontSize.xs, color: c.mutedForeground },
   presets: { flexDirection: 'row', gap: Spacing.sm },
-  preset: {
-    flex: 1,
-    padding: Spacing.md,
-    borderRadius: Radius.lg,
-    backgroundColor: Colors.card,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    alignItems: 'center',
-    gap: 2,
-  },
-  presetSelected: { borderColor: Colors.primary, backgroundColor: 'rgba(232,157,53,0.1)' },
-  presetLabel: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: Colors.foreground },
-  presetSub: { fontSize: FontSize.xs, color: Colors.mutedForeground },
+  preset: { flex: 1, padding: Spacing.md, borderRadius: Radius.lg, backgroundColor: c.card, borderWidth: 1, borderColor: c.border, alignItems: 'center', gap: 2 },
+  presetSelected: { borderColor: c.primary, backgroundColor: 'rgba(232,157,53,0.1)' },
+  presetLabel: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: c.foreground },
+  presetSub: { fontSize: FontSize.xs, color: c.mutedForeground },
   spacer: { flex: 1 },
 });
+}

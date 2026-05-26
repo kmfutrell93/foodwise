@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { trackOnboardingStepCompleted, trackOnboardingCompleted } from '@/lib/analytics';
 
 export type OnboardingData = {
   primary_struggle: 'protein' | 'nausea' | 'confusion' | 'muscle' | null;
@@ -7,11 +8,14 @@ export type OnboardingData = {
   dietary_restrictions: string[];
   weekly_budget: number;
   appetite_level: 'low' | 'moderate' | 'normal' | null;
-  check_in_time: string;
+  check_in_time: 'morning' | 'midday' | 'evening' | null;
   notifications_enabled: boolean;
-  medication: 'ozempic' | 'wegovy' | 'mounjaro' | 'zepbound' | 'other' | null;
-  injection_day: number | null;
+  push_token: string | null;
+  medication: 'semaglutide' | 'tirzepatide' | 'liraglutide' | 'other' | null;
+  injection_day: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday' | null;
   dose_mg: number | null;
+  dose_start_date: string | null;
+  time_on_medication: string | null;
   food_aversions: string[];
 };
 
@@ -28,11 +32,14 @@ const defaults: OnboardingData = {
   dietary_restrictions: [],
   weekly_budget: 75,
   appetite_level: null,
-  check_in_time: '08:00',
+  check_in_time: null,
   notifications_enabled: false,
+  push_token: null,
   medication: null,
   injection_day: null,
   dose_mg: null,
+  dose_start_date: null,
+  time_on_medication: null,
   food_aversions: [],
 };
 
@@ -48,8 +55,9 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
   const saveStep = useCallback(async (step: number) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    await supabase.from('profiles').update({ onboarding_step: step }).eq('id', user.id);
-  }, []);
+    await supabase.from('profiles').update({ ...data, onboarding_step: step }).eq('id', user.id);
+    trackOnboardingStepCompleted(step, `step-${step}`);
+  }, [data]);
 
   const completeOnboarding = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -59,6 +67,12 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
       onboarding_completed: true,
       onboarding_step: 22,
     }).eq('id', user.id);
+    trackOnboardingCompleted({
+      medication: data.medication ?? 'unknown',
+      injection_day: data.injection_day ?? 'unknown',
+      has_dietary_restrictions: data.dietary_restrictions.length > 0,
+      weekly_budget: data.weekly_budget,
+    });
   }, [data]);
 
   return (
@@ -70,6 +84,6 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
 
 export function useOnboarding() {
   const ctx = useContext(OnboardingContext);
-  if (!ctx) throw new Error('useOnboarding must be used inside OnboardingProvider');
+  if (!ctx) throw new Error('useOnboarding must be inside OnboardingProvider');
   return ctx;
 }

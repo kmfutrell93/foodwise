@@ -1,121 +1,359 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { useRouter } from 'expo-router';
+import React, { useState, useEffect } from 'react';
+import {
+  View, Text, StyleSheet, TouchableOpacity, ActivityIndicator,
+  Alert, ScrollView, Linking,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button } from '@/components/ui/Button';
-import { Colors, FontSize, Spacing, Radius } from '@/constants/theme';
+import { useRouter } from 'expo-router';
+import { PACKAGE_TYPE, PurchasesPackage } from 'react-native-purchases';
+import * as Haptics from 'expo-haptics';
 import { useOnboarding } from '@/context/OnboardingContext';
+import { useRevenueCat, ENTITLEMENT_ID } from '@/context/RevenueCatContext';
+import { trackPaywallShown } from '@/lib/analytics';
+import { formatPricingDisplay, calcSavingsPct } from '@/lib/pricing';
+import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
+import { useThemeColors } from '@/context/ThemeContext';
+import { TESTIMONIALS } from '@/lib/testimonials';
 
-type Plan = 'monthly' | 'annual';
+const FEATURES = [
+  { icon: '💉', text: 'Meal plans synced to your injection day' },
+  { icon: '🌿', text: 'Symptom insights from your AI coach, Nori' },
+  { icon: '🛒', text: 'Grocery list with budget & NOVA tracking' },
+  { icon: '♾️', text: 'Unlimited plan generation & meal swaps' },
+];
 
 export default function Paywall() {
+  const colors = useThemeColors();
+  const s = makeStyles(colors);
   const router = useRouter();
   const { completeOnboarding } = useOnboarding();
-  const [plan, setPlan] = useState<Plan>('annual');
-  const [loading, setLoading] = useState(false);
+  const { currentOffering, isLoading, purchasePackage, restorePurchases } = useRevenueCat();
+  const [purchasing, setPurchasing] = useState(false);
+  const [selectedPkg, setSelectedPkg] = useState<PurchasesPackage | null>(null);
 
-  async function handleStart() {
-    setLoading(true);
-    // RevenueCat purchase will be wired here in Phase 3
-    // For now, save onboarding and route to app
+  const annualPkg = currentOffering?.annual
+    ?? currentOffering?.availablePackages.find((p: any) => p.packageType === PACKAGE_TYPE.ANNUAL)
+    ?? null;
+  const monthlyPkg = currentOffering?.monthly
+    ?? currentOffering?.availablePackages.find((p: any) => p.packageType === PACKAGE_TYPE.MONTHLY)
+    ?? null;
+
+  // Default-select annual (better value)
+  useEffect(() => {
+    if (!selectedPkg && annualPkg) setSelectedPkg(annualPkg);
+    else if (!selectedPkg && monthlyPkg) setSelectedPkg(monthlyPkg);
+  }, [annualPkg, monthlyPkg]);
+
+  useEffect(() => {
+    trackPaywallShown('onboarding', {
+      testimonials_visible: TESTIMONIALS.length > 0,
+      testimonial_count: TESTIMONIALS.length,
+    });
+  }, []);
+
+  const savingsPct = annualPkg && monthlyPkg ? calcSavingsPct(monthlyPkg, annualPkg) : null;
+
+  async function finish() {
     await completeOnboarding();
     router.replace('/(app)/home');
-    setLoading(false);
   }
 
-  async function handleFree() {
-    setLoading(true);
-    await completeOnboarding();
-    router.replace('/(app)/home');
-    setLoading(false);
+  async function handlePurchase() {
+    if (!selectedPkg || purchasing) return;
+    setPurchasing(true);
+    try {
+      await purchasePackage(selectedPkg);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      await finish();
+    } catch (e: unknown) {
+      if (!(e as { userCancelled?: boolean }).userCancelled) {
+        Alert.alert('Purchase failed', (e as Error).message ?? 'Something went wrong. Please try again.');
+      }
+    } finally {
+      setPurchasing(false);
+    }
   }
+
+  async function handleRestore() {
+    setPurchasing(true);
+    try {
+      const info = await restorePurchases();
+      if (info.entitlements.active[ENTITLEMENT_ID]) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        await finish();
+      } else {
+        Alert.alert('No subscription found', 'No active FoodWise Pro subscription was found for this Apple ID.');
+      }
+    } catch {
+      Alert.alert('Restore failed', 'Could not restore purchases. Please try again.');
+    } finally {
+      setPurchasing(false);
+    }
+  }
+
+  const packages = [annualPkg, monthlyPkg].filter((p): p is PurchasesPackage => p !== null);
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.emoji}>🦉</Text>
-        <Text style={styles.label}>Start free today</Text>
-        <Text style={styles.title}>7 days free.{'\n'}Cancel anytime.</Text>
+    <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={s.scroll}
+        bounces={false}
+      >
+        {/* Header */}
+        <View style={s.header}>
+          <Text style={s.icon}>🌿</Text>
+          <Text style={s.title}>FoodWise Pro</Text>
+          <Text style={s.subtitle}>The nutrition companion built for GLP-1 users</Text>
+        </View>
 
-        <View style={styles.plans}>
-          <TouchableOpacity
-            style={[styles.planCard, plan === 'annual' && styles.planCardSelected]}
-            onPress={() => setPlan('annual')}
-            activeOpacity={0.85}
-          >
-            <View style={styles.planBadge}>
-              <Text style={styles.planBadgeText}>BEST VALUE</Text>
+        {/* Feature list */}
+        <View style={s.features}>
+          {FEATURES.map(f => (
+            <View key={f.text} style={s.featureRow}>
+              <Text style={s.featureIcon}>{f.icon}</Text>
+              <Text style={s.featureText}>{f.text}</Text>
             </View>
-            <View style={styles.planRow}>
-              <View>
-                <Text style={[styles.planName, plan === 'annual' && styles.planNameSelected]}>Annual</Text>
-                <Text style={styles.planPrice}>$79.99/yr</Text>
-              </View>
-              <View style={styles.perWeekBadge}>
-                <Text style={styles.perWeek}>$1.54</Text>
-                <Text style={styles.perWeekSub}>/week</Text>
-              </View>
+          ))}
+        </View>
+
+        {/* Testimonials — only shown when array is populated */}
+        {TESTIMONIALS.length > 0 && (
+          <View style={s.testimonialsSection}>
+            <Text style={s.testimonialsHeader}>From GLP-1 users like you</Text>
+            <View style={{ gap: 10 }}>
+              {TESTIMONIALS.map((t, i) => (
+                <View key={i} style={s.testimonialCard}>
+                  <Text style={s.testimonialQuote} numberOfLines={3}>"{t.quote}"</Text>
+                  <Text style={s.testimonialAttrib}>
+                    {t.name} · {t.medication} · {t.weeks_on_app} weeks
+                  </Text>
+                </View>
+              ))}
             </View>
+          </View>
+        )}
+
+        {/* Plan cards */}
+        {isLoading || packages.length === 0 ? (
+          <View style={s.loadingBox}>
+            <ActivityIndicator color={colors.primary} />
+          </View>
+        ) : (
+          <View style={s.plans}>
+            {packages.map(pkg => {
+              const { weeklyDisplay, fullBillingDisplay, periodLabel } = formatPricingDisplay(pkg);
+              const isAnnual = pkg.packageType === PACKAGE_TYPE.ANNUAL;
+              const isSelected = selectedPkg?.product.identifier === pkg.product.identifier;
+              return (
+                <TouchableOpacity
+                  key={pkg.product.identifier}
+                  style={[s.planCard, isSelected && s.planCardSelected]}
+                  onPress={() => { Haptics.selectionAsync(); setSelectedPkg(pkg); }}
+                  activeOpacity={0.8}
+                >
+                  <View style={s.planCardInner}>
+                    <View style={s.planCardLeft}>
+                      <View style={s.planLabelRow}>
+                        <Text style={[s.periodLabel, isSelected && s.periodLabelSelected]}>
+                          {periodLabel}
+                        </Text>
+                        {isAnnual && savingsPct != null && (
+                          <View style={s.badge}>
+                            <Text style={s.badgeText}>Save {savingsPct}%</Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text style={[s.weeklyPrice, isSelected && s.weeklyPriceSelected]}>
+                        {weeklyDisplay}
+                      </Text>
+                      <Text style={s.billingSubtext}>{fullBillingDisplay}</Text>
+                    </View>
+                    <View style={[s.radio, isSelected && s.radioSelected]}>
+                      {isSelected && <View style={s.radioDot} />}
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
+
+        {/* Trial callout — compliance: billing terms already visible on cards above */}
+        <Text style={s.trialNote}>7-day free trial · Cancel anytime in Settings</Text>
+
+        {/* CTA */}
+        <TouchableOpacity
+          style={[s.ctaBtn, (!selectedPkg || purchasing || isLoading) && s.ctaBtnDisabled]}
+          onPress={handlePurchase}
+          disabled={!selectedPkg || purchasing || isLoading}
+          activeOpacity={0.85}
+        >
+          {purchasing ? (
+            <ActivityIndicator color={colors.primaryForeground} />
+          ) : (
+            <Text style={s.ctaBtnText}>Start Free Trial</Text>
+          )}
+        </TouchableOpacity>
+
+        {/* Footer */}
+        <View style={s.footer}>
+          <TouchableOpacity onPress={handleRestore} disabled={purchasing}>
+            <Text style={s.footerLink}>Restore purchases</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.planCard, plan === 'monthly' && styles.planCardSelected]}
-            onPress={() => setPlan('monthly')}
-            activeOpacity={0.85}
-          >
-            <View style={styles.planRow}>
-              <View>
-                <Text style={[styles.planName, plan === 'monthly' && styles.planNameSelected]}>Monthly</Text>
-                <Text style={styles.planPrice}>$12.99/mo</Text>
-              </View>
-              <View>
-                <Text style={styles.perWeek}>$2.99</Text>
-                <Text style={styles.perWeekSub}>/week</Text>
-              </View>
-            </View>
+          <Text style={s.footerDot}>·</Text>
+          <TouchableOpacity onPress={finish} disabled={purchasing}>
+            <Text style={s.footerLink}>Continue free</Text>
           </TouchableOpacity>
         </View>
 
-        <Button
-          label={`Start 7-day free trial`}
-          onPress={handleStart}
-          loading={loading}
-          style={{ marginBottom: Spacing.sm }}
-        />
+        <View style={s.legalLinks}>
+          <TouchableOpacity onPress={() => Linking.openURL('https://kmfutrell93.github.io/foodwise-legal/privacy')}>
+            <Text style={s.footerLink}>Privacy Policy</Text>
+          </TouchableOpacity>
+          <Text style={s.footerDot}>·</Text>
+          <TouchableOpacity onPress={() => Linking.openURL('https://kmfutrell93.github.io/foodwise-legal/terms')}>
+            <Text style={s.footerLink}>Terms of Service</Text>
+          </TouchableOpacity>
+        </View>
 
-        <Text style={styles.trialNote}>
-          After 7 days, {plan === 'annual' ? '$79.99/year' : '$12.99/month'}. Cancel before trial ends and you won't be charged.
-        </Text>
-
-        <Text style={styles.freeCta} onPress={handleFree}>Continue with free plan →</Text>
-
-        <Text style={styles.legal}>
-          Subscription automatically renews unless cancelled at least 24 hours before the renewal date. Manage in App Store settings.
+        <Text style={s.legal}>
+          Payment will be charged to your Apple ID account. Subscription automatically renews unless
+          cancelled at least 24 hours before the end of the current period. Manage or cancel in
+          Settings → Apple ID → Subscriptions.
         </Text>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
-  content: { paddingHorizontal: Spacing.xl, paddingTop: Spacing['3xl'], paddingBottom: Spacing['3xl'] },
-  emoji: { fontSize: 48, textAlign: 'center', marginBottom: Spacing.lg },
-  label: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: Colors.primary, letterSpacing: 2, textTransform: 'uppercase', marginBottom: Spacing.sm, textAlign: 'center' },
-  title: { fontSize: FontSize['3xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: Colors.foreground, lineHeight: 38, marginBottom: Spacing['2xl'], textAlign: 'center' },
-  plans: { gap: Spacing.sm, marginBottom: Spacing.xl },
-  planCard: { padding: Spacing.xl, borderRadius: Radius.xl, borderWidth: 1.5, borderColor: Colors.border, backgroundColor: Colors.card },
-  planCardSelected: { borderColor: Colors.primary, backgroundColor: 'rgba(232,157,53,0.06)' },
-  planBadge: { backgroundColor: Colors.primary, borderRadius: Radius.full, paddingHorizontal: 10, paddingVertical: 3, alignSelf: 'flex-start', marginBottom: Spacing.sm },
-  planBadgeText: { fontSize: FontSize.xs, color: Colors.primaryForeground, fontFamily: 'PlusJakartaSans-Bold', letterSpacing: 0.5 },
-  planRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  planName: { fontSize: FontSize.xl, fontFamily: 'PlusJakartaSans-Bold', color: Colors.foreground },
-  planNameSelected: { color: Colors.primary },
-  planPrice: { fontSize: FontSize.sm, color: Colors.mutedForeground, marginTop: 2 },
-  perWeekBadge: { alignItems: 'flex-end' },
-  perWeek: { fontSize: FontSize['2xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: Colors.foreground },
-  perWeekSub: { fontSize: FontSize.xs, color: Colors.mutedForeground },
-  trialNote: { fontSize: FontSize.xs, color: Colors.mutedForeground, textAlign: 'center', marginBottom: Spacing.lg, lineHeight: 18 },
-  freeCta: { textAlign: 'center', color: Colors.mutedForeground, fontSize: FontSize.base, paddingVertical: Spacing.md },
-  legal: { fontSize: FontSize.xs, color: Colors.mutedForeground, textAlign: 'center', lineHeight: 18, marginTop: Spacing.md },
-});
+function makeStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    safe: { flex: 1, backgroundColor: c.background },
+    scroll: { paddingHorizontal: Spacing.xl, paddingTop: Spacing['2xl'], paddingBottom: Spacing['3xl'] },
+
+    header: { alignItems: 'center', marginBottom: Spacing['2xl'] },
+    icon: { fontSize: 48, marginBottom: Spacing.md },
+    title: { fontSize: FontSize['2xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground, marginBottom: Spacing.sm },
+    subtitle: { fontSize: FontSize.sm, color: c.mutedForeground, textAlign: 'center' },
+
+    features: { gap: Spacing.md, marginBottom: Spacing['2xl'] },
+    featureRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+    featureIcon: { fontSize: 20, width: 28 },
+    featureText: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Medium', color: c.foreground, flex: 1 },
+
+    testimonialsSection: { marginBottom: 20 },
+    testimonialsHeader: { fontSize: 12, color: c.mutedForeground, letterSpacing: 0.6, textTransform: 'uppercase', marginBottom: 8 },
+    testimonialCard: { borderRadius: 8, backgroundColor: c.card, borderWidth: 1, borderColor: c.border, borderLeftWidth: 3, borderLeftColor: '#1D9E75', paddingHorizontal: 16, paddingVertical: 12 },
+    testimonialQuote: { fontSize: 14, fontStyle: 'italic', color: c.foreground, lineHeight: 20, marginBottom: 6 },
+    testimonialAttrib: { fontSize: 12, color: c.mutedForeground },
+
+    loadingBox: { height: 160, alignItems: 'center', justifyContent: 'center' },
+
+    plans: { gap: Spacing.md, marginBottom: Spacing.lg },
+    planCard: {
+      borderRadius: Radius.lg,
+      borderWidth: 1.5,
+      borderColor: c.border,
+      backgroundColor: c.card,
+      padding: Spacing.lg,
+    },
+    planCardSelected: {
+      borderColor: c.primary,
+      backgroundColor: c.primary + '10',
+    },
+    planCardInner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    planCardLeft: { flex: 1, gap: 4 },
+    planLabelRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: 2 },
+    periodLabel: {
+      fontSize: FontSize.sm,
+      fontFamily: 'PlusJakartaSans-Bold',
+      color: c.mutedForeground,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+    periodLabelSelected: { color: c.primary },
+    badge: {
+      backgroundColor: c.primary,
+      borderRadius: Radius.full,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+    },
+    badgeText: {
+      fontSize: 10,
+      fontFamily: 'PlusJakartaSans-ExtraBold',
+      color: c.primaryForeground,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+    weeklyPrice: {
+      fontSize: FontSize['2xl'],
+      fontFamily: 'PlusJakartaSans-ExtraBold',
+      color: c.foreground,
+    },
+    weeklyPriceSelected: { color: c.primary },
+    billingSubtext: {
+      fontSize: FontSize.xs,
+      color: c.mutedForeground,
+      marginTop: 2,
+    },
+    radio: {
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      borderWidth: 2,
+      borderColor: c.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginLeft: Spacing.md,
+    },
+    radioSelected: { borderColor: c.primary },
+    radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: c.primary },
+
+    trialNote: {
+      textAlign: 'center',
+      fontSize: FontSize.xs,
+      color: c.mutedForeground,
+      marginBottom: Spacing.lg,
+    },
+
+    ctaBtn: {
+      backgroundColor: c.primary,
+      borderRadius: Radius.lg,
+      paddingVertical: 16,
+      alignItems: 'center',
+      marginBottom: Spacing.lg,
+    },
+    ctaBtnDisabled: { opacity: 0.5 },
+    ctaBtnText: {
+      fontSize: FontSize.base,
+      fontFamily: 'PlusJakartaSans-ExtraBold',
+      color: c.primaryForeground,
+    },
+
+    footer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: Spacing.sm,
+      marginBottom: Spacing.xl,
+    },
+    footerLink: { fontSize: FontSize.xs, color: c.mutedForeground, textDecorationLine: 'underline' },
+    footerDot: { fontSize: FontSize.xs, color: c.mutedForeground },
+    legalLinks: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: Spacing.sm,
+      marginBottom: Spacing.sm,
+    },
+
+    legal: {
+      fontSize: 10,
+      color: c.mutedForeground,
+      textAlign: 'center',
+      lineHeight: 15,
+      opacity: 0.7,
+    },
+  });
+}

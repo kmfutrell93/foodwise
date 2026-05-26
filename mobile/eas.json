@@ -1,0 +1,38 @@
+{
+  "cli": {
+    "version": ">= 7.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "ios": {
+        "simulator": true
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "ios": {
+        "simulator": false,
+        "resourceClass": "m-medium"
+      },
+      "channel": "preview"
+    },
+    "production": {
+      "ios": {
+        "resourceClass": "m-medium"
+      },
+      "channel": "production",
+      "autoIncrement": "buildNumber"
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "ken1trell@msn.com",
+        "ascAppId": "6770304357",
+        "appleTeamId": "SP93SSS2S2"
+      }
+    }
+  }
+}

@@ -1,65 +1,102 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import React, { useRef, useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Image } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button } from '@/components/ui/Button';
-import { Colors, FontSize, Spacing, Radius } from '@/constants/theme';
-
-const reviews = [
-  { name: 'Sarah M.', handle: '@sarahglp1', text: "Finally a meal planner that understands I can barely eat on shot day. The injection-day meals are a game changer.", stars: 5 },
-  { name: 'Jake T.', handle: '@jakewegovy', text: "I was losing muscle and didn't know why. After 3 weeks on FoodWise my protein is consistently at goal.", stars: 5 },
-  { name: 'Maria L.', handle: '@marialosingit', text: "The budget feature is underrated. I'm eating better GLP-1 meals for $68/week. Less than I spent eating out.", stars: 5 },
-];
+import { OnboardingShell } from '@/components/ui/OnboardingShell';
+import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
+import { useThemeColors } from '@/context/ThemeContext';
 
 export default function Review() {
+  const colors = useThemeColors();
+  const s = makeStyles(colors);
   const router = useRouter();
-  return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.label}>From the community</Text>
-        <Text style={styles.title}>Real people.{'\n'}Real results.</Text>
+  const [rating, setRating] = useState(0);
+  const scale = useRef(new Animated.Value(1)).current;
 
-        <View style={styles.reviews}>
-          {reviews.map((r) => (
-            <View key={r.name} style={styles.card}>
-              <View style={styles.stars}>
-                {'★★★★★'.split('').map((s, i) => (
-                  <Text key={i} style={styles.star}>{s}</Text>
-                ))}
-              </View>
-              <Text style={styles.reviewText}>"{r.text}"</Text>
-              <View style={styles.reviewer}>
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>{r.name[0]}</Text>
-                </View>
-                <View>
-                  <Text style={styles.reviewerName}>{r.name}</Text>
-                  <Text style={styles.reviewerHandle}>{r.handle}</Text>
-                </View>
-              </View>
-            </View>
-          ))}
+  useEffect(() => {
+    Animated.sequence([
+      Animated.timing(scale, { toValue: 1.08, duration: 300, useNativeDriver: true, delay: 300 }),
+      Animated.timing(scale, { toValue: 1.0, duration: 300, useNativeDriver: true }),
+    ]).start();
+  }, []);
+
+  return (
+    <OnboardingShell step={15}>
+      <View style={s.center}>
+        <Animated.View style={{ transform: [{ scale }], marginBottom: Spacing.sm }}>
+          <Image
+            source={require('@/assets/images/nori_character.png')}
+            style={s.nori}
+            resizeMode="contain"
+          />
+        </Animated.View>
+
+        <View style={s.confettiRow}>
+          <Text style={s.confetti}>🎉</Text>
+          <Text style={s.confetti}>🎉</Text>
+          <Text style={s.confetti}>🎉</Text>
         </View>
 
-        <Button label="Continue to summary" onPress={() => router.push('/(onboarding)/16-summary')} />
-      </ScrollView>
-    </SafeAreaView>
+        <Text style={s.title}>
+          You just planned{'\n'}like a{' '}
+          <Text style={{ color: colors.primary }}>nutrition expert!</Text>
+        </Text>
+
+        <Text style={s.sub}>
+          That meal plan? It's real. That's exactly what FoodWise generates for you{' '}
+          <Text style={{ color: colors.foreground, fontFamily: 'PlusJakartaSans-Bold' }}>every week</Text>
+          , personalized to your preferences and budget.
+        </Text>
+
+        <View style={[s.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Text style={s.cardTitle}>How are you feeling about FoodWise?</Text>
+          <Text style={s.cardSub}>Tap a star to rate your experience so far</Text>
+          <View style={s.starsRow}>
+            {[1, 2, 3, 4, 5].map(n => (
+              <TouchableOpacity key={n} onPress={() => setRating(n)} activeOpacity={0.7}>
+                <Text style={[s.star, { opacity: n <= rating ? 1 : 0.3 }]}>⭐</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      </View>
+
+      <View style={s.bottom}>
+        <TouchableOpacity
+          style={[s.reviewBtn, { backgroundColor: colors.primary }]}
+          onPress={() => router.push('/(onboarding)/16-summary')}
+          activeOpacity={0.85}
+        >
+          <Text style={[s.reviewBtnText, { color: colors.primaryForeground }]}>Leave a quick review  ★</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => router.push('/(onboarding)/16-summary')}
+          activeOpacity={0.7}
+          style={s.notNow}
+        >
+          <Text style={[s.notNowText, { color: colors.mutedForeground }]}>Not now</Text>
+        </TouchableOpacity>
+      </View>
+    </OnboardingShell>
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
-  content: { paddingHorizontal: Spacing.xl, paddingTop: Spacing['3xl'], paddingBottom: Spacing['3xl'] },
-  label: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: Colors.primary, letterSpacing: 2, textTransform: 'uppercase', marginBottom: Spacing.md },
-  title: { fontSize: FontSize['3xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: Colors.foreground, lineHeight: 38, marginBottom: Spacing['2xl'] },
-  reviews: { gap: Spacing.md, marginBottom: Spacing['2xl'] },
-  card: { padding: Spacing.xl, borderRadius: Radius.xl, backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.border, gap: Spacing.md },
-  stars: { flexDirection: 'row', gap: 2 },
-  star: { color: Colors.primary, fontSize: FontSize.base },
-  reviewText: { fontSize: FontSize.base, color: Colors.foreground, lineHeight: 24, fontStyle: 'italic' },
-  reviewer: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
-  avatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(232,157,53,0.2)', alignItems: 'center', justifyContent: 'center' },
-  avatarText: { color: Colors.primary, fontFamily: 'PlusJakartaSans-Bold', fontSize: FontSize.sm },
-  reviewerName: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: Colors.foreground },
-  reviewerHandle: { fontSize: FontSize.xs, color: Colors.mutedForeground },
-});
+function makeStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: Spacing.lg },
+    nori: { width: 96, height: 96 },
+    confettiRow: { flexDirection: 'row', gap: Spacing.md, marginBottom: Spacing.md },
+    confetti: { fontSize: 24 },
+    title: { fontSize: FontSize['2xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground, textAlign: 'center', lineHeight: 32, marginBottom: Spacing.md },
+    sub: { fontSize: FontSize.sm, color: c.mutedForeground, textAlign: 'center', lineHeight: 22, marginBottom: Spacing['2xl'] },
+    card: { width: '100%', borderRadius: 24, borderWidth: 1, padding: Spacing.xl, alignItems: 'center' },
+    cardTitle: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-Bold', color: c.foreground, textAlign: 'center', marginBottom: 4 },
+    cardSub: { fontSize: FontSize.sm, color: c.mutedForeground, textAlign: 'center', marginBottom: Spacing.xl },
+    starsRow: { flexDirection: 'row', gap: Spacing.lg },
+    star: { fontSize: 36 },
+    bottom: { paddingBottom: Spacing['3xl'], gap: Spacing.sm },
+    reviewBtn: { borderRadius: Radius.full, paddingVertical: 18, alignItems: 'center' },
+    reviewBtnText: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-ExtraBold' },
+    notNow: { paddingVertical: 14, alignItems: 'center' },
+    notNowText: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-SemiBold' },
+  });
+}

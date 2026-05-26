@@ -1,248 +1,461 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, Share,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl,
+  Alert, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { supabase } from '@/lib/supabase';
-import { Colors, FontSize, Spacing, Radius } from '@/constants/theme';
+import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import Animated, {
+  useSharedValue, useAnimatedStyle, useAnimatedProps,
+  withTiming, withSpring, withSequence, withDelay,
+  BounceIn,
+} from 'react-native-reanimated';
+import { supabase, MealPlan, GrocerySection, GroceryItem } from '@/lib/supabase';
+import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
+import { useThemeColors } from '@/context/ThemeContext';
+import { trackGroceryListOpened } from '@/lib/analytics';
 
-type GroceryItem = {
-  name: string;
-  quantity: string;
-  cost_usd: number;
-  nova_score: number;
-  checked: boolean;
-  cheaper_alternative?: string;
+const SECTION_EMOJIS: Record<string, string> = {
+  produce: '🥦', protein: '🥩', dairy: '🥛', grains: '🌾',
+  pantry: '🫙', frozen: '🧊', beverages: '🥤', other: '🛒',
 };
 
-type GrocerySection = {
-  section: string;
-  items: GroceryItem[];
+const NOVA_COLORS: Record<number, string> = {
+  1: '#8A9A7C', 2: '#E8C135', 3: '#E89D35', 4: '#E85353',
 };
 
-type GroceryList = {
-  sections: GrocerySection[];
-  total_cost: number;
-  budget: number;
-};
+function relativeTime(isoStr: string): string {
+  const diff = Date.now() - new Date(isoStr).getTime();
+  const mins = Math.floor(diff / 60_000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins} minute${mins !== 1 ? 's' : ''} ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} hour${hrs !== 1 ? 's' : ''} ago`;
+  return new Date(isoStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
 
-const NOVA_COLORS: Record<number, string> = { 1: '#8A9A7C', 2: '#E89D35', 3: '#D87F63', 4: '#E85353' };
-const SECTION_ICONS: Record<string, string> = {
-  proteins: '🥩', produce: '🥦', dairy: '🥛', pantry: '🥫', other: '🛒',
-};
+// Animated grocery item row
+function GroceryItemRow({
+  item, itemKey, isChecked, onToggle, colors,
+}: {
+  item: GroceryItem;
+  itemKey: string;
+  isChecked: boolean;
+  onToggle: (key: string) => void;
+  colors: ThemeColors;
+}) {
+  const checkScale   = useSharedValue(isChecked ? 1 : 0);
+  const textOpacity  = useSharedValue(isChecked ? 0.4 : 1);
+  const flashOpacity = useSharedValue(0);
+
+  const prevChecked = useRef(isChecked);
+
+  useEffect(() => {
+    if (prevChecked.current === isChecked) return;
+    prevChecked.current = isChecked;
+
+    if (isChecked) {
+      checkScale.value  = withSequence(withSpring(1.2), withSpring(1.0));
+      textOpacity.value = withTiming(0.4, { duration: 200 });
+      flashOpacity.value = withSequence(
+        withTiming(0.15, { duration: 80 }),
+        withDelay(520, withTiming(0, { duration: 300 })),
+      );
+    } else {
+      checkScale.value  = withTiming(0, { duration: 150 });
+      textOpacity.value = withTiming(1, { duration: 200 });
+    }
+  }, [isChecked]);
+
+  const checkmarkStyle  = useAnimatedStyle(() => ({ transform: [{ scale: checkScale.value }] }));
+  const textStyle       = useAnimatedStyle(() => ({ opacity: textOpacity.value }));
+  const flashStyle      = useAnimatedStyle(() => ({ opacity: flashOpacity.value }));
+
+  const s = itemStyles;
+  return (
+    <TouchableOpacity
+      style={[s.row, { backgroundColor: colors.card }]}
+      onPress={() => onToggle(itemKey)}
+      activeOpacity={0.75}
+    >
+      {/* teal background flash on check */}
+      <Animated.View style={[StyleSheet.absoluteFill, s.flash, flashStyle]} pointerEvents="none" />
+
+      <View style={[
+        s.checkbox,
+        { borderColor: isChecked ? colors.secondary : colors.border, backgroundColor: isChecked ? colors.secondary : colors.card },
+      ]}>
+        <Animated.View style={checkmarkStyle}>
+          {isChecked && <Ionicons name="checkmark" size={13} color="white" />}
+        </Animated.View>
+      </View>
+
+      <Animated.View style={[s.body, textStyle]}>
+        <Text style={[s.name, { color: colors.foreground }, isChecked && s.nameChecked]}>
+          {item.name}
+        </Text>
+        <Text style={[s.sub, { color: colors.mutedForeground }]}>
+          {item.quantity}{item.unit ? ` ${item.unit}` : ''}
+          {item.estimated_cost != null ? ` · ~$${item.estimated_cost.toFixed(2)}` : ''}
+        </Text>
+      </Animated.View>
+
+      {item.estimated_cost != null && (
+        <Animated.Text style={[s.price, textStyle, isChecked ? { color: colors.mutedForeground } : { color: colors.primary }]}>
+          ${item.estimated_cost.toFixed(2)}
+        </Animated.Text>
+      )}
+      {item.nova_score != null && (
+        <View style={[s.novaBadge, { backgroundColor: NOVA_COLORS[item.nova_score] + '22', borderColor: NOVA_COLORS[item.nova_score] + '55' }]}>
+          <Text style={[s.novaText, { color: NOVA_COLORS[item.nova_score] }]}>{item.nova_score}</Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+}
+
+const itemStyles = StyleSheet.create({
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 16, borderWidth: 1.5, borderColor: 'transparent', overflow: 'hidden' },
+  flash: { backgroundColor: '#1D9E75', borderRadius: 16 },
+  checkbox: { width: 24, height: 24, borderRadius: 8, borderWidth: 2, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  body: { flex: 1 },
+  name: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-SemiBold' },
+  nameChecked: { textDecorationLine: 'line-through' },
+  sub: { fontSize: 11, marginTop: 2 },
+  price: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-Bold', flexShrink: 0 },
+  novaBadge: { width: 22, height: 22, borderRadius: 11, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  novaText: { fontSize: 10, fontFamily: 'PlusJakartaSans-ExtraBold' },
+});
 
 export default function GroceryListScreen() {
-  const [list, setList] = useState<GroceryList | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [generating, setGenerating] = useState(false);
-  const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
+  const colors = useThemeColors();
+  const s = makeStyles(colors);
+  const [plan, setPlan] = useState<MealPlan | null>(null);
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+  const [hidePantry, setHidePantry] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshingList, setRefreshingList] = useState(false);
+  const [isStale, setIsStale] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
+  // Reanimated toast
+  const toastOpacity = useSharedValue(0);
+  const toastStyle = useAnimatedStyle(() => ({ opacity: toastOpacity.value }));
+
+  async function load() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const { data: plan } = await supabase
+    const { data } = await supabase
       .from('meal_plans')
-      .select('plan_json')
+      .select('*')
       .eq('user_id', user.id)
-      .eq('is_active', true)
-      .order('created_at', { ascending: false })
+      .order('week_start', { ascending: false })
       .limit(1)
       .single();
-
-    if (plan?.plan_json?.grocery_list) {
-      setList(plan.plan_json.grocery_list);
+    if (data) {
+      setPlan(data);
+      const listGenAt: string | undefined = (data.grocery_list as any)?.generated_at;
+      const planUpdatedAt: string = (data as any).updated_at ?? data.created_at;
+      if (listGenAt && planUpdatedAt) {
+        setIsStale(new Date(planUpdatedAt) > new Date(listGenAt));
+        setLastUpdated(listGenAt);
+      } else {
+        setLastUpdated(planUpdatedAt ?? data.created_at);
+        setIsStale(false);
+      }
     }
-    setLoading(false);
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
-
-  async function generateList() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    setGenerating(true);
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
-    const { data, error } = await supabase.functions.invoke('grocery-list/generate', {
-      body: { user_id: user.id },
-    });
-
-    if (!error && data?.grocery_list) {
-      setList(data.grocery_list);
-    }
-    setGenerating(false);
   }
+
+  useEffect(() => { load(); trackGroceryListOpened(); }, []);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await load();
+    setRefreshing(false);
+  }, []);
 
   function toggleItem(key: string) {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setCheckedItems(prev => ({ ...prev, [key]: !prev[key] }));
+    setChecked(prev => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
   }
 
-  async function shareList() {
-    if (!list) return;
-    const text = list.sections.map(s =>
-      `${s.section.toUpperCase()}\n` +
-      s.items.map(i => `• ${i.quantity} ${i.name}`).join('\n')
-    ).join('\n\n');
-    await Share.share({ message: `FoodWise Grocery List\n\n${text}\n\nTotal: ~$${list.total_cost.toFixed(2)}` });
-  }
-
-  const budgetPct = list ? Math.min(list.total_cost / list.budget, 1) : 0;
-  const totalChecked = Object.values(checkedItems).filter(Boolean).length;
-  const totalItems = list?.sections.reduce((acc, s) => acc + s.items.length, 0) ?? 0;
-
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.safe}>
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-        </View>
-      </SafeAreaView>
+  function showToast() {
+    toastOpacity.value = withSequence(
+      withTiming(1, { duration: 200 }),
+      withDelay(2000, withTiming(0, { duration: 300 })),
     );
   }
 
-  return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Grocery List</Text>
-        <View style={styles.headerActions}>
-          {list && (
-            <TouchableOpacity style={styles.iconBtn} onPress={shareList} activeOpacity={0.75}>
-              <Text style={styles.iconBtnText}>⬆ Share</Text>
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity
-            style={[styles.genBtn, generating && styles.genBtnLoading]}
-            onPress={generateList}
-            disabled={generating}
-            activeOpacity={0.8}
-          >
-            {generating
-              ? <ActivityIndicator size="small" color={Colors.primaryForeground} />
-              : <Text style={styles.genBtnText}>⚡ Generate</Text>}
-          </TouchableOpacity>
-        </View>
-      </View>
+  async function doRefreshList() {
+    if (!plan) return;
+    setRefreshingList(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const res = await fetch(
+        `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/grocery-list-generate`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+          body: JSON.stringify({ plan_id: plan.id }),
+        }
+      );
+      if (!res.ok) throw new Error('refresh failed');
+      const { plan: updatedPlan } = await res.json();
+      if (updatedPlan) {
+        setPlan(updatedPlan);
+        setIsStale(false);
+        setLastUpdated(new Date().toISOString());
+      }
+      setChecked(new Set());
+      showToast();
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch {
+      Alert.alert('Couldn\'t refresh', 'Check your connection and try again.');
+    } finally {
+      setRefreshingList(false);
+    }
+  }
 
-      {!list ? (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyIcon}>🛒</Text>
-          <Text style={styles.emptyTitle}>No grocery list yet</Text>
-          <Text style={styles.emptySub}>Generate a meal plan first, then tap Generate to build your grouped, budget-tracked grocery list.</Text>
-        </View>
-      ) : (
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-          {/* Budget bar */}
-          <View style={styles.budgetCard}>
-            <View style={styles.budgetRow}>
-              <Text style={styles.budgetLabel}>Weekly budget</Text>
-              <Text style={styles.budgetAmount}>
-                ${list.total_cost.toFixed(2)} <Text style={styles.budgetOf}>/ ${list.budget}</Text>
-              </Text>
-            </View>
-            <View style={styles.budgetTrack}>
-              <View style={[styles.budgetFill, { width: `${budgetPct * 100}%`, backgroundColor: budgetPct > 1 ? Colors.destructive : Colors.secondary }]} />
-            </View>
-            <Text style={styles.budgetStatus}>
-              {budgetPct <= 1
-                ? `$${(list.budget - list.total_cost).toFixed(2)} under budget 🎉`
-                : `$${(list.total_cost - list.budget).toFixed(2)} over budget`}
+  function handleRefresh() {
+    if (checked.size > 3) {
+      Alert.alert(
+        'Clear checked items?',
+        'Refreshing will clear your checked items. Continue?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Refresh', onPress: doRefreshList },
+        ]
+      );
+    } else {
+      doRefreshList();
+    }
+  }
+
+  const sections: GrocerySection[] = plan?.grocery_list?.sections ?? [];
+  const visibleSections = hidePantry
+    ? sections.filter(sec => sec.category.toLowerCase() !== 'pantry')
+    : sections;
+  const totalItems = sections.reduce((acc, sec) => acc + sec.items.length, 0);
+  const checkedCount = checked.size;
+  const budgetTotal = plan?.grocery_list?.estimated_total ?? 0;
+  const weeklyBudget = 75;
+  const budgetPct = Math.min(100, Math.round((budgetTotal / weeklyBudget) * 100));
+  const budgetRemaining = Math.max(0, weeklyBudget - budgetTotal);
+
+  return (
+    <SafeAreaView style={s.safe}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={s.scroll}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
+      >
+        {/* Header */}
+        <View style={s.header}>
+          <View>
+            <Text style={[s.screenTitle, { color: colors.foreground }]}>Grocery List</Text>
+            <Text style={[s.subTitle, { color: colors.mutedForeground }]}>
+              {totalItems > 0 ? `${checkedCount}/${totalItems} checked` : 'No list yet'}
             </Text>
           </View>
-
-          {/* Progress */}
-          <View style={styles.progressRow}>
-            <Text style={styles.progressText}>{totalChecked} / {totalItems} items checked</Text>
+          <View style={{ flexDirection: 'row', gap: Spacing.sm }}>
+            <TouchableOpacity
+              style={[s.iconBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+              onPress={handleRefresh}
+              disabled={refreshingList}
+              activeOpacity={0.8}
+            >
+              {refreshingList
+                ? <ActivityIndicator size="small" color={colors.primary} />
+                : <Ionicons name="refresh-outline" size={20} color={colors.primary} />}
+            </TouchableOpacity>
+            <TouchableOpacity style={[s.iconBtn, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <Ionicons name="share-outline" size={20} color={colors.primary} />
+            </TouchableOpacity>
           </View>
+        </View>
 
-          {/* Sections */}
-          {list.sections.map((section) => (
-            <View key={section.section} style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionIcon}>{SECTION_ICONS[section.section.toLowerCase()] ?? '🛒'}</Text>
-                <Text style={styles.sectionTitle}>{section.section}</Text>
-                <Text style={styles.sectionCount}>{section.items.length} items</Text>
-              </View>
-              {section.items.map((item) => {
-                const key = `${section.section}-${item.name}`;
-                const checked = checkedItems[key] ?? false;
-                return (
-                  <TouchableOpacity
-                    key={key}
-                    style={[styles.item, checked && styles.itemChecked]}
-                    onPress={() => toggleItem(key)}
-                    activeOpacity={0.75}
-                  >
-                    <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
-                      {checked && <Text style={styles.checkmark}>✓</Text>}
-                    </View>
-                    <View style={styles.itemBody}>
-                      <View style={styles.itemRow}>
-                        <Text style={[styles.itemName, checked && styles.itemNameChecked]}>{item.quantity} {item.name}</Text>
-                        <View style={[styles.novaBadge, { backgroundColor: `${NOVA_COLORS[item.nova_score]}22`, borderColor: NOVA_COLORS[item.nova_score] }]}>
-                          <Text style={[styles.novaText, { color: NOVA_COLORS[item.nova_score] }]}>N{item.nova_score}</Text>
-                        </View>
-                      </View>
-                      {item.cheaper_alternative && (
-                        <Text style={styles.altText}>💡 Try: {item.cheaper_alternative}</Text>
-                      )}
-                      <Text style={styles.itemCost}>~${item.cost_usd.toFixed(2)}</Text>
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
+        {/* Staleness banner */}
+        {isStale && (
+          <View style={s.staleBanner}>
+            <Ionicons name="warning-outline" size={16} color="#92400E" />
+            <Text style={s.staleBannerText}>Your meal plan has changed — tap Refresh to update your list.</Text>
+            <TouchableOpacity onPress={handleRefresh} disabled={refreshingList} style={s.staleRefreshBtn}>
+              <Text style={s.staleRefreshText}>Refresh</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {lastUpdated && (
+          <Text style={[s.lastUpdated, { color: colors.mutedForeground }]}>
+            Last updated {relativeTime(lastUpdated)}
+          </Text>
+        )}
+
+        {/* Budget bar */}
+        {budgetTotal > 0 && (
+          <View style={[s.budgetCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={s.budgetTop}>
+              <Text style={[s.budgetLabel, { color: colors.foreground }]}>Weekly Budget</Text>
+              <Text style={[s.budgetAmount, { color: colors.secondary }]}>
+                ${budgetTotal.toFixed(2)} / ${weeklyBudget.toFixed(2)}
+              </Text>
             </View>
-          ))}
-        </ScrollView>
-      )}
+            <View style={[s.barTrack, { backgroundColor: colors.muted }]}>
+              <View style={[s.barFill, { width: `${budgetPct}%` as any, backgroundColor: colors.secondary }]} />
+            </View>
+            <View style={s.budgetBottom}>
+              <Text style={[s.budgetRemaining, { color: colors.mutedForeground }]}>${budgetRemaining.toFixed(2)} remaining</Text>
+              <Text style={[s.budgetPct, { color: colors.secondary }]}>{budgetPct}%</Text>
+            </View>
+          </View>
+        )}
+
+        {/* Pantry toggle */}
+        <View style={[s.pantryRow, { backgroundColor: colors.muted }]}>
+          <View style={[s.pantryIcon, { backgroundColor: 'rgba(232,157,53,0.12)' }]}>
+            <Ionicons name="pricetag-outline" size={18} color={colors.primary} />
+          </View>
+          <View style={s.pantryText}>
+            <Text style={[s.pantryTitle, { color: colors.foreground }]}>Pantry Staples</Text>
+            <Text style={[s.pantrySub, { color: colors.mutedForeground }]}>Hide items you likely already have</Text>
+          </View>
+          <TouchableOpacity
+            style={[s.toggle, { backgroundColor: hidePantry ? colors.muted : colors.primary }]}
+            onPress={() => setHidePantry(p => !p)}
+            activeOpacity={0.8}
+          >
+            <View style={[s.toggleThumb, { transform: [{ translateX: hidePantry ? 2 : 22 }] }]} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Tip */}
+        {plan?.grocery_list?.savings_tip && (
+          <View style={[s.tipRow, { backgroundColor: colors.secondary + '0D', borderColor: colors.secondary + '1A' }]}>
+            <Ionicons name="bulb-outline" size={16} color={colors.secondary} />
+            <Text style={[s.tipText, { color: colors.foreground }]}>{plan.grocery_list.savings_tip}</Text>
+          </View>
+        )}
+
+        {/* Empty state */}
+        {sections.length === 0 && (
+          <View style={s.emptyState}>
+            <Text style={s.emptyIcon}>🛒</Text>
+            <Text style={[s.emptyTitle, { color: colors.foreground }]}>No grocery list yet</Text>
+            <Text style={[s.emptySub, { color: colors.mutedForeground }]}>Generate a meal plan first, then your grocery list will appear here.</Text>
+          </View>
+        )}
+
+        {/* Sections */}
+        <View style={s.sections}>
+          {visibleSections.map(section => {
+            const catKey = section.category.toLowerCase();
+            const emoji = SECTION_EMOJIS[catKey] ?? '🛒';
+            const isPantry = catKey === 'pantry';
+            const sectionKeys = section.items.map((item: GroceryItem, i: number) => `${section.category}-${item.name}-${i}`);
+            const allChecked = sectionKeys.length > 0 && sectionKeys.every(k => checked.has(k));
+
+            return (
+              <View key={section.category} style={s.section}>
+                <View style={s.sectionHeader}>
+                  <Text style={s.sectionEmoji}>{emoji}</Text>
+                  <Text style={[s.sectionTitle, { color: colors.foreground }]}>{section.category}</Text>
+                  {isPantry && (
+                    <View style={[s.stapleBadge, { backgroundColor: 'rgba(232,157,53,0.1)' }]}>
+                      <Text style={[s.stapleBadgeText, { color: colors.primary }]}>Staples</Text>
+                    </View>
+                  )}
+                  {allChecked && (
+                    <Animated.View entering={BounceIn.duration(400)} style={s.allCheckedBadge}>
+                      <Ionicons name="checkmark-circle" size={16} color="#1D9E75" />
+                    </Animated.View>
+                  )}
+                  <View style={[s.countBadge, { backgroundColor: colors.muted }]}>
+                    <Text style={[s.countText, { color: colors.mutedForeground }]}>{section.items.length} items</Text>
+                  </View>
+                </View>
+                <View style={s.itemsList}>
+                  {section.items.map((item: GroceryItem, i: number) => {
+                    const key = sectionKeys[i]!;
+                    return (
+                      <GroceryItemRow
+                        key={key}
+                        item={item}
+                        itemKey={key}
+                        isChecked={checked.has(key)}
+                        onToggle={toggleItem}
+                        colors={colors}
+                      />
+                    );
+                  })}
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      </ScrollView>
+
+      {/* Toast — Reanimated */}
+      <Animated.View style={[s.toast, toastStyle]} pointerEvents="none">
+        <Ionicons name="checkmark-circle" size={18} color="#fff" />
+        <Text style={s.toastText}>List updated</Text>
+      </Animated.View>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.xl, paddingTop: Spacing.xl, paddingBottom: Spacing.md },
-  headerTitle: { fontSize: FontSize['2xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: Colors.foreground },
-  headerActions: { flexDirection: 'row', gap: Spacing.sm },
-  iconBtn: { paddingHorizontal: Spacing.md, paddingVertical: 8, borderRadius: Radius.full, borderWidth: 1, borderColor: Colors.border },
-  iconBtnText: { fontSize: FontSize.xs, color: Colors.foreground, fontFamily: 'PlusJakartaSans-SemiBold' },
-  genBtn: { backgroundColor: Colors.primary, borderRadius: Radius.full, paddingHorizontal: Spacing.lg, paddingVertical: 10 },
-  genBtnLoading: { opacity: 0.7 },
-  genBtnText: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: Colors.primaryForeground },
-  emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: Spacing.xl, gap: Spacing.md },
-  emptyIcon: { fontSize: 56 },
-  emptyTitle: { fontSize: FontSize['2xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: Colors.foreground },
-  emptySub: { fontSize: FontSize.base, color: Colors.mutedForeground, textAlign: 'center', lineHeight: 24 },
-  scroll: { paddingHorizontal: Spacing.xl, paddingBottom: Spacing['3xl'], gap: Spacing.lg },
-  budgetCard: { padding: Spacing.xl, borderRadius: Radius.xl, backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.border, gap: Spacing.sm },
-  budgetRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  budgetLabel: { fontSize: FontSize.sm, color: Colors.mutedForeground, fontFamily: 'PlusJakartaSans-SemiBold' },
-  budgetAmount: { fontSize: FontSize.lg, fontFamily: 'PlusJakartaSans-ExtraBold', color: Colors.foreground },
-  budgetOf: { fontSize: FontSize.sm, color: Colors.mutedForeground, fontFamily: 'PlusJakartaSans-Medium' },
-  budgetTrack: { height: 6, borderRadius: Radius.full, backgroundColor: Colors.border, overflow: 'hidden' },
-  budgetFill: { height: '100%', borderRadius: Radius.full },
-  budgetStatus: { fontSize: FontSize.sm, color: Colors.secondary, fontFamily: 'PlusJakartaSans-SemiBold' },
-  progressRow: { alignItems: 'center' },
-  progressText: { fontSize: FontSize.sm, color: Colors.mutedForeground },
-  section: { gap: Spacing.xs },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, paddingBottom: Spacing.sm },
-  sectionIcon: { fontSize: 20 },
-  sectionTitle: { flex: 1, fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-Bold', color: Colors.foreground, textTransform: 'capitalize' },
-  sectionCount: { fontSize: FontSize.xs, color: Colors.mutedForeground },
-  item: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md, padding: Spacing.md, borderRadius: Radius.lg, backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.border },
-  itemChecked: { opacity: 0.5 },
-  checkbox: { width: 22, height: 22, borderRadius: 11, borderWidth: 1.5, borderColor: Colors.border, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
-  checkboxChecked: { backgroundColor: Colors.secondary, borderColor: Colors.secondary },
-  checkmark: { color: Colors.foreground, fontSize: 11, fontFamily: 'PlusJakartaSans-Bold' },
-  itemBody: { flex: 1, gap: 2 },
-  itemRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
-  itemName: { flex: 1, fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-SemiBold', color: Colors.foreground },
-  itemNameChecked: { textDecorationLine: 'line-through', color: Colors.mutedForeground },
-  novaBadge: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, borderWidth: 1 },
-  novaText: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-Bold' },
-  altText: { fontSize: FontSize.xs, color: Colors.accent, lineHeight: 16 },
-  itemCost: { fontSize: FontSize.xs, color: Colors.mutedForeground },
-});
+function makeStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    safe: { flex: 1, backgroundColor: c.background },
+    scroll: { paddingBottom: 100 },
+    header: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', paddingHorizontal: Spacing.xl, paddingTop: Spacing.xl, marginBottom: Spacing.sm },
+    screenTitle: { fontSize: FontSize['2xl'], fontFamily: 'PlusJakartaSans-ExtraBold', marginBottom: 2 },
+    subTitle: { fontSize: FontSize.sm },
+    iconBtn: { width: 48, height: 48, borderRadius: 24, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+    staleBanner: { marginHorizontal: Spacing.xl, marginBottom: Spacing.sm, flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderRadius: Radius.lg, backgroundColor: '#FAEEDA', borderLeftWidth: 3, borderLeftColor: '#D97706', borderWidth: 1, borderColor: '#FCD34D' },
+    staleBannerText: { flex: 1, fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-SemiBold', color: '#92400E' },
+    staleRefreshBtn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.full, backgroundColor: '#D97706' },
+    staleRefreshText: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-ExtraBold', color: '#fff' },
+    lastUpdated: { fontSize: FontSize.xs, paddingHorizontal: Spacing.xl, marginBottom: Spacing.md },
+    budgetCard: { marginHorizontal: Spacing.xl, borderRadius: Radius.xl, borderWidth: 1, padding: 16, marginBottom: Spacing.lg },
+    budgetTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+    budgetLabel: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold' },
+    budgetAmount: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold' },
+    barTrack: { height: 12, borderRadius: 6, overflow: 'hidden', marginBottom: 6 },
+    barFill: { height: '100%', borderRadius: 6 },
+    budgetBottom: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    budgetRemaining: { fontSize: FontSize.xs },
+    budgetPct: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-Bold' },
+    pantryRow: { marginHorizontal: Spacing.xl, borderRadius: Radius.xl, padding: 16, flexDirection: 'row', alignItems: 'center', gap: Spacing.md, marginBottom: Spacing.lg },
+    pantryIcon: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+    pantryText: { flex: 1 },
+    pantryTitle: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold' },
+    pantrySub: { fontSize: FontSize.xs, marginTop: 1 },
+    toggle: { width: 48, height: 24, borderRadius: 12, justifyContent: 'center' },
+    toggleThumb: { width: 20, height: 20, borderRadius: 10, backgroundColor: 'white', position: 'absolute' },
+    tipRow: { marginHorizontal: Spacing.xl, flexDirection: 'row', alignItems: 'center', gap: 8, padding: Spacing.md, borderRadius: Radius.lg, borderWidth: 1, marginBottom: Spacing['2xl'] },
+    tipText: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-SemiBold', fontStyle: 'italic', flex: 1 },
+    emptyState: { alignItems: 'center', paddingTop: Spacing['3xl'], paddingHorizontal: Spacing.xl },
+    emptyIcon: { fontSize: 64, marginBottom: Spacing.xl },
+    emptyTitle: { fontSize: FontSize.xl, fontFamily: 'PlusJakartaSans-ExtraBold', marginBottom: Spacing.sm },
+    emptySub: { fontSize: FontSize.sm, textAlign: 'center', lineHeight: 20 },
+    sections: { paddingHorizontal: Spacing.xl, gap: Spacing['3xl'] },
+    section: {},
+    sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: Spacing.md },
+    sectionEmoji: { fontSize: 18 },
+    sectionTitle: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-ExtraBold' },
+    stapleBadge: { borderRadius: Radius.full, paddingHorizontal: 8, paddingVertical: 2 },
+    stapleBadgeText: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-Bold' },
+    allCheckedBadge: { marginLeft: 2 },
+    countBadge: { borderRadius: Radius.full, paddingHorizontal: 8, paddingVertical: 2, marginLeft: 'auto' },
+    countText: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-Bold' },
+    itemsList: { gap: 8 },
+    toast: { position: 'absolute', bottom: 100, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#1D9E75', borderRadius: Radius.full, paddingHorizontal: 20, paddingVertical: 12 },
+    toastText: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-ExtraBold', color: '#fff' },
+  });
+}

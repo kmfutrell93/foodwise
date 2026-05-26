@@ -1,87 +1,144 @@
+import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/Button';
-import { Colors, FontSize, Spacing } from '@/constants/theme';
+import { OnboardingShell } from '@/components/ui/OnboardingShell';
 import { supabase } from '@/lib/supabase';
-import { useState } from 'react';
+import { FontSize, Spacing, ThemeColors } from '@/constants/theme';
+import { useThemeColors } from '@/context/ThemeContext';
+import { initAnalytics, trackOnboardingStarted } from '@/lib/analytics';
 
 export default function Welcome() {
   const router = useRouter();
+  const colors = useThemeColors();
+  const s = makeStyles(colors);
   const [loading, setLoading] = useState(false);
 
   async function handleStart() {
     setLoading(true);
-    // Anonymous sign-in so we can persist progress immediately
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
-      await supabase.auth.signInAnonymously();
+      const { data } = await supabase.auth.signInAnonymously();
+      if (data.user) await initAnalytics(data.user.id);
     }
+    trackOnboardingStarted();
     router.push('/(onboarding)/02-problem');
     setLoading(false);
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.container}>
-        <View style={styles.top}>
+    <OnboardingShell step={1} showBack={false} skipRoute="/(onboarding)/10-restrictions">
+      {/* Nori + speech bubble */}
+      <View style={s.heroArea}>
+        <View style={s.noriWrap}>
           <Image
-            source={require('@/assets/images/nori.png')}
-            style={styles.nori}
+            source={require('@/assets/images/nori_character.png')}
+            style={s.nori}
             resizeMode="contain"
           />
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>For GLP-1 Users</Text>
+          <View style={s.bubble}>
+            <Text style={s.bubbleText}>Hey there! 👋</Text>
           </View>
         </View>
 
-        <View style={styles.copy}>
-          <Text style={styles.title}>Meet Nori,{'\n'}your GLP-1{'\n'}nutrition guide.</Text>
-          <Text style={styles.subtitle}>
-            Smart meal plans that work with your medication — protecting your muscle while you lose weight.
-          </Text>
-        </View>
+        {/* Title */}
+        <Text style={s.title}>
+          Meet <Text style={s.titleHighlight}>Nori</Text>,{'\n'}your GLP-1{'\n'}nutrition guide.
+        </Text>
 
-        <View style={styles.bottom}>
-          <Button label="Get started — it's free" onPress={handleStart} loading={loading} />
-          <Text style={styles.disclaimer}>No credit card required · Cancel anytime</Text>
+        {/* Subtitle */}
+        <Text style={s.subtitle}>
+          Built for Ozempic, Wegovy, Mounjaro & Zepbound users who want to eat smarter — not just less.
+        </Text>
+
+        {/* Trust badges */}
+        <View style={s.badges}>
+          <View style={s.badge}>
+            <Text style={s.badgeStar}>★</Text>
+            <Text style={s.badgeLabel}>4.9 Rating</Text>
+          </View>
+          <View style={s.divider} />
+          <View style={s.badge}>
+            <Text style={s.badgeIcon}>👥</Text>
+            <Text style={s.badgeLabel}>50K+ Users</Text>
+          </View>
+          <View style={s.divider} />
+          <View style={s.badge}>
+            <Text style={s.badgeIcon}>🛡️</Text>
+            <Text style={s.badgeLabel}>Science-based</Text>
+          </View>
         </View>
       </View>
-    </SafeAreaView>
+
+      {/* CTA pushed to bottom */}
+      <View style={s.bottom}>
+        <Button label="Let's get started" onPress={handleStart} loading={loading} />
+        <Text style={s.disclaimer}>Free 7-day trial · No credit card required to start</Text>
+      </View>
+    </OnboardingShell>
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
-  container: { flex: 1, paddingHorizontal: Spacing.xl, paddingTop: Spacing['2xl'], paddingBottom: Spacing.xl },
-  top: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  nori: { width: 180, height: 180, marginBottom: Spacing.lg },
-  badge: {
-    backgroundColor: 'rgba(232,157,53,0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(232,157,53,0.3)',
-    borderRadius: 9999,
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-  },
-  badgeText: { color: Colors.primary, fontFamily: 'PlusJakartaSans-SemiBold', fontSize: FontSize.sm },
-  copy: { marginBottom: Spacing['2xl'] },
-  title: {
-    fontSize: FontSize['4xl'],
-    fontFamily: 'PlusJakartaSans-ExtraBold',
-    color: Colors.foreground,
-    lineHeight: 44,
-    marginBottom: Spacing.lg,
-  },
-  subtitle: {
-    fontSize: FontSize.base,
-    color: Colors.mutedForeground,
-    lineHeight: 24,
-  },
-  bottom: { gap: Spacing.md },
-  disclaimer: {
-    textAlign: 'center',
-    color: Colors.mutedForeground,
-    fontSize: FontSize.xs,
-  },
-});
+function makeStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    heroArea: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingTop: Spacing.md,
+    },
+
+    noriWrap: { position: 'relative', marginBottom: Spacing['2xl'] },
+    nori: { width: 160, height: 160 },
+    bubble: {
+      position: 'absolute',
+      top: -8,
+      right: -16,
+      backgroundColor: c.primary,
+      borderRadius: 999,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+    },
+    bubbleText: {
+      fontSize: FontSize.xs,
+      fontFamily: 'PlusJakartaSans-Bold',
+      color: c.primaryForeground,
+    },
+
+    title: {
+      fontSize: 36,
+      fontFamily: 'PlusJakartaSans-ExtraBold',
+      color: c.foreground,
+      textAlign: 'center',
+      lineHeight: 44,
+      marginBottom: Spacing.md,
+    },
+    titleHighlight: { color: c.primary },
+
+    subtitle: {
+      fontSize: FontSize.base,
+      color: c.mutedForeground,
+      textAlign: 'center',
+      lineHeight: 24,
+      marginBottom: Spacing['2xl'],
+    },
+
+    badges: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.md,
+    },
+    badge: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    badgeStar: { fontSize: 12, color: c.primary },
+    badgeIcon: { fontSize: 12 },
+    badgeLabel: {
+      fontSize: FontSize.xs,
+      fontFamily: 'PlusJakartaSans-SemiBold',
+      color: c.mutedForeground,
+    },
+    divider: { width: 1, height: 12, backgroundColor: c.border },
+
+    bottom: { gap: Spacing.md, paddingBottom: Spacing.md },
+    disclaimer: { textAlign: 'center', color: c.mutedForeground, fontSize: FontSize.xs },
+  });
+}

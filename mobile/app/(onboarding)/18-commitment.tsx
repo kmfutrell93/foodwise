@@ -1,61 +1,85 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useRef } from 'react';
+import { View, Text, Image, StyleSheet, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { OnboardingShell } from '@/components/ui/OnboardingShell';
 import { Button } from '@/components/ui/Button';
-import { Colors, FontSize, Spacing, Radius } from '@/constants/theme';
+import { useOnboarding } from '@/context/OnboardingContext';
+import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
+import { useThemeColors } from '@/context/ThemeContext';
+
+const COMMITMENTS = [
+  { icon: '🥩', text: 'Log my meals daily — even on rough injection days' },
+  { icon: '💪', text: 'Hit my protein target to protect my muscle' },
+  { icon: '📅', text: 'Follow my injection-day plan' },
+  { icon: '📈', text: 'Track symptoms to find what works for me' },
+];
 
 export default function Commitment() {
+  const colors = useThemeColors();
+  const s = makeStyles(colors);
   const router = useRouter();
-  return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.container}>
-        <Text style={styles.emoji}>🤝</Text>
-        <Text style={styles.label}>Our commitment to you</Text>
-        <Text style={styles.title}>FoodWise{'\n'}promises.</Text>
+  const { saveStep } = useOnboarding();
+  const scale = useRef(new Animated.Value(1)).current;
 
-        <View style={styles.promises}>
-          {[
-            { icon: '🔒', text: 'Your health data never leaves your device without your permission' },
-            { icon: '🧬', text: "We'll never give you advice that contradicts your doctor's guidance" },
-            { icon: '🎯', text: 'Every meal plan is built around your specific protein target' },
-            { icon: '💉', text: "We'll always respect your injection schedule, no matter what" },
-          ].map((p) => (
-            <View key={p.text} style={styles.promise}>
-              <Text style={styles.promiseIcon}>{p.icon}</Text>
-              <Text style={styles.promiseText}>{p.text}</Text>
+  async function handleCommit() {
+    Animated.sequence([
+      Animated.timing(scale, { toValue: 0.95, duration: 100, useNativeDriver: true }),
+      Animated.timing(scale, { toValue: 1, duration: 100, useNativeDriver: true }),
+    ]).start();
+    await saveStep(18);
+    router.push('/(onboarding)/19-pricing-intro');
+  }
+
+  return (
+    <OnboardingShell step={18}>
+      <View style={s.container}>
+        <View style={s.noriWrap}>
+          <Image source={require('@/assets/images/nori_character.png')} style={s.noriImg} resizeMode="contain" />
+        </View>
+        <Text style={s.label}>Your commitment</Text>
+        <Text style={s.title}>Make it{'\n'}official.</Text>
+        <Text style={s.sub}>Small daily actions build the habit. Here's what you're committing to:</Text>
+
+        <View style={s.list}>
+          {COMMITMENTS.map(c => (
+            <View key={c.text} style={s.row}>
+              <Text style={s.icon}>{c.icon}</Text>
+              <Text style={s.text}>{c.text}</Text>
             </View>
           ))}
         </View>
 
-        <View style={styles.disclaimer}>
-          <Text style={styles.disclaimerText}>
-            FoodWise provides nutrition guidance only. Always consult your healthcare provider for medical advice about your GLP-1 medication.
+        <View style={s.pledge}>
+          <Text style={s.pledgeTitle}>The FoodWise Pledge</Text>
+          <Text style={s.pledgeText}>
+            "I'll show up for myself — not perfectly, but consistently. I'll use food as a tool to protect my health while on GLP-1 medication."
           </Text>
         </View>
 
-        <View style={styles.spacer} />
-        <Button label="I'm in — let's see pricing" onPress={() => router.push('/(onboarding)/19-pricing-intro')} />
+        <View style={s.spacer} />
+        <Animated.View style={{ transform: [{ scale }] }}>
+          <Button label="I'm in — let's go" onPress={handleCommit} />
+        </Animated.View>
       </View>
-    </SafeAreaView>
+    </OnboardingShell>
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
-  container: { flex: 1, paddingHorizontal: Spacing.xl, paddingTop: Spacing['3xl'], paddingBottom: Spacing.xl },
-  emoji: { fontSize: 48, marginBottom: Spacing.lg },
-  label: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: Colors.primary, letterSpacing: 2, textTransform: 'uppercase', marginBottom: Spacing.sm },
-  title: { fontSize: FontSize['3xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: Colors.foreground, lineHeight: 38, marginBottom: Spacing['2xl'] },
-  promises: { gap: Spacing.lg, marginBottom: Spacing.xl },
-  promise: { flexDirection: 'row', gap: Spacing.md, alignItems: 'flex-start' },
-  promiseIcon: { fontSize: 22, width: 30 },
-  promiseText: { flex: 1, fontSize: FontSize.base, color: Colors.foreground, lineHeight: 24 },
-  disclaimer: {
-    padding: Spacing.md,
-    borderRadius: Radius.lg,
-    backgroundColor: Colors.muted,
-  },
-  disclaimerText: { fontSize: FontSize.xs, color: Colors.mutedForeground, lineHeight: 18 },
+function makeStyles(c: ThemeColors) {
+  return StyleSheet.create({
+  container: { flex: 1, paddingTop: Spacing.md, paddingBottom: Spacing.xl },
+  noriWrap: { alignItems: 'center', marginBottom: Spacing['2xl'] },
+  noriImg: { width: 144, height: 144 },
+  label: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: c.primary, letterSpacing: 2, textTransform: 'uppercase', marginBottom: Spacing.md },
+  title: { fontSize: FontSize['3xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground, lineHeight: 38, marginBottom: Spacing.sm },
+  sub: { fontSize: FontSize.sm, color: c.mutedForeground, lineHeight: 20, marginBottom: Spacing['2xl'] },
+  list: { gap: Spacing.md, marginBottom: Spacing['2xl'] },
+  row: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md },
+  icon: { fontSize: 22, lineHeight: 28 },
+  text: { flex: 1, fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-SemiBold', color: c.foreground, lineHeight: 24 },
+  pledge: { backgroundColor: c.card, borderRadius: Radius.lg, borderWidth: 1, borderColor: 'rgba(232,157,53,0.3)', padding: Spacing.xl },
+  pledgeTitle: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: c.primary, marginBottom: Spacing.sm, textAlign: 'center', textTransform: 'uppercase', letterSpacing: 1 },
+  pledgeText: { fontSize: FontSize.base, color: c.foreground, fontFamily: 'PlusJakartaSans-SemiBold', lineHeight: 26, textAlign: 'center', fontStyle: 'italic' },
   spacer: { flex: 1 },
 });
+}

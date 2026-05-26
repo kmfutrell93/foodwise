@@ -1,89 +1,116 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, Text, Image, StyleSheet, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import * as Notifications from 'expo-notifications';
+import { OnboardingShell } from '@/components/ui/OnboardingShell';
 import { Button } from '@/components/ui/Button';
-import { Colors, FontSize, Spacing, Radius } from '@/constants/theme';
 import { useOnboarding } from '@/context/OnboardingContext';
-import { supabase } from '@/lib/supabase';
+import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
+import { useThemeColors } from '@/context/ThemeContext';
+import * as Notifications from 'expo-notifications';
 
-const notifBenefits = [
-  { icon: '💉', text: 'Injection-day meal package at 7am' },
-  { icon: '📊', text: 'Weekly progress report every Sunday' },
-  { icon: '🔥', text: 'Streak reminders before they reset' },
-  { icon: '🎉', text: 'Milestone celebrations' },
+const NUDGES = [
+  { icon: '🌅', text: 'Morning protein reminder' },
+  { icon: '💉', text: 'Injection-day meal alert' },
+  { icon: '📋', text: 'Weekly plan ready notification' },
+  { icon: '🔥', text: 'Streak protection reminders' },
 ];
 
-export default function Notification() {
+export default function NotificationScreen() {
+  const colors = useThemeColors();
+  const s = makeStyles(colors);
   const router = useRouter();
   const { setField, saveStep } = useOnboarding();
   const [loading, setLoading] = useState(false);
 
   async function requestPermission() {
     setLoading(true);
-    const { status } = await Notifications.requestPermissionsAsync();
-    const enabled = status === 'granted';
-    setField('notifications_enabled', enabled);
-
-    if (enabled) {
-      const token = await Notifications.getExpoPushTokenAsync().catch(() => null);
-      if (token) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          await supabase.from('profiles').update({ push_token: token.data }).eq('id', user.id);
-        }
+    try {
+      if (Platform.OS !== 'ios' && Platform.OS !== 'android') {
+        await proceed(false, null);
+        return;
       }
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status === 'granted') {
+        const tokenData = await Notifications.getExpoPushTokenAsync().catch(() => null);
+        await proceed(true, tokenData?.data ?? null);
+      } else {
+        await proceed(false, null);
+      }
+    } finally {
+      setLoading(false);
     }
-
-    await saveStep(21);
-    router.push('/(onboarding)/22-paywall');
-    setLoading(false);
   }
 
-  async function skipNotifications() {
-    setField('notifications_enabled', false);
+  async function skip() {
+    await proceed(false, null);
+  }
+
+  async function proceed(enabled: boolean, token: string | null) {
+    setField('notifications_enabled', enabled);
+    if (token) setField('push_token', token);
     await saveStep(21);
-    router.push('/(onboarding)/22-paywall');
+    router.push('/(onboarding)/21b-disclosure');
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.container}>
-        <Text style={styles.emoji}>🔔</Text>
-        <Text style={styles.label}>Stay on track</Text>
-        <Text style={styles.title}>Let Nori nudge{'\n'}you at the right{'\n'}moments.</Text>
+    <OnboardingShell step={21}>
+      <View style={s.container}>
+        <View style={s.noriWrap}>
+          <Image source={require('@/assets/images/nori_character.png')} style={s.noriImg} resizeMode="contain" />
+          <View style={s.bellBadge}>
+            <Text style={s.bellBadgeIcon}>🔔</Text>
+          </View>
+        </View>
+        <Text style={s.label}>Stay on track</Text>
+        <Text style={s.title}>Don't let a missed{'\n'}meal break your{'\n'}streak.</Text>
+        <Text style={s.sub}>Turn on notifications so we can remind you at the right moment — especially on injection day.</Text>
 
-        <View style={styles.benefits}>
-          {notifBenefits.map((b) => (
-            <View key={b.text} style={styles.benefit}>
-              <Text style={styles.benefitIcon}>{b.icon}</Text>
-              <Text style={styles.benefitText}>{b.text}</Text>
+        <View style={s.nudges}>
+          {NUDGES.map(n => (
+            <View key={n.text} style={s.nudgeRow}>
+              <Text style={s.nudgeIcon}>{n.icon}</Text>
+              <Text style={s.nudgeText}>{n.text}</Text>
             </View>
           ))}
         </View>
 
-        <View style={styles.spacer} />
+        <View style={s.spacer} />
 
-        <Button label="Enable notifications" onPress={requestPermission} loading={loading} />
-        <Text style={styles.skip} onPress={skipNotifications}>Skip for now</Text>
-        <Text style={styles.fine}>You can change this anytime in Settings</Text>
+        <Button label="Turn on notifications" onPress={requestPermission} loading={loading} style={s.primaryBtn} />
+        <Button label="Maybe later" variant="ghost" onPress={skip} style={s.skipBtn} />
       </View>
-    </SafeAreaView>
+    </OnboardingShell>
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
-  container: { flex: 1, paddingHorizontal: Spacing.xl, paddingTop: Spacing['3xl'], paddingBottom: Spacing.xl },
-  emoji: { fontSize: 48, marginBottom: Spacing.lg },
-  label: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: Colors.primary, letterSpacing: 2, textTransform: 'uppercase', marginBottom: Spacing.sm },
-  title: { fontSize: FontSize['3xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: Colors.foreground, lineHeight: 38, marginBottom: Spacing['2xl'] },
-  benefits: { gap: Spacing.lg },
-  benefit: { flexDirection: 'row', alignItems: 'center', gap: Spacing.lg },
-  benefitIcon: { fontSize: 24, width: 32 },
-  benefitText: { fontSize: FontSize.base, color: Colors.foreground, flex: 1, lineHeight: 22 },
+function makeStyles(c: ThemeColors) {
+  return StyleSheet.create({
+  container: { flex: 1, paddingTop: Spacing.md, paddingBottom: Spacing.xl },
+  noriWrap: { position: 'relative', alignSelf: 'flex-start', marginBottom: Spacing.xl },
+  noriImg: { width: 112, height: 112 },
+  bellBadge: {
+    position: 'absolute',
+    bottom: -4,
+    right: -4,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: c.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: c.background,
+  },
+  bellBadgeIcon: { fontSize: 18 },
+  label: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: c.primary, letterSpacing: 2, textTransform: 'uppercase', marginBottom: Spacing.md },
+  title: { fontSize: FontSize['3xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground, lineHeight: 38, marginBottom: Spacing.sm },
+  sub: { fontSize: FontSize.sm, color: c.mutedForeground, lineHeight: 20, marginBottom: Spacing['2xl'] },
+  nudges: { gap: Spacing.md },
+  nudgeRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  nudgeIcon: { fontSize: 22, width: 32, textAlign: 'center' },
+  nudgeText: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-SemiBold', color: c.foreground },
   spacer: { flex: 1 },
-  skip: { textAlign: 'center', color: Colors.mutedForeground, fontSize: FontSize.base, paddingVertical: Spacing.lg },
-  fine: { textAlign: 'center', color: Colors.mutedForeground, fontSize: FontSize.xs },
+  primaryBtn: { marginBottom: Spacing.sm },
+  skipBtn: {},
 });
+}

@@ -14,91 +14,83 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
-export type Database = {
-  public: {
-    Tables: {
-      profiles: {
-        Row: Profile;
-        Insert: Partial<Profile>;
-        Update: Partial<Profile>;
-      };
-      meal_plans: {
-        Row: MealPlan;
-        Insert: Partial<MealPlan>;
-        Update: Partial<MealPlan>;
-      };
-      symptom_logs: {
-        Row: SymptomLog;
-        Insert: Partial<SymptomLog>;
-        Update: Partial<SymptomLog>;
-      };
-      streaks: {
-        Row: Streak;
-        Insert: Partial<Streak>;
-        Update: Partial<Streak>;
-      };
-      milestones: {
-        Row: Milestone;
-        Insert: Partial<Milestone>;
-        Update: Partial<Milestone>;
-      };
-      weekly_reports: {
-        Row: WeeklyReport;
-        Insert: Partial<WeeklyReport>;
-        Update: Partial<WeeklyReport>;
-      };
-    };
-  };
-};
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 export type Profile = {
   id: string;
+  full_name: string | null;
+  email: string | null;
   created_at: string;
   updated_at: string;
-  // Onboarding
+
+  // onboarding state
+  onboarding_step: number;
+  onboarding_completed: boolean;
+
+  // question answers
   primary_struggle: 'protein' | 'nausea' | 'confusion' | 'muscle' | null;
-  protein_goal_range: 'under25' | '25-50' | '50-75' | '75-100' | '100plus' | 'unsure' | null;
+  protein_goal_range: string | null;
   dietary_restrictions: string[];
   weekly_budget: number;
   appetite_level: 'low' | 'moderate' | 'normal' | null;
-  check_in_time: string; // HH:MM format
+  check_in_time: 'morning' | 'midday' | 'evening' | null;
   notifications_enabled: boolean;
-  onboarding_completed: boolean;
-  onboarding_step: number;
-  // GLP-1 specific
-  medication: 'ozempic' | 'wegovy' | 'mounjaro' | 'zepbound' | 'other' | null;
-  injection_day: number | null; // 0=Sun, 1=Mon, ... 6=Sat
-  dose_mg: number | null;
-  food_aversions: string[];
-  // App state
-  is_pro: boolean;
-  trial_started_at: string | null;
-  meal_plans_generated: number;
   push_token: string | null;
+
+  // GLP-1 specifics
+  medication: 'semaglutide' | 'tirzepatide' | 'liraglutide' | 'other' | null;
+  injection_day: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday' | null;
+  dose_mg: number | null;
+  dose_start_date: string | null;
+  escalation_schedule: object | null;
+  time_on_medication: string | null;
+  food_aversions: string[];
+
+  // Phase 2 preferences
+  show_weight_log: boolean;
+  hydration_reminders_enabled: boolean;
+  starter_guide_completed: boolean;
+  starter_guide_step: number;
+  health_connected: boolean;
+  health_permissions: object | null;
+  steps_today: number;
+};
+
+export type MealItem = {
+  slot: string;
+  name: string;
+  protein_g: number;
+  calories: number;
+  cost?: number;
+  note?: string;
 };
 
 export type MealDay = {
   day: string;
-  date: string;
   is_injection_day: boolean;
-  meals: {
-    breakfast: MealItem;
-    lunch: MealItem;
-    dinner: MealItem;
-    snack?: MealItem;
-  };
-  totals: { protein_g: number; calories: number; cost_usd: number };
+  total_protein_g: number;
+  total_calories: number;
+  estimated_cost?: number;
+  meals: MealItem[];
 };
 
-export type MealItem = {
+export type GroceryItem = {
   name: string;
-  description: string;
-  protein_g: number;
-  calories: number;
-  cost_usd: number;
-  prep_minutes: number;
-  texture: 'soft' | 'normal' | 'crunchy';
-  ingredients: string[];
+  quantity: string;
+  unit: string;
+  estimated_cost?: number;
+  nova_score?: 1 | 2 | 3 | 4;
+};
+
+export type GrocerySection = {
+  category: string;
+  items: GroceryItem[];
+};
+
+export type GroceryList = {
+  estimated_total?: number;
+  savings_tip?: string;
+  sections: GrocerySection[];
 };
 
 export type MealPlan = {
@@ -106,30 +98,28 @@ export type MealPlan = {
   user_id: string;
   created_at: string;
   week_start: string;
-  plan_json: { days: MealDay[]; weekly_total: { protein_g: number; calories: number; cost_usd: number } };
-  is_active: boolean;
+  plan_json: { days: MealDay[] };
+  grocery_list: GroceryList;
 };
 
 export type SymptomLog = {
   id: string;
   user_id: string;
   logged_at: string;
-  nausea: number | null;
-  constipation: number | null;
-  fatigue: number | null;
-  food_aversions: string[];
+  symptoms: string[];
+  severity: number;
+  energy_level: number;
   notes: string | null;
 };
 
 export type Streak = {
   id: string;
   user_id: string;
-  protein_streak: number;
-  checkin_streak: number;
-  plan_streak: number;
-  last_protein_log: string | null;
-  last_checkin: string | null;
-  last_plan_generated: string | null;
+  current_streak: number;
+  longest_streak: number;
+  total_logs: number;
+  last_logged_at: string | null;
+  updated_at: string;
 };
 
 export type MilestoneType =
@@ -143,14 +133,49 @@ export type MilestoneType =
 export type Milestone = {
   id: string;
   user_id: string;
-  type: MilestoneType;
+  milestone_type: MilestoneType;
   earned_at: string;
+};
+
+export type WeightLog = {
+  id: string;
+  user_id: string;
+  logged_date: string;
+  weight_lbs: number;
+  note: string | null;
+  source: 'manual' | 'apple_health';
+  created_at: string;
+};
+
+export type Recipe = {
+  id: string;
+  name: string;
+  meal_type: string[];
+  medication_suitability: string[];
+  texture: string;
+  phase_suitability: string[];
+  protein_g: number;
+  calories: number;
+  cook_time_mins: number;
+  skill_level: string;
+  serving_size: number;
+  ingredients: { name: string; qty: string; unit: string }[];
+  instructions: string[];
+  nova_score: number;
+  allergens: string[];
+  budget_tier: string;
+  tags: string[];
+  dietitian_reviewed: boolean;
+  created_at: string;
 };
 
 export type WeeklyReport = {
   id: string;
   user_id: string;
-  week_of: string;
-  summary: string;
+  week_start: string;
+  insight_text: string | null;
+  avg_protein_g: number | null;
+  avg_energy: number | null;
+  symptom_summary: Record<string, number>;
   created_at: string;
 };

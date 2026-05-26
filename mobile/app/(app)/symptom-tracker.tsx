@@ -1,238 +1,255 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  TextInput, ActivityIndicator,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, RefreshControl, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Slider from '@react-native-community/slider';
-import { supabase, SymptomLog } from '@/lib/supabase';
-import { Colors, FontSize, Spacing, Radius } from '@/constants/theme';
 import * as Haptics from 'expo-haptics';
+import { supabase, SymptomLog } from '@/lib/supabase';
+import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
+import { useThemeColors } from '@/context/ThemeContext';
+import { trackSymptomLogged, trackInsightViewed } from '@/lib/analytics';
 
-const AVERSION_OPTIONS = [
-  'meat', 'chicken', 'fish', 'eggs', 'dairy', 'bread',
-  'greasy food', 'sweet food', 'spicy food', 'raw veg',
-];
-
-type Insight = { adjustment: string; reason: string } | null;
+const SYMPTOMS = ['nausea', 'fatigue', 'constipation', 'bloating', 'vomiting', 'headache', 'dizziness', 'heartburn'];
+const SYMPTOM_ICONS: Record<string, string> = {
+  nausea: '🤢', fatigue: '😴', constipation: '😣', bloating: '🫧',
+  vomiting: '🤮', headache: '🤕', dizziness: '😵', heartburn: '🔥',
+};
 
 export default function SymptomTracker() {
-  const [nausea, setNausea] = useState(1);
-  const [constipation, setConstipation] = useState(1);
-  const [fatigue, setFatigue] = useState(1);
-  const [aversions, setAversions] = useState<string[]>([]);
+  const colors = useThemeColors();
+  const s = makeStyles(colors);
+  const [logs, setLogs] = useState<SymptomLog[]>([]);
+  const [severity, setSeverity] = useState(3);
+  const [energyLevel, setEnergyLevel] = useState(5);
+  const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [insight, setInsight] = useState<Insight>(null);
+  const [insight, setInsight] = useState<{ insight: string; recommendation?: string } | null>(null);
   const [loadingInsight, setLoadingInsight] = useState(false);
-  const [logCount, setLogCount] = useState(0);
 
-  useEffect(() => {
-    (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { count } = await supabase.from('symptom_logs').select('*', { count: 'exact', head: true }).eq('user_id', user.id);
-      setLogCount(count ?? 0);
-
-      if ((count ?? 0) >= 7) {
-        fetchInsight(user.id);
-      }
-    })();
-  }, []);
-
-  async function fetchInsight(userId: string) {
-    setLoadingInsight(true);
-    const { data } = await supabase.functions.invoke('symptoms/insights', {
-      body: { user_id: userId },
-    });
-    if (data?.adjustment) setInsight(data);
-    setLoadingInsight(false);
-  }
-
-  async function save() {
+  async function loadLogs() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    setSaving(true);
-
-    await supabase.from('symptom_logs').insert({
-      user_id: user.id,
-      nausea,
-      constipation,
-      fatigue,
-      food_aversions: aversions,
-      notes: notes.trim() || null,
-    });
-
-    // Update streak
-    await supabase.rpc('increment_streak', { p_user_id: user.id, p_streak_type: 'checkin' });
-
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    setSaved(true);
-    setSaving(false);
-
-    const newCount = logCount + 1;
-    setLogCount(newCount);
-    if (newCount >= 7) fetchInsight(user.id);
+    const { data } = await supabase
+      .from('symptom_logs').select('*').eq('user_id', user.id)
+      .order('logged_at', { ascending: false }).limit(10);
+    if (data) setLogs(data);
   }
 
-  function toggleAversion(a: string) {
+  useEffect(() => { loadLogs(); }, []);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadLogs();
+    setRefreshing(false);
+  }, []);
+
+  function toggleSymptom(sym: string) {
     Haptics.selectionAsync();
-    setAversions(prev => prev.includes(a) ? prev.filter(x => x !== a) : [...prev, a]);
+    setSelectedSymptoms(prev => prev.includes(sym) ? prev.filter(x => x !== sym) : [...prev, sym]);
   }
 
-  const sliderLabel = (v: number) => ['', 'None', 'Mild', 'Moderate', 'Significant', 'Severe'][v] ?? '';
+  async function saveLog() {
+    if (selectedSymptoms.length === 0) return;
+    setSaving(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      await supabase.from('symptom_logs').insert({
+        user_id: user.id, symptoms: selectedSymptoms, severity,
+        energy_level: energyLevel, notes: notes.trim() || null,
+        logged_at: new Date().toISOString(),
+      });
+      await supabase.rpc('increment_streak', { p_user_id: user.id });
+      setSelectedSymptoms([]);
+      setNotes('');
+      setSeverity(3);
+      setEnergyLevel(5);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      trackSymptomLogged({ symptoms: selectedSymptoms, severity, energy_level: energyLevel, has_notes: notes.trim().length > 0 });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+      await loadLogs();
+      // Fetch AI insight in background after 3+ logs
+      const { count } = await supabase.from('symptom_logs').select('id', { count: 'exact', head: true }).eq('user_id', user.id);
+      if ((count ?? 0) >= 3) fetchInsight();
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function fetchInsight() {
+    setLoadingInsight(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const res = await fetch(
+        `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/symptoms-insights`,
+        { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` }, body: JSON.stringify({}) }
+      );
+      if (res.ok) {
+        setInsight(await res.json());
+        trackInsightViewed('symptom_tracker');
+      }
+    } finally {
+      setLoadingInsight(false);
+    }
+  }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-        <Text style={styles.screenTitle}>Symptom Tracker</Text>
-        <Text style={styles.sub}>How are you feeling today? This helps Nori adjust your meals.</Text>
+    <SafeAreaView style={s.safe}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={s.scroll}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text style={s.screenTitle}>Symptom tracker</Text>
 
-        {/* AI Insight Card */}
-        {logCount >= 7 && (
-          <View style={styles.insightCard}>
-            <Text style={styles.insightLabel}>🧠 AI Insight</Text>
+        <View style={s.card}>
+          <Text style={s.cardTitle}>Log today's symptoms</Text>
+          <Text style={s.cardSub}>Select all that apply</Text>
+          <View style={s.tags}>
+            {SYMPTOMS.map(sym => {
+              const sel = selectedSymptoms.includes(sym);
+              return (
+                <TouchableOpacity
+                  key={sym}
+                  style={[s.tag, sel && { borderColor: colors.accent, backgroundColor: colors.accent + '1F' }]}
+                  onPress={() => toggleSymptom(sym)}
+                  activeOpacity={0.75}
+                >
+                  <Text style={s.tagEmoji}>{SYMPTOM_ICONS[sym]}</Text>
+                  <Text style={[s.tagText, sel && { color: colors.accent }]}>
+                    {sym.charAt(0).toUpperCase() + sym.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          <Text style={s.sliderLabel}>Overall severity: <Text style={s.sliderVal}>{severity}/5</Text></Text>
+          <Slider
+            style={s.slider}
+            minimumValue={1} maximumValue={5} step={1} value={severity}
+            onValueChange={setSeverity}
+            minimumTrackTintColor={colors.accent}
+            maximumTrackTintColor={colors.border}
+            thumbTintColor={colors.accent}
+          />
+
+          <Text style={s.sliderLabel}>Energy level: <Text style={s.sliderVal}>{energyLevel}/10</Text></Text>
+          <Slider
+            style={s.slider}
+            minimumValue={1} maximumValue={10} step={1} value={energyLevel}
+            onValueChange={setEnergyLevel}
+            minimumTrackTintColor={colors.secondary}
+            maximumTrackTintColor={colors.border}
+            thumbTintColor={colors.secondary}
+          />
+
+          <TextInput
+            style={s.notesInput}
+            placeholder="Any notes? (optional)"
+            placeholderTextColor={colors.mutedForeground}
+            value={notes}
+            onChangeText={setNotes}
+            multiline
+            numberOfLines={3}
+            textAlignVertical="top"
+          />
+
+          <TouchableOpacity
+            style={[s.logBtn, (selectedSymptoms.length === 0 || saving) && s.logBtnDisabled]}
+            onPress={saveLog}
+            disabled={selectedSymptoms.length === 0 || saving}
+            activeOpacity={0.85}
+          >
+            {saving ? (
+              <ActivityIndicator color={colors.primaryForeground} size="small" />
+            ) : (
+              <Text style={s.logBtnText}>{saved ? '✓ Logged!' : 'Log symptoms'}</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {(insight || loadingInsight) && (
+          <View style={[s.insightCard, { backgroundColor: 'rgba(138,154,124,0.1)', borderColor: 'rgba(138,154,124,0.2)' }]}>
+            <Text style={[s.insightTitle, { color: colors.secondary }]}>🌿 Nori's insight</Text>
             {loadingInsight ? (
-              <ActivityIndicator color={Colors.primary} />
+              <ActivityIndicator color={colors.secondary} />
             ) : insight ? (
               <>
-                <Text style={styles.insightText}>{insight.adjustment}</Text>
-                <Text style={styles.insightReason}>{insight.reason}</Text>
+                <Text style={[s.insightText, { color: colors.foreground }]}>{insight.insight}</Text>
+                {insight.recommendation && (
+                  <Text style={[s.insightRec, { color: colors.secondary }]}>💡 {insight.recommendation}</Text>
+                )}
               </>
-            ) : (
-              <Text style={styles.insightEmpty}>Insight will appear after 7 days of data.</Text>
-            )}
+            ) : null}
           </View>
         )}
 
-        {saved ? (
-          <View style={styles.savedCard}>
-            <Text style={styles.savedIcon}>✅</Text>
-            <Text style={styles.savedTitle}>Logged!</Text>
-            <Text style={styles.savedSub}>
-              {logCount >= 7
-                ? 'Nori is analyzing your patterns.'
-                : `${7 - logCount} more days until your first AI insight.`}
-            </Text>
-            <TouchableOpacity onPress={() => setSaved(false)} style={styles.logAgainBtn} activeOpacity={0.75}>
-              <Text style={styles.logAgainText}>Log another day</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <>
-            {/* Symptom sliders */}
-            {[
-              { label: 'Nausea', value: nausea, onChange: (v: number) => { setNausea(v); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } },
-              { label: 'Constipation', value: constipation, onChange: (v: number) => { setConstipation(v); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } },
-              { label: 'Fatigue', value: fatigue, onChange: (v: number) => { setFatigue(v); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } },
-            ].map(({ label, value, onChange }) => (
-              <View key={label} style={styles.sliderCard}>
-                <View style={styles.sliderHeader}>
-                  <Text style={styles.sliderLabel}>{label}</Text>
-                  <Text style={styles.sliderValue}>{sliderLabel(value)}</Text>
+        {logs.length > 0 && (
+          <View style={s.historySection}>
+            <Text style={s.historyTitle}>Recent logs</Text>
+            {logs.map(log => (
+              <View key={log.id} style={s.logCard}>
+                <View style={s.logHeader}>
+                  <Text style={s.logDate}>
+                    {new Date(log.logged_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                  </Text>
+                  <Text style={s.logSeverity}>Sev {log.severity}/5 · Energy {log.energy_level}/10</Text>
                 </View>
-                <Slider
-                  minimumValue={1}
-                  maximumValue={5}
-                  step={1}
-                  value={value}
-                  onValueChange={onChange}
-                  minimumTrackTintColor={Colors.accent}
-                  maximumTrackTintColor={Colors.border}
-                  thumbTintColor={Colors.accent}
-                  style={{ height: 36 }}
-                />
-                <View style={styles.sliderTicks}>
-                  {[1, 2, 3, 4, 5].map(n => (
-                    <Text key={n} style={[styles.tick, value === n && styles.tickActive]}>{n}</Text>
+                <View style={s.logSymptoms}>
+                  {(log.symptoms as string[]).map(sym => (
+                    <View key={sym} style={s.logTag}>
+                      <Text style={s.logTagText}>{SYMPTOM_ICONS[sym]} {sym}</Text>
+                    </View>
                   ))}
                 </View>
+                {log.notes && <Text style={s.logNotes}>{log.notes}</Text>}
               </View>
             ))}
-
-            {/* Food aversions */}
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>Food Aversions Today</Text>
-              <Text style={styles.cardSub}>What doesn't appeal to you right now?</Text>
-              <View style={styles.tags}>
-                {AVERSION_OPTIONS.map(a => (
-                  <TouchableOpacity
-                    key={a}
-                    style={[styles.tag, aversions.includes(a) && styles.tagSelected]}
-                    onPress={() => toggleAversion(a)}
-                    activeOpacity={0.75}
-                  >
-                    <Text style={[styles.tagText, aversions.includes(a) && styles.tagTextSelected]}>{a}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            {/* Notes */}
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>Notes (optional)</Text>
-              <TextInput
-                style={styles.input}
-                value={notes}
-                onChangeText={setNotes}
-                placeholder="Anything else Nori should know?"
-                placeholderTextColor={Colors.mutedForeground}
-                multiline
-                numberOfLines={3}
-              />
-            </View>
-
-            <TouchableOpacity
-              style={[styles.saveBtn, saving && styles.saveBtnLoading]}
-              onPress={save}
-              disabled={saving}
-              activeOpacity={0.85}
-            >
-              {saving
-                ? <ActivityIndicator color={Colors.primaryForeground} />
-                : <Text style={styles.saveBtnText}>Log symptoms ✓</Text>}
-            </TouchableOpacity>
-          </>
+          </View>
         )}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
-  scroll: { paddingHorizontal: Spacing.xl, paddingTop: Spacing.xl, paddingBottom: Spacing['3xl'], gap: Spacing.lg },
-  screenTitle: { fontSize: FontSize['2xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: Colors.foreground },
-  sub: { fontSize: FontSize.sm, color: Colors.mutedForeground, lineHeight: 22 },
-  insightCard: { padding: Spacing.xl, borderRadius: Radius.xl, backgroundColor: 'rgba(138,154,124,0.1)', borderWidth: 1.5, borderColor: 'rgba(138,154,124,0.3)', gap: Spacing.sm },
-  insightLabel: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: Colors.secondary, letterSpacing: 0.5 },
-  insightText: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-SemiBold', color: Colors.foreground, lineHeight: 24 },
-  insightReason: { fontSize: FontSize.sm, color: Colors.mutedForeground, lineHeight: 20 },
-  insightEmpty: { fontSize: FontSize.sm, color: Colors.mutedForeground },
-  savedCard: { alignItems: 'center', padding: Spacing['3xl'], gap: Spacing.md, backgroundColor: Colors.card, borderRadius: Radius.xl, borderWidth: 1, borderColor: Colors.border },
-  savedIcon: { fontSize: 48 },
-  savedTitle: { fontSize: FontSize['2xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: Colors.foreground },
-  savedSub: { fontSize: FontSize.base, color: Colors.mutedForeground, textAlign: 'center', lineHeight: 24 },
-  logAgainBtn: { paddingHorizontal: Spacing.xl, paddingVertical: 12, borderRadius: Radius.full, borderWidth: 1, borderColor: Colors.border },
-  logAgainText: { fontSize: FontSize.sm, color: Colors.mutedForeground, fontFamily: 'PlusJakartaSans-SemiBold' },
-  sliderCard: { padding: Spacing.xl, borderRadius: Radius.xl, backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.border },
-  sliderHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.sm },
-  sliderLabel: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-Bold', color: Colors.foreground },
-  sliderValue: { fontSize: FontSize.sm, color: Colors.accent, fontFamily: 'PlusJakartaSans-SemiBold' },
-  sliderTicks: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 2 },
-  tick: { fontSize: FontSize.xs, color: Colors.mutedForeground, width: 20, textAlign: 'center' },
-  tickActive: { color: Colors.accent, fontFamily: 'PlusJakartaSans-Bold' },
-  card: { padding: Spacing.xl, borderRadius: Radius.xl, backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.border, gap: Spacing.md },
-  cardTitle: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-Bold', color: Colors.foreground },
-  cardSub: { fontSize: FontSize.sm, color: Colors.mutedForeground },
-  tags: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
-  tag: { paddingHorizontal: Spacing.md, paddingVertical: 8, borderRadius: Radius.full, borderWidth: 1.5, borderColor: Colors.border, backgroundColor: Colors.muted },
-  tagSelected: { borderColor: Colors.accent, backgroundColor: 'rgba(216,127,99,0.12)' },
-  tagText: { fontSize: FontSize.sm, color: Colors.foreground },
-  tagTextSelected: { color: Colors.accent, fontFamily: 'PlusJakartaSans-SemiBold' },
-  input: { borderWidth: 1, borderColor: Colors.border, borderRadius: Radius.lg, padding: Spacing.lg, color: Colors.foreground, fontSize: FontSize.base, backgroundColor: Colors.muted, minHeight: 80, textAlignVertical: 'top' },
-  saveBtn: { backgroundColor: Colors.primary, borderRadius: Radius.full, paddingVertical: 18, alignItems: 'center' },
-  saveBtnLoading: { opacity: 0.7 },
-  saveBtnText: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-Bold', color: Colors.primaryForeground },
-});
+function makeStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    safe: { flex: 1, backgroundColor: c.background },
+    scroll: { paddingHorizontal: Spacing.xl, paddingTop: Spacing.xl, paddingBottom: Spacing['3xl'] },
+    screenTitle: { fontSize: FontSize['2xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground, marginBottom: Spacing.xl },
+    card: { backgroundColor: c.card, borderRadius: Radius.xl, borderWidth: 1, borderColor: c.border, padding: Spacing.xl, marginBottom: Spacing['2xl'] },
+    cardTitle: { fontSize: FontSize.lg, fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground, marginBottom: 4 },
+    cardSub: { fontSize: FontSize.sm, color: c.mutedForeground, marginBottom: Spacing.xl },
+    tags: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginBottom: Spacing.xl },
+    tag: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: Spacing.md, paddingVertical: 8, borderRadius: Radius.full, borderWidth: 1.5, borderColor: c.border, backgroundColor: c.background },
+    tagEmoji: { fontSize: 14 },
+    tagText: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-SemiBold', color: c.foreground },
+    sliderLabel: { fontSize: FontSize.sm, color: c.mutedForeground, fontFamily: 'PlusJakartaSans-SemiBold', marginBottom: 4 },
+    sliderVal: { color: c.foreground },
+    slider: { width: '100%', height: 40, marginBottom: Spacing.md },
+    notesInput: { backgroundColor: c.input, borderRadius: Radius.lg, borderWidth: 1, borderColor: c.border, padding: Spacing.lg, fontSize: FontSize.sm, color: c.foreground, fontFamily: 'PlusJakartaSans-Regular', height: 80, marginBottom: Spacing.xl },
+    logBtn: { backgroundColor: c.primary, borderRadius: Radius.lg, paddingVertical: 14, alignItems: 'center' },
+    logBtnDisabled: { opacity: 0.4 },
+    logBtnText: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-ExtraBold', color: c.primaryForeground },
+    insightCard: { borderRadius: Radius.xl, borderWidth: 1, padding: Spacing.xl, marginBottom: Spacing['2xl'] },
+    insightTitle: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-ExtraBold', textTransform: 'uppercase', letterSpacing: 1, marginBottom: Spacing.sm },
+    insightText: { fontSize: FontSize.sm, lineHeight: 22, marginBottom: Spacing.sm },
+    insightRec: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-SemiBold', lineHeight: 20 },
+    historySection: {},
+    historyTitle: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: c.mutedForeground, textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: Spacing.md },
+    logCard: { backgroundColor: c.card, borderRadius: Radius.lg, borderWidth: 1, borderColor: c.border, padding: Spacing.lg, marginBottom: Spacing.sm },
+    logHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: Spacing.sm },
+    logDate: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-SemiBold', color: c.foreground },
+    logSeverity: { fontSize: FontSize.xs, color: c.mutedForeground },
+    logSymptoms: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 4 },
+    logTag: { backgroundColor: c.accent + '1A', borderRadius: Radius.full, paddingHorizontal: 8, paddingVertical: 3 },
+    logTagText: { fontSize: FontSize.xs, color: c.accent, fontFamily: 'PlusJakartaSans-SemiBold' },
+    logNotes: { fontSize: FontSize.xs, color: c.mutedForeground, fontStyle: 'italic', marginTop: 4 },
+  });
+}

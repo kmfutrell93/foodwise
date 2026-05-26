@@ -1,225 +1,394 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, Modal,
+  ActivityIndicator, RefreshControl, Modal, TextInput,
 } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { supabase, MealPlan, MealDay, Profile } from '@/lib/supabase';
-import { Colors, FontSize, Spacing, Radius } from '@/constants/theme';
-import * as Haptics from 'expo-haptics';
+import { Ionicons } from '@expo/vector-icons';
+import { supabase, MealPlan, MealDay, MealItem } from '@/lib/supabase';
+import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
+import { useThemeColors } from '@/context/ThemeContext';
+import { trackMealSwapped } from '@/lib/analytics';
 
-const DAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DAY_SHORT: Record<string, string> = {
+  monday: 'Mon', tuesday: 'Tue', wednesday: 'Wed', thursday: 'Thu',
+  friday: 'Fri', saturday: 'Sat', sunday: 'Sun',
+};
+
+const SLOT_COLORS: Record<string, string> = {
+  breakfast: '#E89D35', 'morning snack': '#D87F63',
+  lunch: '#8A9A7C', snack: '#9B968C', dinner: '#8A9A7C',
+};
+
+const MEAL_EMOJIS: Record<string, string> = {
+  breakfast: '🥣', 'morning snack': '🥒',
+  lunch: '🥢', snack: '🍎', dinner: '🐟',
+};
 
 export default function MealPlanScreen() {
+  const colors = useThemeColors();
+  const s = makeStyles(colors);
   const [plan, setPlan] = useState<MealPlan | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
-  const [selectedDay, setSelectedDay] = useState<MealDay | null>(null);
-  const [swapping, setSwapping] = useState<{ dayIndex: number; slot: string } | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [selectedDay, setSelectedDay] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [swapping, setSwapping] = useState<string | null>(null);
+  const [swapModal, setSwapModal] = useState<{ day: string; slot: string } | null>(null);
+  const [swapReason, setSwapReason] = useState('');
 
-  const load = useCallback(async () => {
+  async function loadPlan() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const [{ data: prof }, { data: latestPlan }] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', user.id).single(),
-      supabase.from('meal_plans').select('*').eq('user_id', user.id).eq('is_active', true).order('created_at', { ascending: false }).limit(1).single(),
-    ]);
-    setProfile(prof);
-    setPlan(latestPlan);
-    if (latestPlan?.plan_json?.days?.[0]) setSelectedDay(latestPlan.plan_json.days[0]);
-    setLoading(false);
+    const { data } = await supabase
+      .from('meal_plans')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('week_start', { ascending: false })
+      .limit(1)
+      .single();
+    if (data) setPlan(data);
+  }
+
+  useEffect(() => { loadPlan(); }, []);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadPlan();
+    setRefreshing(false);
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  async function swapMeal(day: string, slot: string, reason: string) {
+    if (!plan) return;
+    setSwapping(slot);
+    setSwapModal(null);
+    setSwapReason('');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+      const res = await fetch(
+        `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/meal-plans/swap-meal`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+          body: JSON.stringify({ plan_id: plan.id, day, slot, reason }),
+        }
+      );
+      if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error ?? 'Swap failed'); }
+      trackMealSwapped({ slot, day });
+      await loadPlan();
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Swap failed');
+    } finally { setSwapping(null); }
+  }
 
   async function generatePlan() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
     setGenerating(true);
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
-    const { data, error } = await supabase.functions.invoke('meal-plans/generate', {
-      body: { user_id: user.id },
-    });
-
-    if (!error && data) {
-      await load();
-    }
-    setGenerating(false);
+    setError(null);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+      const res = await fetch(
+        `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/meal-plans/generate`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+          body: JSON.stringify({}),
+        }
+      );
+      if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error ?? 'Generation failed'); }
+      await loadPlan();
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Something went wrong');
+    } finally { setGenerating(false); }
   }
 
-  async function swapMeal(dayIndex: number, slot: string) {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user || !plan) return;
-    setSwapping({ dayIndex, slot });
-    Haptics.selectionAsync();
-
-    const { data, error } = await supabase.functions.invoke('meal-plans/swap-meal', {
-      body: { plan_id: plan.id, day_index: dayIndex, slot, user_id: user.id },
-    });
-
-    if (!error && data?.plan_json) {
-      setPlan(prev => prev ? { ...prev, plan_json: data.plan_json } : prev);
-      const updated = data.plan_json.days.find((_: any, i: number) => i === dayIndex);
-      if (updated) setSelectedDay(updated);
-    }
-    setSwapping(null);
-  }
-
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.safe}>
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-        </View>
-      </SafeAreaView>
-    );
-  }
+  const days: MealDay[] = plan?.plan_json?.days ?? [];
+  const day = days[selectedDay];
+  const weekStart = plan ? new Date(plan.week_start) : null;
+  const weekEnd = weekStart ? new Date(weekStart.getTime() + 6 * 86400000) : null;
+  const weekLabel = weekStart && weekEnd
+    ? `${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+    : '';
 
   return (
-    <SafeAreaView style={styles.safe}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Meal Plan</Text>
-        <TouchableOpacity
-          style={[styles.genBtn, generating && styles.genBtnLoading]}
-          onPress={generatePlan}
-          disabled={generating}
-          activeOpacity={0.8}
-        >
-          {generating
-            ? <ActivityIndicator size="small" color={Colors.primaryForeground} />
-            : <Text style={styles.genBtnText}>⚡ Generate</Text>}
-        </TouchableOpacity>
-      </View>
-
-      {!plan ? (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyIcon}>📅</Text>
-          <Text style={styles.emptyTitle}>No plan yet</Text>
-          <Text style={styles.emptySub}>Tap "Generate" to build your personalized 7-day meal plan.</Text>
+    <SafeAreaView style={s.safe}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={s.scroll}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
+      >
+        {/* Header */}
+        <View style={s.header}>
+          <View>
+            <Text style={s.screenTitle}>Weekly Plan</Text>
+            {weekLabel ? <Text style={[s.weekSub, { color: colors.mutedForeground }]}>{weekLabel}</Text> : null}
+          </View>
+          <TouchableOpacity
+            style={[s.headerBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+            onPress={generatePlan}
+            activeOpacity={0.8}
+          >
+            {generating
+              ? <ActivityIndicator size="small" color={colors.primary} />
+              : <Ionicons name="sparkles-outline" size={22} color={colors.primary} />}
+          </TouchableOpacity>
         </View>
-      ) : (
-        <>
-          {/* 7-day grid */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.dayScroll} contentContainerStyle={styles.dayScrollContent}>
-            {plan.plan_json.days.map((day, idx) => {
-              const date = new Date(day.date);
-              const isSelected = selectedDay?.date === day.date;
-              return (
-                <TouchableOpacity
-                  key={day.date}
-                  style={[styles.dayChip, isSelected && styles.dayChipSelected, day.is_injection_day && styles.dayChipInjection]}
-                  onPress={() => { setSelectedDay(day); Haptics.selectionAsync(); }}
-                  activeOpacity={0.75}
-                >
-                  <Text style={[styles.dayShort, isSelected && styles.dayShortSelected]}>{DAY_SHORT[date.getDay()]}</Text>
-                  <Text style={[styles.dayNum, isSelected && styles.dayNumSelected]}>{date.getDate()}</Text>
-                  {day.is_injection_day && <Text style={styles.injBadge}>💉</Text>}
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
 
-          {/* Selected day detail */}
-          {selectedDay && (
-            <ScrollView contentContainerStyle={styles.dayDetail} showsVerticalScrollIndicator={false}>
-              <View style={styles.dayHeader}>
-                <Text style={styles.dayHeaderTitle}>
-                  {new Date(selectedDay.date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+        {error && (
+          <View style={[s.errorBox, { backgroundColor: '#E0655522', borderColor: '#E0655544' }]}>
+            <Text style={s.errorText}>{error}</Text>
+          </View>
+        )}
+
+        {/* Empty state */}
+        {!plan && !generating && (
+          <View style={s.emptyState}>
+            <Text style={s.emptyIcon}>🍽️</Text>
+            <Text style={[s.emptyTitle, { color: colors.foreground }]}>No plan yet</Text>
+            <Text style={[s.emptySub, { color: colors.mutedForeground }]}>Generate your first GLP-1 optimized 7-day meal plan.</Text>
+            <TouchableOpacity style={[s.generateBtn, { backgroundColor: colors.primary }]} onPress={generatePlan} activeOpacity={0.85}>
+              <Ionicons name="sparkles-outline" size={18} color={colors.primaryForeground} />
+              <Text style={[s.generateBtnText, { color: colors.primaryForeground }]}>Generate my plan</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {generating && !plan && (
+          <View style={s.loadingState}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={[s.loadingText, { color: colors.mutedForeground }]}>Building your personalized plan…</Text>
+          </View>
+        )}
+
+        {plan && (
+          <>
+            {/* Injection banner */}
+            {day?.is_injection_day && (
+              <View style={s.injBanner}>
+                <Ionicons name="medical-outline" size={16} color={colors.accent} style={{ flexShrink: 0 }} />
+                <Text style={[s.injBannerText, { color: colors.foreground }]}>
+                  <Text style={{ color: colors.accent, fontFamily: 'PlusJakartaSans-Bold' }}>Injection day. </Text>
+                  Gentle, low-nausea meals scheduled automatically.
                 </Text>
-                {selectedDay.is_injection_day && (
-                  <View style={styles.injBadgeLarge}>
-                    <Text style={styles.injBadgeLargeText}>💉 Injection Day</Text>
-                  </View>
-                )}
               </View>
+            )}
 
-              <View style={styles.totals}>
-                {[
-                  { label: 'Protein', val: `${selectedDay.totals.protein_g}g` },
-                  { label: 'Calories', val: `${selectedDay.totals.calories}` },
-                  { label: 'Cost', val: `$${selectedDay.totals.cost_usd.toFixed(2)}` },
-                ].map(t => (
-                  <View key={t.label} style={styles.total}>
-                    <Text style={styles.totalVal}>{t.val}</Text>
-                    <Text style={styles.totalLabel}>{t.label}</Text>
-                  </View>
-                ))}
-              </View>
+            {/* Day selector */}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.dayScroll} contentContainerStyle={s.dayScrollContent}>
+              {days.map((d, i) => {
+                const isActive = i === selectedDay;
+                const isInjection = d.is_injection_day;
+                return (
+                  <TouchableOpacity
+                    key={d.day}
+                    style={[
+                      s.dayPill,
+                      { backgroundColor: isActive ? colors.primary : colors.card, borderColor: isActive ? colors.primary : isInjection ? 'rgba(216,127,99,0.5)' : colors.border },
+                    ]}
+                    onPress={() => setSelectedDay(i)}
+                    activeOpacity={0.75}
+                  >
+                    {isInjection && !isActive && (
+                      <Ionicons name="medical-outline" size={10} color={colors.accent} />
+                    )}
+                    <Text style={[
+                      s.dayPillShort,
+                      { color: isActive ? colors.primaryForeground + 'CC' : isInjection ? colors.accent : colors.mutedForeground },
+                    ]}>
+                      {DAY_SHORT[d.day.toLowerCase()] ?? d.day.slice(0, 3).toUpperCase()}
+                    </Text>
+                    <Text style={[
+                      s.dayPillNum,
+                      { color: isActive ? colors.primaryForeground : isInjection ? colors.accent : colors.foreground },
+                    ]}>
+                      {i + 1}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
 
-              {Object.entries(selectedDay.meals).map(([slot, meal], idx) => (
-                <View key={slot} style={styles.mealCard}>
-                  <View style={styles.mealCardHeader}>
-                    <Text style={styles.mealSlot}>{slot.charAt(0).toUpperCase() + slot.slice(1)}</Text>
-                    <TouchableOpacity
-                      style={styles.swapBtn}
-                      onPress={() => swapMeal(plan.plan_json.days.indexOf(selectedDay), slot)}
-                      disabled={!!swapping}
-                      activeOpacity={0.75}
-                    >
-                      {swapping?.slot === slot
-                        ? <ActivityIndicator size="small" color={Colors.primary} />
-                        : <Text style={styles.swapBtnText}>↻ Swap</Text>}
-                    </TouchableOpacity>
+            {day && (
+              <>
+                {/* Flat macros row */}
+                <View style={[s.macrosRow, { backgroundColor: colors.muted }]}>
+                  <View style={s.macroStat}>
+                    <Text style={[s.macroValue, { color: colors.primary }]}>{day.total_protein_g}g</Text>
+                    <Text style={[s.macroLabel, { color: colors.mutedForeground }]}>Protein</Text>
                   </View>
-                  <Text style={styles.mealName}>{meal.name}</Text>
-                  <Text style={styles.mealDesc}>{meal.description}</Text>
-                  <View style={styles.mealMeta}>
-                    <Text style={styles.metaChip}>🥩 {meal.protein_g}g</Text>
-                    <Text style={styles.metaChip}>🔥 {meal.calories} cal</Text>
-                    <Text style={styles.metaChip}>💰 ${meal.cost_usd.toFixed(2)}</Text>
-                    <Text style={styles.metaChip}>⏱ {meal.prep_minutes}min</Text>
+                  <View style={[s.macroDivider, { backgroundColor: colors.border }]} />
+                  <View style={s.macroStat}>
+                    <Text style={[s.macroValue, { color: colors.secondary }]}>—</Text>
+                    <Text style={[s.macroLabel, { color: colors.mutedForeground }]}>Fiber</Text>
+                  </View>
+                  <View style={[s.macroDivider, { backgroundColor: colors.border }]} />
+                  <View style={s.macroStat}>
+                    <Text style={[s.macroValue, { color: colors.accent }]}>{day.total_calories.toLocaleString()}</Text>
+                    <Text style={[s.macroLabel, { color: colors.mutedForeground }]}>Calories</Text>
+                  </View>
+                  <View style={[s.macroDivider, { backgroundColor: colors.border }]} />
+                  <View style={s.macroStat}>
+                    <Text style={[s.macroValue, { color: colors.foreground }]}>
+                      {day.estimated_cost != null ? `$${day.estimated_cost.toFixed(2)}` : '—'}
+                    </Text>
+                    <Text style={[s.macroLabel, { color: colors.mutedForeground }]}>Budget</Text>
                   </View>
                 </View>
-              ))}
-            </ScrollView>
-          )}
-        </>
-      )}
+
+                {/* Meals */}
+                <View style={s.mealsList}>
+                  {day.meals?.map((meal: MealItem, mi: number) => {
+                    const slotKey = meal.slot?.toLowerCase() ?? '';
+                    const slotColor = SLOT_COLORS[slotKey] ?? colors.primary;
+                    const emoji = MEAL_EMOJIS[slotKey] ?? '🍽️';
+                    const delay = Math.min(mi, 6) * 60;
+                    return (
+                      <Animated.View key={mi} entering={FadeIn.delay(delay).duration(400)} style={[s.mealCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                        <View style={s.mealCardTop}>
+                          <View style={s.mealCardLeft}>
+                            <View style={[s.slotBadge, { backgroundColor: slotColor + '1A' }]}>
+                              <Text style={[s.slotBadgeText, { color: slotColor }]}>{meal.slot}</Text>
+                            </View>
+                            <Text style={[s.mealName, { color: colors.foreground }]}>{meal.name}</Text>
+                            {meal.note ? (
+                              <Text style={[s.mealDesc, { color: colors.mutedForeground }]} numberOfLines={2}>{meal.note}</Text>
+                            ) : null}
+                          </View>
+                          <View style={s.mealRight}>
+                            <Text style={s.mealEmoji}>{emoji}</Text>
+                            {swapping === meal.slot
+                              ? <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 4 }} />
+                              : (
+                                <TouchableOpacity
+                                  style={[s.swapBtn, { backgroundColor: colors.muted + '80' }]}
+                                  onPress={() => setSwapModal({ day: day.day, slot: meal.slot })}
+                                  activeOpacity={0.7}
+                                >
+                                  <Ionicons name="refresh-outline" size={14} color={colors.mutedForeground} />
+                                </TouchableOpacity>
+                              )}
+                          </View>
+                        </View>
+                        <View style={s.macroTags}>
+                          <View style={[s.macroTag, { backgroundColor: 'rgba(138,154,124,0.12)' }]}>
+                            <Text style={[s.macroTagText, { color: colors.secondary }]}>{meal.protein_g}g protein</Text>
+                          </View>
+                          <View style={[s.macroTag, { backgroundColor: colors.muted }]}>
+                            <Text style={[s.macroTagText, { color: colors.mutedForeground }]}>{meal.calories} cal</Text>
+                          </View>
+                          {meal.cost != null && (
+                            <View style={[s.macroTag, { backgroundColor: colors.muted }]}>
+                              <Text style={[s.macroTagText, { color: colors.mutedForeground }]}>${meal.cost.toFixed(2)}</Text>
+                            </View>
+                          )}
+                        </View>
+                      </Animated.View>
+                    );
+                  })}
+                </View>
+
+                {/* Regenerate */}
+                <TouchableOpacity
+                  style={[s.regenBtn, { backgroundColor: colors.muted, borderColor: colors.border }]}
+                  onPress={generatePlan}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="refresh-outline" size={18} color={colors.mutedForeground} />
+                  <Text style={[s.regenText, { color: colors.mutedForeground }]}>Regenerate This Day's Plan</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </>
+        )}
+      </ScrollView>
+
+      {/* Swap modal */}
+      <Modal visible={!!swapModal} transparent animationType="slide" onRequestClose={() => setSwapModal(null)}>
+        <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setSwapModal(null)} />
+        <View style={[s.modalSheet, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
+          <Text style={[s.modalTitle, { color: colors.foreground }]}>Swap {swapModal?.slot}</Text>
+          <Text style={[s.modalSub, { color: colors.mutedForeground }]}>Optional: tell us why so we can find a better match</Text>
+          <TextInput
+            style={[s.modalInput, { backgroundColor: colors.input, borderColor: colors.border, color: colors.foreground }]}
+            placeholder="e.g. Don't feel like fish, too expensive, nauseous…"
+            placeholderTextColor={colors.mutedForeground}
+            value={swapReason}
+            onChangeText={setSwapReason}
+            multiline
+            autoFocus
+          />
+          <TouchableOpacity
+            style={[s.modalBtn, { backgroundColor: colors.primary }]}
+            onPress={() => swapModal && swapMeal(swapModal.day, swapModal.slot, swapReason)}
+            activeOpacity={0.85}
+          >
+            <Text style={[s.modalBtnText, { color: colors.primaryForeground }]}>Find a replacement</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={s.modalCancel} onPress={() => setSwapModal(null)} activeOpacity={0.7}>
+            <Text style={[s.modalCancelText, { color: colors.mutedForeground }]}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.xl, paddingTop: Spacing.xl, paddingBottom: Spacing.md },
-  headerTitle: { fontSize: FontSize['2xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: Colors.foreground },
-  genBtn: { backgroundColor: Colors.primary, borderRadius: Radius.full, paddingHorizontal: Spacing.lg, paddingVertical: 10 },
-  genBtnLoading: { opacity: 0.7 },
-  genBtnText: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: Colors.primaryForeground },
-  emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: Spacing.xl, gap: Spacing.md },
-  emptyIcon: { fontSize: 56 },
-  emptyTitle: { fontSize: FontSize['2xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: Colors.foreground },
-  emptySub: { fontSize: FontSize.base, color: Colors.mutedForeground, textAlign: 'center', lineHeight: 24 },
-  dayScroll: { maxHeight: 100 },
-  dayScrollContent: { paddingHorizontal: Spacing.xl, paddingVertical: Spacing.md, gap: Spacing.sm },
-  dayChip: { width: 60, padding: Spacing.sm, borderRadius: Radius.lg, backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.border, alignItems: 'center', gap: 2 },
-  dayChipSelected: { borderColor: Colors.primary, backgroundColor: 'rgba(232,157,53,0.12)' },
-  dayChipInjection: { borderColor: 'rgba(232,157,53,0.3)' },
-  dayShort: { fontSize: FontSize.xs, color: Colors.mutedForeground, fontFamily: 'PlusJakartaSans-SemiBold' },
-  dayShortSelected: { color: Colors.primary },
-  dayNum: { fontSize: FontSize.lg, fontFamily: 'PlusJakartaSans-ExtraBold', color: Colors.foreground },
-  dayNumSelected: { color: Colors.primary },
-  injBadge: { fontSize: FontSize.xs },
-  dayDetail: { paddingHorizontal: Spacing.xl, paddingBottom: Spacing['3xl'], gap: Spacing.md },
-  dayHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, flexWrap: 'wrap' },
-  dayHeaderTitle: { fontSize: FontSize.xl, fontFamily: 'PlusJakartaSans-ExtraBold', color: Colors.foreground },
-  injBadgeLarge: { backgroundColor: 'rgba(232,157,53,0.15)', borderRadius: Radius.full, paddingHorizontal: 10, paddingVertical: 4 },
-  injBadgeLargeText: { fontSize: FontSize.xs, color: Colors.primary, fontFamily: 'PlusJakartaSans-SemiBold' },
-  totals: { flexDirection: 'row', gap: Spacing.sm },
-  total: { flex: 1, padding: Spacing.md, borderRadius: Radius.lg, backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.border, alignItems: 'center', gap: 2 },
-  totalVal: { fontSize: FontSize.xl, fontFamily: 'PlusJakartaSans-ExtraBold', color: Colors.primary },
-  totalLabel: { fontSize: FontSize.xs, color: Colors.mutedForeground },
-  mealCard: { padding: Spacing.lg, borderRadius: Radius.xl, backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.border, gap: Spacing.sm },
-  mealCardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  mealSlot: { fontSize: FontSize.xs, color: Colors.mutedForeground, fontFamily: 'PlusJakartaSans-Bold', textTransform: 'uppercase', letterSpacing: 1 },
-  swapBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: Spacing.sm, paddingVertical: 4, borderRadius: Radius.full, borderWidth: 1, borderColor: Colors.border },
-  swapBtnText: { fontSize: FontSize.xs, color: Colors.primary, fontFamily: 'PlusJakartaSans-SemiBold' },
-  mealName: { fontSize: FontSize.lg, fontFamily: 'PlusJakartaSans-Bold', color: Colors.foreground },
-  mealDesc: { fontSize: FontSize.sm, color: Colors.mutedForeground, lineHeight: 20 },
-  mealMeta: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
-  metaChip: { fontSize: FontSize.xs, color: Colors.foreground, backgroundColor: Colors.muted, paddingHorizontal: Spacing.sm, paddingVertical: 4, borderRadius: Radius.full },
-});
+function makeStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    safe: { flex: 1, backgroundColor: c.background },
+    scroll: { paddingBottom: 120 },
+    header: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', paddingHorizontal: Spacing.xl, paddingTop: Spacing.xl, marginBottom: Spacing.lg },
+    screenTitle: { fontSize: FontSize['2xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground, marginBottom: 2 },
+    weekSub: { fontSize: FontSize.sm },
+    headerBtn: { width: 48, height: 48, borderRadius: 24, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+    errorBox: { marginHorizontal: Spacing.xl, borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.lg, marginBottom: Spacing.lg },
+    errorText: { color: '#E06555', fontSize: FontSize.sm },
+    emptyState: { alignItems: 'center', paddingTop: Spacing['3xl'], paddingHorizontal: Spacing.xl },
+    emptyIcon: { fontSize: 64, marginBottom: Spacing.xl },
+    emptyTitle: { fontSize: FontSize.xl, fontFamily: 'PlusJakartaSans-ExtraBold', marginBottom: Spacing.sm },
+    emptySub: { fontSize: FontSize.sm, textAlign: 'center', lineHeight: 20, marginBottom: Spacing['2xl'] },
+    generateBtn: { borderRadius: Radius.full, paddingVertical: 16, paddingHorizontal: 28, flexDirection: 'row', alignItems: 'center', gap: 8 },
+    generateBtnText: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-ExtraBold' },
+    loadingState: { alignItems: 'center', paddingTop: Spacing['3xl'], gap: Spacing.xl },
+    loadingText: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-SemiBold' },
+    injBanner: { marginHorizontal: Spacing.xl, marginBottom: Spacing.lg, padding: 12, borderRadius: Radius.xl, flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm, backgroundColor: 'rgba(216,127,99,0.08)', borderWidth: 1, borderColor: 'rgba(216,127,99,0.2)' },
+    injBannerText: { fontSize: FontSize.xs, flex: 1, lineHeight: 18 },
+    dayScroll: { marginBottom: Spacing['2xl'] },
+    dayScrollContent: { paddingHorizontal: Spacing.xl, gap: Spacing.md },
+    dayPill: { width: 56, height: 72, borderRadius: Radius.full, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', gap: 1 },
+    dayPillShort: { fontSize: 10, fontFamily: 'PlusJakartaSans-Bold', textTransform: 'uppercase' },
+    dayPillNum: { fontSize: FontSize.lg, fontFamily: 'PlusJakartaSans-ExtraBold' },
+    macrosRow: { marginHorizontal: Spacing.xl, borderRadius: Radius.xl, padding: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing['2xl'] },
+    macroStat: { flex: 1, alignItems: 'center' },
+    macroValue: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-ExtraBold' },
+    macroLabel: { fontSize: FontSize.xs, marginTop: 2 },
+    macroDivider: { width: 1, height: 24 },
+    mealsList: { paddingHorizontal: Spacing.xl, gap: Spacing.md, marginBottom: Spacing['2xl'] },
+    mealCard: { borderRadius: 24, borderWidth: 1, padding: 16 },
+    mealCardTop: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 },
+    mealCardLeft: { flex: 1, marginRight: Spacing.md },
+    slotBadge: { alignSelf: 'flex-start', borderRadius: Radius.full, paddingHorizontal: 8, paddingVertical: 4, marginBottom: 8 },
+    slotBadgeText: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-Bold' },
+    mealName: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-ExtraBold', lineHeight: 22, marginBottom: 4 },
+    mealDesc: { fontSize: FontSize.xs, lineHeight: 16 },
+    mealRight: { alignItems: 'center', gap: 6 },
+    mealEmoji: { fontSize: 32 },
+    swapBtn: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+    macroTags: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+    macroTag: { borderRadius: Radius.full, paddingHorizontal: 8, paddingVertical: 4 },
+    macroTagText: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-Bold' },
+    regenBtn: { marginHorizontal: Spacing.xl, borderRadius: Radius.full, borderWidth: 1, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+    regenText: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-Bold' },
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' },
+    modalSheet: { borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: Spacing.xl, paddingBottom: 40, borderTopWidth: 1 },
+    modalTitle: { fontSize: FontSize.xl, fontFamily: 'PlusJakartaSans-ExtraBold', marginBottom: 4 },
+    modalSub: { fontSize: FontSize.sm, marginBottom: Spacing.xl },
+    modalInput: { borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.lg, fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Regular', minHeight: 80, textAlignVertical: 'top', marginBottom: Spacing.xl },
+    modalBtn: { borderRadius: Radius.lg, paddingVertical: 14, alignItems: 'center', marginBottom: Spacing.sm },
+    modalBtnText: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-ExtraBold' },
+    modalCancel: { alignItems: 'center', paddingVertical: Spacing.sm },
+    modalCancelText: { fontSize: FontSize.sm },
+  });
+}

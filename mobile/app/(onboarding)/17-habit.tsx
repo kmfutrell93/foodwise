@@ -1,123 +1,237 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { OnboardingShell } from '@/components/ui/OnboardingShell';
 import { Button } from '@/components/ui/Button';
-import { Colors, FontSize, Spacing, Radius } from '@/constants/theme';
 import { useOnboarding } from '@/context/OnboardingContext';
+import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
+import { useThemeColors } from '@/context/ThemeContext';
+import { getDoseOptions } from '@/lib/escalation';
 import * as Haptics from 'expo-haptics';
 
-const TIMES = ['06:00', '07:00', '08:00', '09:00', '10:00', '12:00'];
-const TIME_LABELS: Record<string, string> = {
-  '06:00': '6:00 AM', '07:00': '7:00 AM', '08:00': '8:00 AM',
-  '09:00': '9:00 AM', '10:00': '10:00 AM', '12:00': '12:00 PM',
-};
+type Medication = 'semaglutide' | 'tirzepatide' | 'liraglutide' | 'other';
+type InjectionDay = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
+type CheckInTime = 'morning' | 'midday' | 'evening';
 
-const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-const MEDICATIONS = [
-  { value: 'ozempic', label: 'Ozempic', sub: 'Semaglutide (weekly)' },
-  { value: 'wegovy', label: 'Wegovy', sub: 'Semaglutide (weekly)' },
-  { value: 'mounjaro', label: 'Mounjaro', sub: 'Tirzepatide (weekly)' },
-  { value: 'zepbound', label: 'Zepbound', sub: 'Tirzepatide (weekly)' },
-  { value: 'other', label: 'Other / Not listed', sub: '' },
+const MEDICATIONS: { value: Medication; label: string; sub: string; badge?: string }[] = [
+  { value: 'semaglutide', label: 'Ozempic / Wegovy', sub: 'Semaglutide · GLP-1' },
+  { value: 'tirzepatide', label: 'Mounjaro / Zepbound', sub: 'Tirzepatide · GLP-1 / GIP', badge: 'More intense nausea in weeks 1–8' },
+  { value: 'liraglutide', label: 'Saxenda / Victoza', sub: 'Liraglutide · GLP-1' },
+  { value: 'other', label: 'Other / Not sure', sub: '' },
 ];
 
+const DAYS: InjectionDay[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+const DAY_LABELS: Record<InjectionDay, string> = {
+  monday: 'Mon', tuesday: 'Tue', wednesday: 'Wed', thursday: 'Thu',
+  friday: 'Fri', saturday: 'Sat', sunday: 'Sun',
+};
+
+const CHECK_IN_TIMES: { value: CheckInTime; label: string; icon: string }[] = [
+  { value: 'morning', label: 'Morning', icon: '🌅' },
+  { value: 'midday', label: 'Midday', icon: '☀️' },
+  { value: 'evening', label: 'Evening', icon: '🌙' },
+];
+
+const TIME_ON_MED_OPTIONS: { value: string; label: string }[] = [
+  { value: 'less_than_1_month', label: 'Less than 1 month' },
+  { value: '1_3_months', label: '1–3 months' },
+  { value: '3_6_months', label: '3–6 months' },
+  { value: '6_plus_months', label: '6+ months' },
+];
+
+// Rough dose_start_date offset by time_on_medication bucket
+const TIME_ON_MED_DAYS: Record<string, number> = {
+  less_than_1_month: 14,
+  '1_3_months': 60,
+  '3_6_months': 120,
+  '6_plus_months': 200,
+};
+
 export default function Habit() {
+  const colors = useThemeColors();
+  const s = makeStyles(colors);
   const router = useRouter();
   const { setField, saveStep } = useOnboarding();
-  const [checkInTime, setCheckInTime] = useState('08:00');
-  const [medication, setMedication] = useState<string | null>(null);
-  const [injectionDay, setInjectionDay] = useState<number | null>(null);
+  const [medication, setMedication] = useState<Medication | null>(null);
+  const [injectionDay, setInjectionDay] = useState<InjectionDay | null>(null);
+  const [checkInTime, setCheckInTime] = useState<CheckInTime | null>(null);
+  const [doseMg, setDoseMg] = useState<number | null>(null);
+  const [timeOnMed, setTimeOnMed] = useState<string | null>(null);
+
+  const doseOptions = medication ? getDoseOptions(medication) : [];
+  const showDosePicker = doseOptions.length > 1;
+
+  const canProceed = medication !== null && injectionDay !== null && checkInTime !== null;
 
   async function handleNext() {
-    setField('check_in_time', checkInTime);
-    setField('medication', medication as any);
-    setField('injection_day', injectionDay);
+    if (!canProceed) return;
+    setField('medication', medication!);
+    setField('injection_day', injectionDay!);
+    setField('check_in_time', checkInTime!);
+
+    if (doseMg !== null) {
+      setField('dose_mg' as any, doseMg);
+    }
+    if (timeOnMed) {
+      setField('time_on_medication' as any, timeOnMed);
+      // Derive an approximate dose_start_date from the time bucket
+      const daysAgo = TIME_ON_MED_DAYS[timeOnMed] ?? 14;
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - daysAgo);
+      setField('dose_start_date' as any, startDate.toISOString().split('T')[0]);
+    }
+
     await saveStep(17);
     router.push('/(onboarding)/18-commitment');
   }
 
+  function select<T>(setter: (v: T) => void, value: T) {
+    setter(value);
+    Haptics.selectionAsync();
+  }
+
   return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.label}>Daily habit</Text>
-        <Text style={styles.title}>Just 2 minutes{'\n'}a day with Nori.</Text>
+    <OnboardingShell step={17}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.content}>
+        <Text style={s.label}>Medication</Text>
+        <Text style={s.title}>Your GLP-1{'\n'}details.</Text>
+        <Text style={s.sub}>This powers injection-day meal adjustments — the most important part of your plan.</Text>
 
-        <Text style={styles.sectionTitle}>When should Nori check in with you?</Text>
-        <View style={styles.timeGrid}>
-          {TIMES.map((t) => (
+        <Text style={s.sectionTitle}>Which medication?</Text>
+        <View style={s.medGrid}>
+          {MEDICATIONS.map(med => (
             <TouchableOpacity
-              key={t}
-              style={[styles.timeChip, checkInTime === t && styles.timeChipSelected]}
-              onPress={() => { setCheckInTime(t); Haptics.selectionAsync(); }}
+              key={med.value}
+              style={[s.medCard, medication === med.value && s.medCardSelected]}
+              onPress={() => { select(setMedication, med.value); setDoseMg(null); }}
               activeOpacity={0.75}
             >
-              <Text style={[styles.timeText, checkInTime === t && styles.timeTextSelected]}>{TIME_LABELS[t]}</Text>
+              <Text style={[s.medLabel, medication === med.value && s.medLabelSelected]}>{med.label}</Text>
+              {med.sub ? <Text style={s.medSub}>{med.sub}</Text> : null}
+              {med.badge && medication === med.value ? (
+                <View style={s.medBadge}>
+                  <Text style={s.medBadgeText}>⚠️ {med.badge}</Text>
+                </View>
+              ) : null}
             </TouchableOpacity>
           ))}
         </View>
 
-        <Text style={styles.sectionTitle}>Which GLP-1 medication are you on?</Text>
-        <View style={styles.medList}>
-          {MEDICATIONS.map((m) => (
-            <TouchableOpacity
-              key={m.value}
-              style={[styles.medCard, medication === m.value && styles.medCardSelected]}
-              onPress={() => { setMedication(m.value); Haptics.selectionAsync(); }}
-              activeOpacity={0.75}
-            >
-              <Text style={[styles.medLabel, medication === m.value && styles.medLabelSelected]}>{m.label}</Text>
-              {m.sub ? <Text style={styles.medSub}>{m.sub}</Text> : null}
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {medication && medication !== 'other' && (
+        {showDosePicker && (
           <>
-            <Text style={styles.sectionTitle}>Which day do you inject?</Text>
-            <View style={styles.dayRow}>
-              {DAYS.map((day, idx) => (
+            <Text style={s.sectionTitle}>Current dose</Text>
+            <View style={s.doseGrid}>
+              {doseOptions.map(dose => (
                 <TouchableOpacity
-                  key={day}
-                  style={[styles.dayChip, injectionDay === idx && styles.dayChipSelected]}
-                  onPress={() => { setInjectionDay(idx); Haptics.selectionAsync(); }}
+                  key={dose}
+                  style={[s.doseChip, doseMg === dose && s.doseChipSelected]}
+                  onPress={() => select(setDoseMg, dose)}
                   activeOpacity={0.75}
                 >
-                  <Text style={[styles.dayText, injectionDay === idx && styles.dayTextSelected]}>{day}</Text>
+                  <Text style={[s.doseChipText, doseMg === dose && s.doseChipTextSelected]}>
+                    {dose} mg
+                  </Text>
                 </TouchableOpacity>
               ))}
+              <TouchableOpacity
+                style={[s.doseChip, doseMg === null && s.doseChipSelected]}
+                onPress={() => select(setDoseMg, null)}
+                activeOpacity={0.75}
+              >
+                <Text style={[s.doseChipText, doseMg === null && s.doseChipTextSelected]}>Not sure</Text>
+              </TouchableOpacity>
             </View>
           </>
         )}
 
-        <View style={{ height: Spacing.xl }} />
-        <Button label="Continue" onPress={handleNext} disabled={!medication} />
+        <Text style={s.sectionTitle}>How long have you been on it?</Text>
+        <View style={s.timeOnMedGrid}>
+          {TIME_ON_MED_OPTIONS.map(opt => (
+            <TouchableOpacity
+              key={opt.value}
+              style={[s.timeOnMedChip, timeOnMed === opt.value && s.timeOnMedChipSelected]}
+              onPress={() => select(setTimeOnMed, opt.value)}
+              activeOpacity={0.75}
+            >
+              <Text style={[s.timeOnMedText, timeOnMed === opt.value && s.timeOnMedTextSelected]}>
+                {opt.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <Text style={s.sectionTitle}>Injection day</Text>
+        <View style={s.daysRow}>
+          {DAYS.map(day => (
+            <TouchableOpacity
+              key={day}
+              style={[s.dayBtn, injectionDay === day && s.dayBtnSelected]}
+              onPress={() => select(setInjectionDay, day)}
+              activeOpacity={0.75}
+            >
+              <Text style={[s.dayText, injectionDay === day && s.dayTextSelected]}>{DAY_LABELS[day]}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <Text style={s.sectionTitle}>Best time to check in?</Text>
+        <View style={s.timeRow}>
+          {CHECK_IN_TIMES.map(t => (
+            <TouchableOpacity
+              key={t.value}
+              style={[s.timeBtn, checkInTime === t.value && s.timeBtnSelected]}
+              onPress={() => select(setCheckInTime, t.value)}
+              activeOpacity={0.75}
+            >
+              <Text style={s.timeIcon}>{t.icon}</Text>
+              <Text style={[s.timeLabel, checkInTime === t.value && s.timeLabelSelected]}>{t.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <View style={s.spacer} />
+        <Button label="Continue" onPress={handleNext} disabled={!canProceed} />
       </ScrollView>
-    </SafeAreaView>
+    </OnboardingShell>
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
-  content: { paddingHorizontal: Spacing.xl, paddingTop: Spacing['3xl'], paddingBottom: Spacing['3xl'] },
-  label: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: Colors.primary, letterSpacing: 2, textTransform: 'uppercase', marginBottom: Spacing.md },
-  title: { fontSize: FontSize['3xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: Colors.foreground, lineHeight: 38, marginBottom: Spacing['2xl'] },
-  sectionTitle: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: Colors.mutedForeground, textTransform: 'uppercase', letterSpacing: 1, marginBottom: Spacing.md },
-  timeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginBottom: Spacing['2xl'] },
-  timeChip: { paddingHorizontal: Spacing.lg, paddingVertical: 10, borderRadius: Radius.full, borderWidth: 1.5, borderColor: Colors.border, backgroundColor: Colors.card },
-  timeChipSelected: { borderColor: Colors.primary, backgroundColor: 'rgba(232,157,53,0.12)' },
-  timeText: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-SemiBold', color: Colors.foreground },
-  timeTextSelected: { color: Colors.primary },
-  medList: { gap: Spacing.sm, marginBottom: Spacing['2xl'] },
-  medCard: { padding: Spacing.lg, borderRadius: Radius.lg, borderWidth: 1.5, borderColor: Colors.border, backgroundColor: Colors.card },
-  medCardSelected: { borderColor: Colors.primary, backgroundColor: 'rgba(232,157,53,0.08)' },
-  medLabel: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-SemiBold', color: Colors.foreground },
-  medLabelSelected: { color: Colors.primary },
-  medSub: { fontSize: FontSize.sm, color: Colors.mutedForeground, marginTop: 2 },
-  dayRow: { flexDirection: 'row', gap: Spacing.xs, marginBottom: Spacing['2xl'] },
-  dayChip: { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: Radius.md, borderWidth: 1.5, borderColor: Colors.border, backgroundColor: Colors.card },
-  dayChipSelected: { borderColor: Colors.primary, backgroundColor: 'rgba(232,157,53,0.12)' },
-  dayText: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-Bold', color: Colors.mutedForeground },
-  dayTextSelected: { color: Colors.primary },
-});
+function makeStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    content: { paddingTop: Spacing.lg, paddingBottom: Spacing['3xl'] },
+    label: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: c.primary, letterSpacing: 2, textTransform: 'uppercase', marginBottom: Spacing.md },
+    title: { fontSize: FontSize['3xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground, lineHeight: 38, marginBottom: Spacing.sm },
+    sub: { fontSize: FontSize.sm, color: c.mutedForeground, lineHeight: 20, marginBottom: Spacing['2xl'] },
+    sectionTitle: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: c.foreground, marginBottom: Spacing.md, marginTop: Spacing.md },
+    medGrid: { gap: Spacing.sm, marginBottom: Spacing.md },
+    medCard: { padding: Spacing.lg, borderRadius: Radius.lg, borderWidth: 1.5, borderColor: c.border, backgroundColor: c.card },
+    medCardSelected: { borderColor: c.primary, backgroundColor: 'rgba(232,157,53,0.08)' },
+    medLabel: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-Bold', color: c.foreground },
+    medLabelSelected: { color: c.primary },
+    medSub: { fontSize: FontSize.xs, color: c.mutedForeground, marginTop: 2 },
+    medBadge: { marginTop: Spacing.sm, backgroundColor: 'rgba(232,157,53,0.15)', borderRadius: Radius.sm, paddingHorizontal: Spacing.sm, paddingVertical: 4, alignSelf: 'flex-start' },
+    medBadgeText: { fontSize: FontSize.xs, color: c.primary, fontFamily: 'PlusJakartaSans-SemiBold' },
+    doseGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginBottom: Spacing.md },
+    doseChip: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderRadius: Radius.full, borderWidth: 1.5, borderColor: c.border, backgroundColor: c.card },
+    doseChipSelected: { borderColor: c.primary, backgroundColor: 'rgba(232,157,53,0.12)' },
+    doseChipText: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-SemiBold', color: c.mutedForeground },
+    doseChipTextSelected: { color: c.primary },
+    timeOnMedGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginBottom: Spacing.md },
+    timeOnMedChip: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderRadius: Radius.full, borderWidth: 1.5, borderColor: c.border, backgroundColor: c.card },
+    timeOnMedChipSelected: { borderColor: c.primary, backgroundColor: 'rgba(232,157,53,0.12)' },
+    timeOnMedText: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-SemiBold', color: c.mutedForeground },
+    timeOnMedTextSelected: { color: c.primary },
+    daysRow: { flexDirection: 'row', gap: 6, marginBottom: Spacing.md },
+    dayBtn: { flex: 1, paddingVertical: 10, borderRadius: Radius.md, backgroundColor: c.card, borderWidth: 1, borderColor: c.border, alignItems: 'center' },
+    dayBtnSelected: { borderColor: c.primary, backgroundColor: 'rgba(232,157,53,0.12)' },
+    dayText: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-SemiBold', color: c.mutedForeground },
+    dayTextSelected: { color: c.primary },
+    timeRow: { flexDirection: 'row', gap: Spacing.sm, marginBottom: Spacing.md },
+    timeBtn: { flex: 1, padding: Spacing.md, borderRadius: Radius.lg, backgroundColor: c.card, borderWidth: 1, borderColor: c.border, alignItems: 'center', gap: 4 },
+    timeBtnSelected: { borderColor: c.primary, backgroundColor: 'rgba(232,157,53,0.12)' },
+    timeIcon: { fontSize: 22 },
+    timeLabel: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-SemiBold', color: c.mutedForeground },
+    timeLabelSelected: { color: c.primary },
+    spacer: { height: Spacing.xl },
+  });
+}

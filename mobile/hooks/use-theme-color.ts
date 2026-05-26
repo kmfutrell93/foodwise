@@ -1,9 +1,12 @@
-// FoodWise uses a single dark theme — no light/dark switching
-import { Colors } from '@/constants/theme';
+import { useThemeColors } from '@/context/ThemeContext';
 
 export function useThemeColor(
-  _props: { light?: string; dark?: string },
-  colorName: keyof typeof Colors
+  props: { light?: string; dark?: string },
+  colorName: string
 ): string {
-  return Colors[colorName] as string;
+  const colors = useThemeColors();
+  if (props.light || props.dark) {
+    return (props.light ?? props.dark) as string;
+  }
+  return (colors as Record<string, string>)[colorName] ?? '#000000';
 }

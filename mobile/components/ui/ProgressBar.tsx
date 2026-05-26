@@ -1,28 +1,19 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Colors, Radius } from '@/constants/theme';
+import { Radius, ThemeColors } from '@/constants/theme';
+import { useThemeColors } from '@/context/ThemeContext';
 
-type Props = { total: number; current: number };
-
-export function ProgressBar({ total, current }: Props) {
+export function ProgressBar({ total, current }: { total: number; current: number }) {
+  const colors = useThemeColors();
   const pct = Math.min(Math.max(current / total, 0), 1);
   return (
-    <View style={styles.track}>
-      <View style={[styles.fill, { width: `${pct * 100}%` }]} />
+    <View style={[styles.track, { backgroundColor: colors.border }]}>
+      <View style={[styles.fill, { width: `${pct * 100}%`, backgroundColor: colors.primary }]} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  track: {
-    height: 3,
-    borderRadius: Radius.full,
-    backgroundColor: Colors.border,
-    overflow: 'hidden',
-  },
-  fill: {
-    height: '100%',
-    backgroundColor: Colors.primary,
-    borderRadius: Radius.full,
-  },
+  track: { height: 3, borderRadius: Radius.full, overflow: 'hidden' },
+  fill: { height: '100%', borderRadius: Radius.full },
 });

@@ -1,71 +1,104 @@
+import React, { useEffect, useRef } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, FontSize } from '@/constants/theme';
+import Animated, {
+  useSharedValue, useAnimatedStyle, withSpring,
+} from 'react-native-reanimated';
+import { FontSize } from '@/constants/theme';
+import { useThemeColors } from '@/context/ThemeContext';
+import { syncWeightFromHealth } from '@/lib/health-sync';
+
+type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
+
+const TABS: { name: string; label: string; icon: IoniconsName; iconFocused: IoniconsName }[] = [
+  { name: 'home', label: 'Home', icon: 'home-outline', iconFocused: 'home' },
+  { name: 'meal-plan', label: 'Plan', icon: 'restaurant-outline', iconFocused: 'restaurant' },
+  { name: 'recipes', label: 'Recipes', icon: 'book-outline', iconFocused: 'book' },
+  { name: 'grocery-list', label: 'Grocery', icon: 'cart-outline', iconFocused: 'cart' },
+  { name: 'symptom-tracker', label: 'Symptoms', icon: 'pulse-outline', iconFocused: 'pulse' },
+  { name: 'progress', label: 'Progress', icon: 'trending-up-outline', iconFocused: 'trending-up' },
+  { name: 'settings', label: 'Settings', icon: 'settings-outline', iconFocused: 'settings' },
+];
+
+function AnimatedTabIcon({
+  name, size, color, focused,
+}: {
+  name: IoniconsName; size: number; color: string; focused: boolean;
+}) {
+  const scale = useSharedValue(1);
+
+  useEffect(() => {
+    if (focused) {
+      scale.value = withSpring(1.2, { damping: 12, stiffness: 300 });
+    } else {
+      scale.value = withSpring(1.0, { damping: 15, stiffness: 300 });
+    }
+  }, [focused]);
+
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <Animated.View style={animStyle}>
+      <Ionicons name={name} size={size} color={color} />
+    </Animated.View>
+  );
+}
 
 export default function AppLayout() {
+  const colors = useThemeColors();
+  const appState = useRef(AppState.currentState);
+
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (next: AppStateStatus) => {
+      if (appState.current.match(/inactive|background/) && next === 'active') {
+        syncWeightFromHealth().catch(() => {});
+      }
+      appState.current = next;
+    });
+    return () => sub.remove();
+  }, []);
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: Colors.card,
-          borderTopColor: Colors.border,
+          backgroundColor: colors.card,
+          borderTopColor: colors.border,
           borderTopWidth: 1,
-          height: 84,
-          paddingBottom: 24,
-          paddingTop: 10,
+          height: 80,
+          paddingBottom: 16,
+          paddingTop: 8,
         },
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.mutedForeground,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.mutedForeground,
         tabBarLabelStyle: {
           fontSize: FontSize.xs,
           fontFamily: 'PlusJakartaSans-SemiBold',
-          marginTop: 2,
         },
       }}
     >
-      <Tabs.Screen
-        name="home"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="meal-plan"
-        options={{
-          title: 'Meal Plan',
-          tabBarIcon: ({ color, size }) => <Ionicons name="calendar" size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="symptom-tracker"
-        options={{
-          title: 'Symptoms',
-          tabBarIcon: ({ color, size }) => <Ionicons name="pulse" size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="grocery-list"
-        options={{
-          title: 'Grocery',
-          tabBarIcon: ({ color, size }) => <Ionicons name="cart" size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="progress"
-        options={{
-          title: 'Progress',
-          tabBarIcon: ({ color, size }) => <Ionicons name="bar-chart" size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: 'Settings',
-          tabBarIcon: ({ color, size }) => <Ionicons name="settings" size={size} color={color} />,
-        }}
-      />
+      {TABS.map(tab => (
+        <Tabs.Screen
+          key={tab.name}
+          name={tab.name}
+          options={{
+            title: tab.label,
+            tabBarIcon: ({ focused, color, size }) => (
+              <AnimatedTabIcon
+                name={focused ? tab.iconFocused : tab.icon}
+                size={size}
+                color={color}
+                focused={focused}
+              />
+            ),
+          }}
+        />
+      ))}
+      <Tabs.Screen name="smart-fridge" options={{ href: null }} />
     </Tabs>
   );
 }

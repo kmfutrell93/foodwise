@@ -1,47 +1,53 @@
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
 import { OnboardingShell } from '@/components/ui/OnboardingShell';
 import { Button } from '@/components/ui/Button';
-import { Colors, FontSize, Spacing, Radius } from '@/constants/theme';
 import { useOnboarding } from '@/context/OnboardingContext';
+import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
+import { useThemeColors } from '@/context/ThemeContext';
 import * as Haptics from 'expo-haptics';
 
 type Appetite = 'low' | 'moderate' | 'normal';
 
-const options: { value: Appetite; icon: string; label: string; sub: string; detail: string }[] = [
+const OPTIONS: {
+  value: Appetite;
+  icon: string;
+  label: string;
+  sub: string;
+  plan: string;
+  badge?: string;
+}[] = [
   {
     value: 'low',
-    icon: '🐌',
+    icon: '😶‍🌫️',
     label: 'Low',
-    sub: 'Very small portions, often skip meals',
-    detail: "We'll pack protein into mini-meals and shakes",
+    sub: "Barely hungry — I struggle to finish even small meals",
+    plan: "Nori's plan: 4–5 ultra-small, protein-dense meals per day",
+    badge: 'Most common',
   },
   {
     value: 'moderate',
-    icon: '🌤️',
+    icon: '🙂',
     label: 'Moderate',
-    sub: 'Smaller than pre-medication but manageable',
-    detail: "We'll balance portion size with protein density",
+    sub: 'Some hunger — I can eat regular portions if I focus',
+    plan: "Nori's plan: 3 meals + 1–2 protein-rich snacks",
   },
   {
     value: 'normal',
-    icon: '🟢',
+    icon: '😄',
     label: 'Normal',
-    sub: 'Appetite mostly unaffected',
-    detail: "We'll focus on quality and hitting your targets",
+    sub: "Usual appetite — medication hasn't changed much yet",
+    plan: "Nori's plan: 3 balanced meals optimized for GLP-1",
   },
 ];
 
 export default function Appetite() {
+  const colors = useThemeColors();
+  const s = makeStyles(colors);
   const router = useRouter();
   const { setField, saveStep } = useOnboarding();
   const [selected, setSelected] = useState<Appetite | null>(null);
-
-  function handleSelect(val: Appetite) {
-    setSelected(val);
-    Haptics.selectionAsync();
-  }
 
   async function handleNext() {
     if (!selected) return;
@@ -52,58 +58,108 @@ export default function Appetite() {
 
   return (
     <OnboardingShell step={12}>
-      <View style={styles.container}>
-        <Text style={styles.label}>Your appetite</Text>
-        <Text style={styles.title}>How's your appetite{'\n'}since starting{'\n'}medication?</Text>
+      <View style={s.container}>
+        <Text style={s.label}>Step 3 of 3</Text>
+        <Text style={s.title}>How's your{'\n'}<Text style={s.titleHighlight}>appetite been lately?</Text></Text>
+        <Text style={s.sub}>This helps Nori size your meals just right — not too much, not too little.</Text>
 
-        <View style={styles.options}>
-          {options.map((opt) => (
-            <TouchableOpacity
-              key={opt.value}
-              style={[styles.card, selected === opt.value && styles.cardSelected]}
-              onPress={() => handleSelect(opt.value)}
-              activeOpacity={0.75}
-            >
-              <Text style={styles.icon}>{opt.icon}</Text>
-              <View style={styles.cardBody}>
-                <Text style={[styles.cardLabel, selected === opt.value && styles.cardLabelSelected]}>{opt.label}</Text>
-                <Text style={styles.cardSub}>{opt.sub}</Text>
-                {selected === opt.value && (
-                  <Text style={styles.cardDetail}>{opt.detail}</Text>
-                )}
-              </View>
-            </TouchableOpacity>
-          ))}
+        <View style={s.options}>
+          {OPTIONS.map(opt => {
+            const isSelected = selected === opt.value;
+            return (
+              <TouchableOpacity
+                key={opt.value}
+                style={[s.card, isSelected && s.cardSelected]}
+                onPress={() => { setSelected(opt.value); Haptics.selectionAsync(); }}
+                activeOpacity={0.75}
+              >
+                <Text style={s.icon}>{opt.icon}</Text>
+                <View style={s.labelRow}>
+                  <Text style={[s.cardLabel, isSelected && s.cardLabelSelected]}>{opt.label}</Text>
+                  {opt.badge && (
+                    <View style={s.badge}>
+                      <Text style={s.badgeText}>{opt.badge}</Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={s.cardSub}>{opt.sub}</Text>
+                <View style={s.planBox}>
+                  <Text style={s.planText}>{opt.plan}</Text>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
-        <View style={styles.spacer} />
-        <Button label="Generate my plan" onPress={handleNext} disabled={!selected} />
+        <View style={s.spacer} />
+        <Button label="Generate my meal plan!" onPress={handleNext} disabled={!selected} />
       </View>
     </OnboardingShell>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, paddingTop: Spacing.lg, paddingBottom: Spacing.xl },
-  label: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: Colors.primary, letterSpacing: 2, textTransform: 'uppercase', marginBottom: Spacing.md },
-  title: { fontSize: FontSize['3xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: Colors.foreground, lineHeight: 38, marginBottom: Spacing['2xl'] },
-  options: { gap: Spacing.sm },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: Spacing.md,
-    padding: Spacing.lg,
-    borderRadius: Radius.lg,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    backgroundColor: Colors.card,
-  },
-  cardSelected: { borderColor: Colors.primary, backgroundColor: 'rgba(232,157,53,0.08)' },
-  icon: { fontSize: 30, lineHeight: 36 },
-  cardBody: { flex: 1 },
-  cardLabel: { fontSize: FontSize.lg, fontFamily: 'PlusJakartaSans-Bold', color: Colors.foreground },
-  cardLabelSelected: { color: Colors.primary },
-  cardSub: { fontSize: FontSize.sm, color: Colors.mutedForeground, marginTop: 2 },
-  cardDetail: { fontSize: FontSize.sm, color: Colors.secondary, marginTop: Spacing.sm, fontFamily: 'PlusJakartaSans-SemiBold' },
-  spacer: { flex: 1 },
-});
+function makeStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    container: { flex: 1, paddingTop: Spacing.md, paddingBottom: Spacing.xl },
+    label: {
+      fontSize: FontSize.sm,
+      fontFamily: 'PlusJakartaSans-Bold',
+      color: c.primary,
+      letterSpacing: 2,
+      textTransform: 'uppercase',
+      marginBottom: Spacing.md,
+    },
+    title: {
+      fontSize: FontSize['2xl'],
+      fontFamily: 'PlusJakartaSans-ExtraBold',
+      color: c.foreground,
+      lineHeight: 32,
+      marginBottom: Spacing.sm,
+    },
+    titleHighlight: { color: c.primary },
+    sub: { fontSize: FontSize.sm, color: c.mutedForeground, marginBottom: Spacing['2xl'] },
+
+    options: { gap: Spacing.lg },
+    card: {
+      padding: Spacing['2xl'],
+      borderRadius: Radius.xl,
+      borderWidth: 2,
+      borderColor: c.border,
+      backgroundColor: c.card,
+      gap: Spacing.sm,
+    },
+    cardSelected: { borderColor: c.primary, backgroundColor: 'rgba(232,157,53,0.08)' },
+    icon: { fontSize: 36 },
+    labelRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+    cardLabel: {
+      fontSize: FontSize.lg,
+      fontFamily: 'PlusJakartaSans-ExtraBold',
+      color: c.foreground,
+    },
+    cardLabelSelected: { color: c.primary },
+    badge: {
+      backgroundColor: 'rgba(232,157,53,0.10)',
+      borderRadius: Radius.full,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+    },
+    badgeText: {
+      fontSize: 10,
+      fontFamily: 'PlusJakartaSans-Bold',
+      color: c.primary,
+    },
+    cardSub: { fontSize: FontSize.sm, color: c.mutedForeground },
+    planBox: {
+      padding: Spacing.md,
+      borderRadius: Radius.lg,
+      backgroundColor: c.muted,
+      marginTop: Spacing.xs,
+    },
+    planText: {
+      fontSize: FontSize.xs,
+      fontFamily: 'PlusJakartaSans-SemiBold',
+      color: c.foreground,
+    },
+    spacer: { flex: 1 },
+  });
+}
