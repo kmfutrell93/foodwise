@@ -1,8 +1,0 @@
-{
-  "/api/health/route": "/api/health",
-  "/_not-found/page": "/_not-found",
-  "/(marketing)/faq/page": "/faq",
-  "/page": "/",
-  "/(marketing)/privacy/page": "/privacy",
-  "/(marketing)/terms/page": "/terms"
-}

@@ -1,8 +1,0 @@
-{
-  "/api/health/route": "app/api/health/route.js",
-  "/_not-found/page": "app/_not-found/page.js",
-  "/(marketing)/faq/page": "app/(marketing)/faq/page.js",
-  "/page": "app/page.js",
-  "/(marketing)/privacy/page": "app/(marketing)/privacy/page.js",
-  "/(marketing)/terms/page": "app/(marketing)/terms/page.js"
-}

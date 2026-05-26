@@ -34,3 +34,5 @@ build/
 # Misc
 *.log
 .vercel
+apps/.next/
+apps/node_modules/
