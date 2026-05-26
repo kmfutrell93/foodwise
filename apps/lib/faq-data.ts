@@ -42,6 +42,6 @@ export const FAQ_DATA: FAQItem[] = [
   },
   {
     question: 'Is my health data private?',
-    answer: 'Yes. Encrypted at rest and in transit. We do not sell data or share it with advertisers, insurers, or pharmaceutical companies. See foodwise.app/privacy.',
+    answer: 'Yes. Encrypted at rest and in transit. We do not sell data or share it with advertisers, insurers, or pharmaceutical companies. See getfoodwise.app/privacy.',
   },
 ]

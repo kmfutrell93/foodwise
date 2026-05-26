@@ -70,11 +70,8 @@ export default function TermsPage() {
 
           <Section title="6. Intellectual Property">
             <p>
-              FoodWise and its content are owned by [Company Name]. AI-generated meal plans
+              FoodWise and its content are owned by Kenneth Futrell. AI-generated meal plans
               are for personal use only.
-            </p>
-            <p className="mt-2 text-sm text-[#94A3B8]">
-              Before submission: replace [Company Name] with your legal entity name.
             </p>
           </Section>
 
@@ -86,10 +83,7 @@ export default function TermsPage() {
           </Section>
 
           <Section title="8. Governing Law">
-            <p>Governed by the laws of [State], United States.</p>
-            <p className="mt-2 text-sm text-[#94A3B8]">
-              Before submission: replace [State] with your state of incorporation.
-            </p>
+            <p>Governed by the laws of Maryland, United States.</p>
           </Section>
 
           <Section title="9. Changes">
