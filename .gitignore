@@ -1,0 +1,36 @@
+# macOS
+.DS_Store
+.AppleDouble
+
+# Environment files
+.env
+.env.local
+.env.*.local
+*.env
+
+# Dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# Supabase
+supabase/.branches
+supabase/.temp
+
+# Next.js
+apps/web/.next/
+apps/web/out/
+
+# Build outputs
+build/
+*.tsbuildinfo
+
+# Claude
+.claude/settings.local.json
+
+# Misc
+*.log
+.vercel
