@@ -161,8 +161,12 @@ export function trackRecipeListViewed() {
   mixpanel.track('recipe_list_viewed');
 }
 
-export function trackRecipeViewed(props: { recipe_id: string; recipe_name: string; meal_type: string }) {
+export function trackRecipeViewed(props: { recipe_id: string; recipe_name: string; meal_type: string; source?: string }) {
   mixpanel.track('recipe_viewed', props);
+}
+
+export function trackRecipeStepsViewed(props: { recipe_name: string }) {
+  mixpanel.track('recipe_steps_viewed', props);
 }
 
 export function trackRecipeAddedToPlan(props: { recipe_id: string; day: string; slot: string }) {

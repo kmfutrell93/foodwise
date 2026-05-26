@@ -39,6 +39,25 @@ Deno.serve(async (req) => {
 
     // GET /recipes  ?meal_type=breakfast&nova_max=3&budget_tier=budget&limit=20&offset=0
     if (req.method === 'GET') {
+      const id = url.searchParams.get('id');
+      if (id) {
+        const { data, error } = await supabase.from('recipes').select('*').eq('id', id).single();
+        if (error) throw error;
+        let userRating: number | null = null;
+        if (data) {
+          const { data: ratingRow } = await supabase
+            .from('recipe_user_ratings')
+            .select('rating')
+            .eq('user_id', user.id)
+            .eq('recipe_id', id)
+            .maybeSingle();
+          userRating = ratingRow?.rating ?? null;
+        }
+        return new Response(JSON.stringify(data ? { ...data, user_rating: userRating } : null), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       const mealType = url.searchParams.get('meal_type');
       const novaMax = url.searchParams.get('nova_max');
       const budgetTier = url.searchParams.get('budget_tier');

@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
-  useSharedValue, useAnimatedStyle,
+  useSharedValue, useAnimatedStyle, interpolateColor,
   withTiming, withSpring, withRepeat, withSequence, withDelay,
   cancelAnimation, FadeIn,
   Easing,
@@ -57,19 +57,13 @@ function FilterChip({
   }, [active]);
 
   const chipStyle = useAnimatedStyle(() => ({
-    backgroundColor: bgAnim.value === 1
-      ? colors.primary
-      : colors.card,
-    borderColor: bgAnim.value === 1
-      ? colors.primary
-      : colors.border,
+    backgroundColor: interpolateColor(bgAnim.value, [0, 1], [colors.card, colors.primary]),
+    borderColor: interpolateColor(bgAnim.value, [0, 1], [colors.border, colors.primary]),
     transform: [{ scale: scale.value }],
   }));
 
   const textStyle = useAnimatedStyle(() => ({
-    color: bgAnim.value === 1
-      ? colors.primaryForeground
-      : colors.mutedForeground,
+    color: interpolateColor(bgAnim.value, [0, 1], [colors.mutedForeground, colors.primaryForeground]),
   }));
 
   return (

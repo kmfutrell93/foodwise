@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   ActivityIndicator, Alert, Modal,
@@ -10,7 +10,7 @@ import * as Haptics from 'expo-haptics';
 import { supabase, Recipe } from '@/lib/supabase';
 import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
 import { useThemeColors } from '@/context/ThemeContext';
-import { trackRecipeRated, trackRecipeAddedToPlan } from '@/lib/analytics';
+import { trackRecipeRated, trackRecipeAddedToPlan, trackRecipeViewed, trackRecipeStepsViewed } from '@/lib/analytics';
 
 type RecipeWithRating = Recipe & { user_rating: number | null };
 
@@ -18,20 +18,25 @@ const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 const SLOTS = ['breakfast', 'lunch', 'dinner', 'snack'];
 
 export default function RecipeDetail() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, name: paramName, protein_g: paramProtein, calories: paramCalories, slot: paramSlot } =
+    useLocalSearchParams<{ id: string; name?: string; protein_g?: string; calories?: string; slot?: string }>();
+  const isAiMeal = id === 'ai-meal';
   const colors = useThemeColors();
   const s = makeStyles(colors);
   const router = useRouter();
   const [recipe, setRecipe] = useState<RecipeWithRating | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!isAiMeal);
   const [rating, setRating] = useState<number | null>(null);
   const [ratingLoading, setRatingLoading] = useState(false);
   const [addSheetOpen, setAddSheetOpen] = useState(false);
   const [selectedDay, setSelectedDay] = useState('Monday');
   const [selectedSlot, setSelectedSlot] = useState('dinner');
   const [addingToPlan, setAddingToPlan] = useState(false);
+  const instructionsY = useRef(0);
+  const stepsFired = useRef(false);
 
   useEffect(() => {
+    if (isAiMeal) return;
     if (!id) return;
     (async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -45,10 +50,21 @@ export default function RecipeDetail() {
         const found = Array.isArray(data) ? data[0] : data;
         setRecipe(found ?? null);
         setRating(found?.user_rating ?? null);
+        if (found) {
+          trackRecipeViewed({ recipe_id: found.id, recipe_name: found.name, meal_type: found.meal_type?.[0] ?? '', source: 'recipe_detail' });
+        }
       }
       setLoading(false);
     })();
   }, [id]);
+
+  function handleScroll(e: { nativeEvent: { contentOffset: { y: number } } }) {
+    if (!recipe || stepsFired.current || instructionsY.current === 0) return;
+    if (e.nativeEvent.contentOffset.y >= instructionsY.current - 100) {
+      trackRecipeStepsViewed({ recipe_name: recipe.name });
+      stepsFired.current = true;
+    }
+  }
 
   async function handleRate(stars: number) {
     if (!recipe) return;
@@ -82,26 +98,68 @@ export default function RecipeDetail() {
       if (!user) return;
       const { data: plan } = await supabase
         .from('meal_plans')
-        .select('id, meal_plan')
+        .select('id, plan_json')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
       if (!plan) { Alert.alert('No plan', 'Generate a meal plan first.'); return; }
 
-      const mealPlan = plan.meal_plan as Record<string, Record<string, { name: string; protein_g?: number }>>;
-      const day = selectedDay.toLowerCase();
-      if (!mealPlan[day]) mealPlan[day] = {};
-      mealPlan[day][selectedSlot] = { name: recipe.name, protein_g: recipe.protein_g };
+      const planJson = plan.plan_json as { days: Array<{ day: string; meals: Array<{ slot: string; name: string; protein_g: number; calories: number }> }> };
+      const dayName = selectedDay.toLowerCase();
+      const dayEntry = planJson.days?.find(d => d.day.toLowerCase() === dayName);
+      if (!dayEntry) { Alert.alert('Day not found', `${selectedDay} is not in your current plan.`); return; }
 
-      await supabase.from('meal_plans').update({ meal_plan: mealPlan }).eq('id', plan.id);
-      trackRecipeAddedToPlan({ recipe_id: recipe.id, day, slot: selectedSlot });
+      const newMeal = { slot: selectedSlot, name: recipe.name, protein_g: recipe.protein_g, calories: recipe.calories };
+      const slotIdx = dayEntry.meals.findIndex(m => m.slot.toLowerCase() === selectedSlot);
+      if (slotIdx >= 0) { dayEntry.meals[slotIdx] = newMeal; } else { dayEntry.meals.push(newMeal); }
+
+      await supabase.from('meal_plans').update({ plan_json: planJson }).eq('id', plan.id);
+      trackRecipeAddedToPlan({ recipe_id: recipe.id, day: dayName, slot: selectedSlot });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setAddSheetOpen(false);
       Alert.alert('Added!', `${recipe.name} added to ${selectedDay} ${selectedSlot}.`);
     } finally {
       setAddingToPlan(false);
     }
+  }
+
+  if (isAiMeal) {
+    return (
+      <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
+          <TouchableOpacity style={s.backBtn} onPress={() => router.back()} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <Ionicons name="chevron-back" size={24} color={colors.foreground} />
+            <Text style={s.backText}>Meal Plan</Text>
+          </TouchableOpacity>
+          <View style={s.titleBlock}>
+            <Text style={s.recipeName}>{paramName ?? 'Meal'}</Text>
+            {paramSlot && (
+              <View style={s.metaRow}>
+                <View style={s.typeChip}><Text style={s.typeChipText}>{paramSlot}</Text></View>
+                <View style={s.typeChip}><Text style={s.typeChipText}>AI-generated</Text></View>
+              </View>
+            )}
+          </View>
+          <View style={s.macroStrip}>
+            {[
+              { label: 'Protein', value: `${paramProtein ?? '—'}g`, accent: true },
+              { label: 'Calories', value: `${paramCalories ?? '—'}` },
+            ].map(m => (
+              <View key={m.label} style={s.macroItem}>
+                <Text style={[s.macroValue, m.accent && s.macroAccent]}>{m.value}</Text>
+                <Text style={s.macroLabel}>{m.label}</Text>
+              </View>
+            ))}
+          </View>
+          <View style={[s.card, { padding: Spacing.lg }]}>
+            <Text style={{ fontSize: FontSize.sm, color: colors.mutedForeground, lineHeight: 22 }}>
+              This meal was generated by your AI coach, Nori, based on your GLP-1 protocol and weekly plan. Swap it using the refresh button on the plan screen if you'd like a different option.
+            </Text>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    );
   }
 
   if (loading) {
@@ -129,7 +187,7 @@ export default function RecipeDetail() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll} onScroll={handleScroll} scrollEventThrottle={100}>
         {/* Back */}
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Ionicons name="chevron-back" size={24} color={colors.foreground} />
@@ -202,7 +260,7 @@ export default function RecipeDetail() {
         </View>
 
         {/* Instructions */}
-        <Text style={s.sectionHeader}>Instructions</Text>
+        <Text style={s.sectionHeader} onLayout={e => { instructionsY.current = e.nativeEvent.layout.y; }}>Instructions</Text>
         <View style={s.card}>
           {recipe.instructions?.map((step, i) => (
             <View key={i} style={[s.stepRow, i < recipe.instructions.length - 1 && s.rowBorder]}>

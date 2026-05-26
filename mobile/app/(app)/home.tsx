@@ -165,7 +165,6 @@ export default function Home() {
   // ── Entry animation values ────────────────────────────────
   const headerAnim    = useSharedValue(0);
   const ringsAnim     = useSharedValue(0);
-  const streakAnim    = useSharedValue(0);
   const mealsAnim     = useSharedValue(0);
   const emergencyAnim = useSharedValue(0);
   const entryFired    = useRef(false);
@@ -202,7 +201,6 @@ export default function Home() {
     entryFired.current = true;
     headerAnim.value    = withTiming(1, { duration: 400 });
     ringsAnim.value     = withDelay(200, withTiming(1, { duration: 400 }));
-    streakAnim.value    = withDelay(200, withTiming(1, { duration: 400 }));
     mealsAnim.value     = withDelay(350, withTiming(1, { duration: 450 }));
     emergencyAnim.value = withDelay(500, withTiming(1, { duration: 400 }));
   }, []);
@@ -229,7 +227,6 @@ export default function Home() {
     transform: [{ translateY: interpolate(headerAnim.value, [0, 1], [-20, 0]) }],
   }));
   const ringsStyle = useAnimatedStyle(() => ({ opacity: ringsAnim.value }));
-  const streakStyle = useAnimatedStyle(() => ({ opacity: streakAnim.value }));
   const mealsStyle = useAnimatedStyle(() => ({
     opacity: mealsAnim.value,
     transform: [{ translateY: interpolate(mealsAnim.value, [0, 1], [30, 0]) }],
@@ -480,36 +477,37 @@ export default function Home() {
         </Animated.View>
 
         {/* Streak card */}
-        <Animated.View
-          entering={BounceIn.delay(300).duration(600)}
-          style={[s.streakCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-        >
-          <Animated.View style={streakStyle}>
+        <View style={[s.streakCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Animated.View entering={BounceIn.delay(0).duration(600)}>
             <View style={s.streakIconWrap}>
               <Ionicons name="flame" size={28} color={colors.primary} />
             </View>
           </Animated.View>
           <View style={s.streakBody}>
-            <View style={s.streakTopRow}>
-              <Text style={[s.streakTitle, { color: colors.foreground }]}>{streakCount} Day Streak! 🔥</Text>
-              <View style={s.xpBadge}>
-                <Text style={[s.xpText, { color: colors.primary }]}>+50 XP</Text>
-              </View>
-            </View>
-            <Text style={[s.streakSub, { color: colors.mutedForeground }]}>
-              {streakCount > 0 ? `Protein goal hit ${streakCount} days straight. Keep going!` : 'Log your first symptoms to start your streak.'}
-            </Text>
-            <View style={s.weekDots}>
-              {[0,1,2,3,4,5,6].map(i => (
-                <View key={i} style={[s.weekDot, { backgroundColor: i < Math.min(streakCount, 7) ? colors.primary : colors.muted }]}>
-                  <Text style={[s.weekDotText, { color: i < Math.min(streakCount, 7) ? colors.primaryForeground : colors.mutedForeground }]}>
-                    {i < Math.min(streakCount, 7) ? '✓' : '·'}
-                  </Text>
+            <Animated.View entering={BounceIn.delay(100).duration(600)}>
+              <View style={s.streakTopRow}>
+                <Text style={[s.streakTitle, { color: colors.foreground }]}>{streakCount} Day Streak! 🔥</Text>
+                <View style={s.xpBadge}>
+                  <Text style={[s.xpText, { color: colors.primary }]}>+50 XP</Text>
                 </View>
-              ))}
-            </View>
+              </View>
+              <Text style={[s.streakSub, { color: colors.mutedForeground }]}>
+                {streakCount > 0 ? `Protein goal hit ${streakCount} days straight. Keep going!` : 'Log your first symptoms to start your streak.'}
+              </Text>
+            </Animated.View>
+            <Animated.View entering={BounceIn.delay(200).duration(600)}>
+              <View style={s.weekDots}>
+                {[0,1,2,3,4,5,6].map(i => (
+                  <View key={i} style={[s.weekDot, { backgroundColor: i < Math.min(streakCount, 7) ? colors.primary : colors.muted }]}>
+                    <Text style={[s.weekDotText, { color: i < Math.min(streakCount, 7) ? colors.primaryForeground : colors.mutedForeground }]}>
+                      {i < Math.min(streakCount, 7) ? '✓' : '·'}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </Animated.View>
           </View>
-        </Animated.View>
+        </View>
 
         {/* Today's Meals */}
         <View style={s.sectionHeader}>

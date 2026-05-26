@@ -1,12 +1,24 @@
 import { useEffect } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
 import { useThemeColors } from '@/context/ThemeContext';
 
 export default function Index() {
   const router = useRouter();
   const colors = useThemeColors();
+
+  // DEV ONLY — reset auth session and local flags on every launch
+  useEffect(() => {
+    if (__DEV__) {
+      supabase.auth.signOut();               // clears Supabase session from AsyncStorage
+      AsyncStorage.multiRemove([
+        'review_prompt_shown',               // progress.tsx review gate
+        '@fw_theme',                         // ThemeContext preference
+      ]);
+    }
+  }, []);
 
   useEffect(() => {
     console.log('[index] mounted');

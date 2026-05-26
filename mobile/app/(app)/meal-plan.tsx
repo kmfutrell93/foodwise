@@ -5,11 +5,12 @@ import {
 } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase, MealPlan, MealDay, MealItem } from '@/lib/supabase';
 import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
 import { useThemeColors } from '@/context/ThemeContext';
-import { trackMealSwapped } from '@/lib/analytics';
+import { trackMealSwapped, trackRecipeViewed } from '@/lib/analytics';
 
 const DAY_SHORT: Record<string, string> = {
   monday: 'Mon', tuesday: 'Tue', wednesday: 'Wed', thursday: 'Thu',
@@ -29,6 +30,7 @@ const MEAL_EMOJIS: Record<string, string> = {
 export default function MealPlanScreen() {
   const colors = useThemeColors();
   const s = makeStyles(colors);
+  const router = useRouter();
   const [plan, setPlan] = useState<MealPlan | null>(null);
   const [generating, setGenerating] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -245,7 +247,15 @@ export default function MealPlanScreen() {
                     const emoji = MEAL_EMOJIS[slotKey] ?? '🍽️';
                     const delay = Math.min(mi, 6) * 60;
                     return (
-                      <Animated.View key={mi} entering={FadeIn.delay(delay).duration(400)} style={[s.mealCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                      <TouchableOpacity
+                        key={mi}
+                        activeOpacity={0.88}
+                        onPress={() => {
+                          trackRecipeViewed({ recipe_id: 'ai-meal', recipe_name: meal.name, meal_type: meal.slot, source: 'meal_plan' });
+                          router.push({ pathname: '/(app)/recipe/[id]' as any, params: { id: 'ai-meal', name: meal.name, protein_g: String(meal.protein_g), calories: String(meal.calories), slot: meal.slot } });
+                        }}
+                      >
+                      <Animated.View entering={FadeIn.delay(delay).duration(400)} style={[s.mealCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
                         <View style={s.mealCardTop}>
                           <View style={s.mealCardLeft}>
                             <View style={[s.slotBadge, { backgroundColor: slotColor + '1A' }]}>
@@ -285,6 +295,7 @@ export default function MealPlanScreen() {
                           )}
                         </View>
                       </Animated.View>
+                      </TouchableOpacity>
                     );
                   })}
                 </View>

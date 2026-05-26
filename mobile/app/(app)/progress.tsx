@@ -11,7 +11,7 @@ import Svg, { Circle, Polyline, Line } from 'react-native-svg';
 import Animated, {
   useSharedValue, useAnimatedStyle, useAnimatedProps,
   withTiming, withSpring, withSequence, withDelay,
-  ZoomIn, FadeIn,
+  runOnJS, ZoomIn, FadeIn,
   Easing,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,6 +26,7 @@ import {
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 const TEAL = '#1D9E75';
+const SCREEN_HEIGHT = Dimensions.get('window').height;
 const CHART_WIDTH = Dimensions.get('window').width - 48;
 const CHART_HEIGHT = 140;
 const C_PAD = { top: 16, bottom: 28, left: 8, right: 8 };
@@ -185,6 +186,30 @@ export default function Progress() {
   const loggedOpacity = useSharedValue(0);
   const loggedBannerStyle = useAnimatedStyle(() => ({ opacity: loggedOpacity.value }));
 
+  // Reanimated — weight modal entrance/exit
+  const modalTranslateY = useSharedValue(SCREEN_HEIGHT);
+  const overlayOpacity = useSharedValue(0);
+
+  useEffect(() => {
+    if (weightModalOpen) {
+      overlayOpacity.value = withTiming(1, { duration: 200 });
+      modalTranslateY.value = withSpring(0, { damping: 20, stiffness: 200 });
+    }
+  }, [weightModalOpen]);
+
+  function closeWeightModal() {
+    overlayOpacity.value = withTiming(0, { duration: 200 });
+    modalTranslateY.value = withTiming(SCREEN_HEIGHT, { duration: 300 }, (finished) => {
+      'worklet';
+      if (finished) runOnJS(setWeightModalOpen)(false);
+    });
+  }
+
+  const overlayStyle = useAnimatedStyle(() => ({ opacity: overlayOpacity.value }));
+  const modalSheetStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: modalTranslateY.value }],
+  }));
+
   async function load() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -276,7 +301,7 @@ export default function Progress() {
       );
       if (!res.ok) throw new Error('Failed to save');
       trackWeightLogged({ source: 'manual', weight_lbs: lbs, has_note: !!weightNote });
-      setWeightModalOpen(false);
+      closeWeightModal();
       setWeightInput('');
       setWeightNote('');
       const logsRes = await fetch(
@@ -557,55 +582,67 @@ export default function Progress() {
       </Modal>
 
       {/* Weight log modal */}
-      <Modal visible={weightModalOpen} animationType="slide" presentationStyle="pageSheet"
-        onRequestClose={() => setWeightModalOpen(false)}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-          <SafeAreaView style={[s.modalSafe, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
-            <View style={s.modalHandle} />
-            <View style={s.modalHeader}>
-              <Text style={[s.modalTitle, { color: colors.foreground }]}>Log today's weight</Text>
-              <TouchableOpacity onPress={() => setWeightModalOpen(false)} style={s.modalCloseBtn}>
-                <Ionicons name="close" size={22} color={colors.mutedForeground} />
-              </TouchableOpacity>
-            </View>
-            <View style={s.modalBody}>
-              <Text style={[s.modalLabel, { color: colors.mutedForeground }]}>Weight (lbs)</Text>
-              <TextInput
-                style={[s.modalInput, { backgroundColor: colors.card, borderColor: weightError ? '#E06555' : colors.border, color: colors.foreground }]}
-                placeholder="e.g. 185.5"
-                placeholderTextColor={colors.mutedForeground}
-                keyboardType="decimal-pad"
-                value={weightInput}
-                onChangeText={v => { setWeightInput(v); setWeightError(null); }}
-                autoFocus
-              />
-              {weightError && <Text style={s.weightErrorText}>{weightError}</Text>}
-              <Text style={[s.modalLabel, { color: colors.mutedForeground, marginTop: Spacing.lg }]}>Note (optional)</Text>
-              <TextInput
-                style={[s.modalInput, s.modalInputMultiline, { backgroundColor: colors.card, borderColor: colors.border, color: colors.foreground }]}
-                placeholder="Any non-scale wins today? e.g. more energy, less nausea"
-                placeholderTextColor={colors.mutedForeground}
-                multiline
-                numberOfLines={3}
-                value={weightNote}
-                onChangeText={setWeightNote}
-              />
-              <TouchableOpacity
-                style={[s.saveBtn, { backgroundColor: TEAL }, weightSaving && { opacity: 0.6 }]}
-                onPress={saveWeight}
-                disabled={weightSaving}
-                activeOpacity={0.85}
-              >
-                {weightSaving
-                  ? <ActivityIndicator color="#fff" />
-                  : <Text style={s.saveBtnText}>Save</Text>}
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => setWeightModalOpen(false)} style={s.cancelBtn}>
-                <Text style={[s.cancelBtnText, { color: colors.mutedForeground }]}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          </SafeAreaView>
-        </KeyboardAvoidingView>
+      <Modal
+        visible={weightModalOpen}
+        transparent
+        animationType="none"
+        statusBarTranslucent
+        onRequestClose={closeWeightModal}
+      >
+        <View style={{ flex: 1 }}>
+          <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.5)' }, overlayStyle]}>
+            <TouchableOpacity style={{ flex: 1 }} onPress={closeWeightModal} activeOpacity={1} />
+          </Animated.View>
+          <Animated.View style={[s.modalSheet, modalSheetStyle]}>
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+              <SafeAreaView style={[s.modalSafe, { backgroundColor: colors.background }]} edges={['bottom']}>
+                <View style={s.modalHandle} />
+                <View style={s.modalHeader}>
+                  <Text style={[s.modalTitle, { color: colors.foreground }]}>Log today's weight</Text>
+                  <TouchableOpacity onPress={closeWeightModal} style={s.modalCloseBtn}>
+                    <Ionicons name="close" size={22} color={colors.mutedForeground} />
+                  </TouchableOpacity>
+                </View>
+                <View style={s.modalBody}>
+                  <Text style={[s.modalLabel, { color: colors.mutedForeground }]}>Weight (lbs)</Text>
+                  <TextInput
+                    style={[s.modalInput, { backgroundColor: colors.card, borderColor: weightError ? '#E06555' : colors.border, color: colors.foreground }]}
+                    placeholder="e.g. 185.5"
+                    placeholderTextColor={colors.mutedForeground}
+                    keyboardType="decimal-pad"
+                    value={weightInput}
+                    onChangeText={v => { setWeightInput(v); setWeightError(null); }}
+                    autoFocus
+                  />
+                  {weightError && <Text style={s.weightErrorText}>{weightError}</Text>}
+                  <Text style={[s.modalLabel, { color: colors.mutedForeground, marginTop: Spacing.lg }]}>Note (optional)</Text>
+                  <TextInput
+                    style={[s.modalInput, s.modalInputMultiline, { backgroundColor: colors.card, borderColor: colors.border, color: colors.foreground }]}
+                    placeholder="Any non-scale wins today? e.g. more energy, less nausea"
+                    placeholderTextColor={colors.mutedForeground}
+                    multiline
+                    numberOfLines={3}
+                    value={weightNote}
+                    onChangeText={setWeightNote}
+                  />
+                  <TouchableOpacity
+                    style={[s.saveBtn, { backgroundColor: TEAL }, weightSaving && { opacity: 0.6 }]}
+                    onPress={saveWeight}
+                    disabled={weightSaving}
+                    activeOpacity={0.85}
+                  >
+                    {weightSaving
+                      ? <ActivityIndicator color="#fff" />
+                      : <Text style={s.saveBtnText}>Save</Text>}
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={closeWeightModal} style={s.cancelBtn}>
+                    <Text style={[s.cancelBtnText, { color: colors.mutedForeground }]}>Cancel</Text>
+                  </TouchableOpacity>
+                </View>
+              </SafeAreaView>
+            </KeyboardAvoidingView>
+          </Animated.View>
+        </View>
       </Modal>
     </SafeAreaView>
   );
@@ -671,6 +708,7 @@ function makeStyles(c: ThemeColors) {
     milestoneLabelLocked: { color: c.mutedForeground },
     milestoneDate: { fontSize: FontSize.xs, color: c.primary },
     modalSafe: { flex: 1 },
+    modalSheet: { position: 'absolute', bottom: 0, left: 0, right: 0, height: SCREEN_HEIGHT * 0.85, borderTopLeftRadius: 24, borderTopRightRadius: 24, backgroundColor: c.background, overflow: 'hidden' },
     modalHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: '#ccc', alignSelf: 'center', marginTop: 8, marginBottom: 16 },
     modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.xl, marginBottom: Spacing.xl },
     modalTitle: { fontSize: FontSize.xl, fontFamily: 'PlusJakartaSans-ExtraBold' },
