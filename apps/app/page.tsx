@@ -17,11 +17,11 @@ export default function Home() {
       <HeroSection />
       <ProblemSection />
       <SolutionSection />
+      <MedicationsSection />
       <PricingStripSection />
       <SmartFridgeSection />
       <HowItWorksSection />
       <PricingSection />
-      <MedicationsSection />
       <FinalCTASection />
       <Footer />
     </main>

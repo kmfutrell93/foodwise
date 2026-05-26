@@ -7,16 +7,17 @@ import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
 import { useThemeColors } from '@/context/ThemeContext';
 
 const FEATURES: { label: string; free: boolean; pro: boolean }[] = [
-  { label: 'Daily meal logging', free: true, pro: true },
-  { label: 'Basic calorie tracking', free: true, pro: true },
-  { label: 'GLP-1 injection-day meals', free: false, pro: true },
-  { label: 'AI-generated 7-day plans', free: false, pro: true },
-  { label: 'Budget-matched grocery lists', free: false, pro: true },
-  { label: 'NOVA food scoring', free: false, pro: true },
-  { label: 'Symptom ↔ meal correlation', free: false, pro: true },
-  { label: 'Weekly AI insight reports', free: false, pro: true },
-  { label: 'Streak engine & milestones', free: false, pro: true },
-  { label: 'Unlimited plan swaps', free: false, pro: true },
+  { label: 'AI meal plans (3/month)', free: true, pro: true },
+  { label: 'Injection-day aware meals', free: true, pro: true },
+  { label: 'Basic grocery list', free: true, pro: true },
+  { label: 'Medication-specific menus', free: true, pro: true },
+  { label: 'Unlimited meal plans', free: false, pro: true },
+  { label: 'Symptom tracker + AI insights', free: false, pro: true },
+  { label: 'Weekly progress reports', free: false, pro: true },
+  { label: 'Streak system + milestones', free: false, pro: true },
+  { label: 'Dose escalation awareness', free: false, pro: true },
+  { label: 'Smart grocery list + NOVA scores', free: false, pro: true },
+  { label: 'Apple Health integration', free: false, pro: true },
 ];
 
 export default function Comparison() {

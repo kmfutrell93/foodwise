@@ -57,7 +57,7 @@ export default function AiDisclosure() {
           </Text>
         </View>
 
-        <Button label="I understand — continue" onPress={() => router.push('/(onboarding)/22-paywall')} />
+        <Button label="I understand, continue" onPress={() => router.push('/(onboarding)/22-paywall')} />
       </ScrollView>
     </OnboardingShell>
   );

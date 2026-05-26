@@ -109,8 +109,8 @@ export default function PrivacyPage() {
             <p>
               You may access, correct, export, or delete your personal data at any time. Contact
               us at{' '}
-              <a href="mailto:support@foodwise.app" className="text-[#1D9E75] hover:text-[#A8F0D8] transition-colors">
-                support@foodwise.app
+              <a href="mailto:support@getfoodwise.app" className="text-[#1D9E75] hover:text-[#A8F0D8] transition-colors">
+                support@getfoodwise.app
               </a>
               .
             </p>
@@ -128,8 +128,8 @@ export default function PrivacyPage() {
 
           <Section title="10. Contact">
             <p>
-              <a href="mailto:support@foodwise.app" className="text-[#1D9E75] hover:text-[#A8F0D8] transition-colors">
-                support@foodwise.app
+              <a href="mailto:support@getfoodwise.app" className="text-[#1D9E75] hover:text-[#A8F0D8] transition-colors">
+                support@getfoodwise.app
               </a>
             </p>
           </Section>

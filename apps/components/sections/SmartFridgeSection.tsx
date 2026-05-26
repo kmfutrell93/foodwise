@@ -79,7 +79,7 @@ export default function SmartFridgeSection() {
           className="text-[#94A3B8] text-center max-w-xl mx-auto mb-10 leading-relaxed"
         >
           Tap what you have. FoodWise builds GLP-1 optimized meals from your
-          actual ingredients — no shopping required.
+          actual ingredients. No shopping required.
         </motion.p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
@@ -177,7 +177,7 @@ export default function SmartFridgeSection() {
                 Coming to the app soon
               </p>
               <p className="text-[#64748B] text-xs mt-1">
-                Snap your fridge or pantry — Nori reads it automatically
+                Snap your fridge or pantry. Nori reads it automatically.
               </p>
             </div>
           </motion.div>

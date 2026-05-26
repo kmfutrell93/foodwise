@@ -9,7 +9,7 @@ const steps = [
     nori: '/nori/nori_pointing_right_2.png',
     bubble: "I'll remember your injection day 💉",
     title: 'Tell Nori your medication and injection day',
-    body: "Tell Nori you're on Ozempic, Wegovy, Mounjaro, or Zepbound — and your injection day.",
+    body: "Tell Nori you're on Ozempic, Wegovy, Mounjaro, or Zepbound. Add your injection day.",
   },
   {
     number: '2',

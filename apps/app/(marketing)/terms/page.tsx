@@ -50,7 +50,7 @@ export default function TermsPage() {
             <ul className="list-disc list-inside mt-2 space-y-2 ml-2">
               <li>FoodWise Pro: $12.99/month or $99/year, processed by Apple via in-app purchase.</li>
               <li>7-day free trial for new subscribers.</li>
-              <li>Cancel anytime in iOS Settings.</li>
+              <li>Cancel anytime in iPhone Settings → Apple ID → Subscriptions → FoodWise.</li>
               <li>No refunds except as required by Apple&apos;s standard policy.</li>
             </ul>
           </Section>
@@ -101,8 +101,8 @@ export default function TermsPage() {
 
           <Section title="10. Contact">
             <p>
-              <a href="mailto:support@foodwise.app" className="text-[#1D9E75] hover:text-[#A8F0D8] transition-colors">
-                support@foodwise.app
+              <a href="mailto:support@getfoodwise.app" className="text-[#1D9E75] hover:text-[#A8F0D8] transition-colors">
+                support@getfoodwise.app
               </a>
             </p>
           </Section>

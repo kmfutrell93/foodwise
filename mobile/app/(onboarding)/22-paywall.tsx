@@ -220,7 +220,7 @@ export default function Paywall() {
         <Text style={s.legal}>
           Payment will be charged to your Apple ID account. Subscription automatically renews unless
           cancelled at least 24 hours before the end of the current period. Manage or cancel in
-          Settings → Apple ID → Subscriptions.
+          iPhone Settings → Apple ID → Subscriptions → FoodWise.
         </Text>
       </ScrollView>
     </SafeAreaView>

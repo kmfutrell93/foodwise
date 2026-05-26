@@ -17,18 +17,18 @@ export default function PricingStripSection() {
           <div className="text-center md:text-left">
             <p className="text-white font-bold text-xl mb-1">Start free. No credit card.</p>
             <p className="text-[#94A3B8] text-sm">
-              Upgrade to Pro anytime — cancel from your iPhone settings.
+              Upgrade to Pro anytime. Cancel from your iPhone settings.
             </p>
           </div>
 
           {/* Center: pricing pills */}
-          <div className="flex items-center gap-3 flex-wrap justify-center">
-            <div className="glass-card px-5 py-3 text-center border border-white/10">
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 w-full max-w-sm mx-auto md:mx-0 md:max-w-none md:w-auto">
+            <div className="glass-card px-5 py-3 text-center border border-white/10 w-full">
               <p className="text-white font-bold text-lg">Free</p>
               <p className="text-[#64748B] text-xs">3 plans/month</p>
             </div>
             <div className="text-[#1A3A5C] text-xl font-light">/</div>
-            <div className="glass-card px-5 py-3 text-center border border-[#1D9E75]/50 shadow-[0_0_20px_rgba(29,158,117,0.1)]">
+            <div className="glass-card px-5 py-3 text-center border border-[#1D9E75]/50 shadow-[0_0_20px_rgba(29,158,117,0.1)] w-full">
               <p className="text-[#A8F0D8] font-bold text-lg">Pro $12.99</p>
               <p className="text-[#64748B] text-xs">per month · save 37% yearly</p>
             </div>

@@ -110,7 +110,7 @@ export default function PricingSection() {
               <span className="text-5xl font-extrabold text-white">$12.99</span>
               <span className="text-[#64748B]">/month</span>
             </div>
-            <p className="text-[#64748B] text-sm mb-1">or $99/year — save 37%</p>
+            <p className="text-[#64748B] text-sm mb-1">or $99/year · save 37%</p>
             <p className="text-[#A8F0D8] text-sm font-medium mb-6">
               7-day free trial · cancel anytime
             </p>

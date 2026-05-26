@@ -84,12 +84,12 @@ export default function HeroSection() {
             <div className="flex items-center gap-4 mt-2">
               <div className="flex items-center gap-1.5">
                 <span className="text-[#1D9E75] font-bold text-sm">Free</span>
-                <span className="text-[#64748B] text-sm">— 3 meal plans/month</span>
+                <span className="text-[#64748B] text-sm">· 3 plans/month</span>
               </div>
               <span className="text-[#1A3A5C]">|</span>
               <div className="flex items-center gap-1.5">
                 <span className="text-[#A8F0D8] font-bold text-sm">Pro $12.99</span>
-                <span className="text-[#64748B] text-sm">— unlimited everything</span>
+                <span className="text-[#64748B] text-sm">· unlimited everything</span>
               </div>
             </div>
           </motion.div>

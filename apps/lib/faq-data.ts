@@ -34,11 +34,11 @@ export const FAQ_DATA: FAQItem[] = [
   },
   {
     question: 'How much does FoodWise cost?',
-    answer: 'Free for up to 3 meal plans/month. FoodWise Pro: $12.99/month or $99/year (save 36%). Both include a 7-day free trial.',
+    answer: 'Free for up to 3 meal plans/month. FoodWise Pro: $12.99/month or $99/year (save 37%). Both include a 7-day free trial.',
   },
   {
     question: 'Can I cancel?',
-    answer: 'Yes, anytime. iOS Settings → [Your Name] → Subscriptions → FoodWise. Access continues to end of billing period.',
+    answer: 'Yes, anytime. iPhone Settings → Apple ID → Subscriptions → FoodWise. Access continues to end of billing period.',
   },
   {
     question: 'Is my health data private?',

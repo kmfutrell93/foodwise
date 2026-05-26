@@ -11,8 +11,8 @@ const problems = [
         <line x1="12" y1="16" x2="12.01" y2="16"/>
       </svg>
     ),
-    title: "GLP-1 takes your appetite — and your muscle",
-    body: "Up to 30% of weight lost on GLP-1 medications can come from muscle, not fat. Most meal apps don't know — or care.",
+    title: "GLP-1 takes your appetite and your muscle",
+    body: "Up to 30% of weight lost on GLP-1 medications can come from muscle, not fat. Most meal apps don't know or care.",
   },
   {
     icon: (
@@ -25,7 +25,7 @@ const problems = [
       </svg>
     ),
     title: 'Injection day is not like other days',
-    body: 'Nausea. Zero appetite. Sensitivity to textures. You need softer, easier foods — not the same plan as every other day.',
+    body: 'Nausea. Zero appetite. Sensitivity to textures. You need softer, easier foods. Not the same plan as every other day.',
   },
   {
     icon: (
@@ -53,7 +53,7 @@ export default function ProblemSection() {
           transition={{ duration: 0.5 }}
           className="text-[#1D9E75] text-sm font-semibold uppercase tracking-widest text-center mb-3"
         >
-          The problem with other Ozempic &amp; GLP-1 meal apps
+          The problem with other meal planner apps
         </motion.p>
 
         <motion.h2
