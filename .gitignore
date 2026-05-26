@@ -36,3 +36,5 @@ build/
 .vercel
 apps/.next/
 apps/node_modules/
+apps/.next/
+apps/node_modules/
