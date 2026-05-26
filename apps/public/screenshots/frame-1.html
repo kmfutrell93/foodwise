@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FoodWise — Frame 1</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; background: #0A2E22;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+.frame {
+  width: 393px; height: 852px;
+  background: linear-gradient(160deg, #0A2E22 0%, #1D9E75 100%);
+  position: relative; overflow: hidden; flex-shrink: 0;
+}
+.wordmark {
+  position: absolute; top: 20px; left: 20px;
+  color: white; font-weight: 600; font-size: 13px; opacity: 0.7;
+}
+.top {
+  height: 255px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 48px 24px 24px; text-align: center;
+}
+.headline {
+  color: white; font-weight: 700; font-size: 28px;
+  line-height: 1.2; letter-spacing: -0.3px;
+}
+.subhead {
+  color: rgba(255,255,255,0.75); font-size: 15px;
+  font-weight: 400; margin-top: 10px;
+}
+.bottom {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 597px; background: white;
+  border-radius: 24px 24px 0 0; overflow: hidden;
+}
+.handle {
+  width: 32px; height: 4px; background: #DDDDDD;
+  border-radius: 2px; margin: 10px auto;
+}
+.content { padding: 0 14px; }
+
+/* Protein bar */
+.protein-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px; padding: 8px 12px;
+  background: #F0FBF6; border-radius: 10px;
+}
+.protein-text { font-size: 12px; font-weight: 600; color: #333; }
+.on-target {
+  display: flex; align-items: center; gap: 4px;
+  background: #1D9E75; color: white;
+  font-size: 10px; font-weight: 700; padding: 3px 8px;
+  border-radius: 20px;
+}
+
+/* Grid */
+.grid { display: flex; gap: 3px; margin-bottom: 12px; }
+.day-col {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+}
+.day-col.dose { background: #E1F5EE; border-radius: 10px; padding: 4px 2px; }
+.day-header {
+  font-size: 9px; font-weight: 700; color: #888;
+  text-transform: uppercase; margin-bottom: 2px;
+}
+.day-col.dose .day-header { color: #0F7A57; }
+.dose-badge {
+  background: #1D9E75; color: white;
+  font-size: 8px; font-weight: 700; padding: 2px 5px;
+  border-radius: 20px; margin-bottom: 2px; white-space: nowrap;
+}
+.meal-chip {
+  width: 100%; background: #F5F5F5; border-radius: 6px;
+  padding: 4px 3px; text-align: center;
+}
+.meal-chip.dose-meal { background: #D0F0E4; }
+.meal-label {
+  font-size: 7px; font-weight: 800; color: #1D9E75;
+  text-transform: uppercase; letter-spacing: 0.3px;
+}
+.meal-name { font-size: 7.5px; font-weight: 600; color: #333; line-height: 1.3; }
+.meal-name.italic { font-style: italic; color: #0F7A57; }
+.leaf { font-size: 7px; }
+
+/* Banner */
+.inj-banner {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #0F7A57 0%, #1D9E75 100%);
+  border-radius: 10px; color: white;
+}
+.inj-banner-icon { font-size: 18px; flex-shrink: 0; }
+.inj-banner-text { font-size: 12px; font-weight: 600; line-height: 1.3; }
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="wordmark">FoodWise</div>
+  <div class="top">
+    <div class="headline">Soft Meals on Injection Day</div>
+    <div class="subhead">Your plan adjusts automatically on dose day and the day after</div>
+  </div>
+  <div class="bottom">
+    <div class="handle"></div>
+    <div class="content">
+
+      <div class="protein-row">
+        <span class="protein-text">This week: avg 112g protein/day</span>
+        <span class="on-target">✓ On target</span>
+      </div>
+
+      <div class="grid">
+        <!-- Mon -->
+        <div class="day-col">
+          <div class="day-header">Mon</div>
+          <div class="meal-chip"><div class="meal-label">B</div><div class="meal-name">Oat Bran Porridge</div></div>
+          <div class="meal-chip"><div class="meal-label">L</div><div class="meal-name">Chicken Quinoa Wrap</div></div>
+          <div class="meal-chip"><div class="meal-label">D</div><div class="meal-name">Lean Beef Stir Fry</div></div>
+        </div>
+        <!-- Tue -->
+        <div class="day-col">
+          <div class="day-header">Tue</div>
+          <div class="meal-chip"><div class="meal-label">B</div><div class="meal-name">Egg White Omelette</div></div>
+          <div class="meal-chip"><div class="meal-label">L</div><div class="meal-name">Turkey Lettuce Wrap</div></div>
+          <div class="meal-chip"><div class="meal-label">D</div><div class="meal-name">Baked Cod & Veg</div></div>
+        </div>
+        <!-- Wed — DOSE DAY -->
+        <div class="day-col dose">
+          <div class="day-header">Wed</div>
+          <div class="dose-badge">Dose Day 💉</div>
+          <div class="meal-chip dose-meal"><div class="meal-label">B</div><div class="meal-name italic"><span class="leaf">🌿</span> Soft Scrambled Eggs</div></div>
+          <div class="meal-chip dose-meal"><div class="meal-label">L</div><div class="meal-name italic"><span class="leaf">🌿</span> Greek Yogurt Bowl</div></div>
+          <div class="meal-chip dose-meal"><div class="meal-label">D</div><div class="meal-name italic"><span class="leaf">🌿</span> Steamed Salmon</div></div>
+        </div>
+        <!-- Thu -->
+        <div class="day-col">
+          <div class="day-header">Thu</div>
+          <div class="meal-chip"><div class="meal-label">B</div><div class="meal-name">Banana Protein Smoothie</div></div>
+          <div class="meal-chip"><div class="meal-label">L</div><div class="meal-name">Lentil Soup</div></div>
+          <div class="meal-chip"><div class="meal-label">D</div><div class="meal-name">Chicken & Sweet Potato</div></div>
+        </div>
+        <!-- Fri -->
+        <div class="day-col">
+          <div class="day-header">Fri</div>
+          <div class="meal-chip"><div class="meal-label">B</div><div class="meal-name">Skyr with Berries</div></div>
+          <div class="meal-chip"><div class="meal-label">L</div><div class="meal-name">Tuna Rice Bowl</div></div>
+          <div class="meal-chip"><div class="meal-label">D</div><div class="meal-name">Sirloin & Asparagus</div></div>
+        </div>
+        <!-- Sat -->
+        <div class="day-col">
+          <div class="day-header">Sat</div>
+          <div class="meal-chip"><div class="meal-label">B</div><div class="meal-name">Cottage Cheese Toast</div></div>
+          <div class="meal-chip"><div class="meal-label">L</div><div class="meal-name">Black Bean Burrito</div></div>
+          <div class="meal-chip"><div class="meal-label">D</div><div class="meal-name">Prawn Stir Fry</div></div>
+        </div>
+        <!-- Sun -->
+        <div class="day-col">
+          <div class="day-header">Sun</div>
+          <div class="meal-chip"><div class="meal-label">B</div><div class="meal-name">Smoked Salmon Eggs</div></div>
+          <div class="meal-chip"><div class="meal-label">L</div><div class="meal-name">Edamame Bowl</div></div>
+          <div class="meal-chip"><div class="meal-label">D</div><div class="meal-name">Herb Roast Chicken</div></div>
+        </div>
+      </div>
+
+      <div class="inj-banner">
+        <div class="inj-banner-icon">💉</div>
+        <div class="inj-banner-text">Injection day detected — gentle meals ready</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

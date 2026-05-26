@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FoodWise — Frame 4</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; background: #0A2E22;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+.frame {
+  width: 393px; height: 852px;
+  background: linear-gradient(160deg, #0A2E22 0%, #1D9E75 100%);
+  position: relative; overflow: hidden; flex-shrink: 0;
+}
+.wordmark {
+  position: absolute; top: 20px; left: 20px;
+  color: white; font-weight: 600; font-size: 13px; opacity: 0.7;
+}
+.top {
+  height: 255px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 48px 24px 24px; text-align: center;
+}
+.headline {
+  color: white; font-weight: 700; font-size: 28px;
+  line-height: 1.2; letter-spacing: -0.3px;
+}
+.subhead {
+  color: rgba(255,255,255,0.75); font-size: 15px;
+  font-weight: 400; margin-top: 10px;
+}
+.bottom {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 597px; background: white;
+  border-radius: 24px 24px 0 0; overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.handle {
+  width: 32px; height: 4px; background: #DDDDDD;
+  border-radius: 2px; margin: 10px auto; flex-shrink: 0;
+}
+.content {
+  padding: 0 20px; flex: 1; display: flex; flex-direction: column;
+  align-items: center; gap: 16px;
+}
+
+/* Protein ring */
+.ring-wrap { position: relative; width: 120px; height: 120px; flex-shrink: 0; }
+.ring-wrap svg { position: absolute; top: 0; left: 0; }
+.ring-center {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  text-align: center;
+}
+.ring-val { font-size: 22px; font-weight: 800; color: #1A1A1A; }
+.ring-sub { font-size: 12px; color: #888; }
+
+/* Streak badges */
+.streak-row { display: flex; gap: 8px; width: 100%; }
+.streak-badge {
+  flex: 1; background: #1D9E75; color: white;
+  border-radius: 20px; padding: 7px 8px; text-align: center;
+  font-size: 11px; font-weight: 700; line-height: 1.4;
+}
+
+/* Milestone card */
+.milestone-card {
+  width: 100%; padding: 16px;
+  background: linear-gradient(135deg, #0F7A57 0%, #1D9E75 100%);
+  border-radius: 16px; color: white; position: relative; overflow: hidden;
+}
+.milestone-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.milestone-sub { font-size: 13px; color: rgba(255,255,255,0.8); }
+.confetti-dot {
+  position: absolute; border-radius: 50%;
+}
+
+/* Countdown */
+.countdown-row {
+  display: flex; align-items: center; gap: 8px;
+}
+.countdown-label { font-size: 13px; color: #555; }
+.countdown-pill {
+  background: #F3F4F6; color: #666; font-size: 11px;
+  font-weight: 600; padding: 4px 10px; border-radius: 20px;
+}
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="wordmark">FoodWise</div>
+  <div class="top">
+    <div class="headline">Build a Streak. Stay Consistent.</div>
+    <div class="subhead">Protein · Check-in · Meal plan — all on your home screen</div>
+  </div>
+  <div class="bottom">
+    <div class="handle"></div>
+    <div class="content">
+
+      <!-- Protein ring -->
+      <div class="ring-wrap">
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <!-- Background circle -->
+          <circle cx="60" cy="60" r="52" stroke="#EEEEEE" stroke-width="10" fill="none"/>
+          <!-- Teal arc 78% filled: circumference = 2π×52 ≈ 326.7, 78% = 254.8 -->
+          <circle
+            cx="60" cy="60" r="52"
+            stroke="#1D9E75" stroke-width="10" fill="none"
+            stroke-dasharray="326.7 326.7"
+            stroke-dashoffset="71.9"
+            stroke-linecap="round"
+            transform="rotate(-90 60 60)"
+          />
+        </svg>
+        <div class="ring-center">
+          <div class="ring-val">94g</div>
+          <div class="ring-sub">of 120g</div>
+        </div>
+      </div>
+
+      <!-- Streak badges -->
+      <div class="streak-row">
+        <div class="streak-badge">🔥 12 days<br>Protein</div>
+        <div class="streak-badge">✓ 8 days<br>Check-in</div>
+        <div class="streak-badge">📅 5 days<br>Plan</div>
+      </div>
+
+      <!-- Milestone card -->
+      <div class="milestone-card">
+        <!-- Confetti dots -->
+        <div class="confetti-dot" style="width:8px;height:8px;background:#FFD700;top:10px;right:20px;"></div>
+        <div class="confetti-dot" style="width:6px;height:6px;background:#FF6B6B;top:20px;right:50px;"></div>
+        <div class="confetti-dot" style="width:7px;height:7px;background:#A8F0D8;top:8px;right:75px;"></div>
+        <div class="confetti-dot" style="width:5px;height:5px;background:#FFD700;bottom:12px;right:30px;"></div>
+        <div class="confetti-dot" style="width:6px;height:6px;background:#FF6B6B;bottom:8px;right:65px;"></div>
+        <div class="milestone-title">🏆 7-Day Streak Earned!</div>
+        <div class="milestone-sub">You're building a real habit.</div>
+      </div>
+
+      <!-- Injection countdown -->
+      <div class="countdown-row">
+        <span class="countdown-label">Next dose</span>
+        <span class="countdown-pill">in 4 days</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

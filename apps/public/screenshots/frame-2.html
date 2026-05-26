@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FoodWise — Frame 2</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; background: #0A2E22;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+.frame {
+  width: 393px; height: 852px;
+  background: linear-gradient(160deg, #0A2E22 0%, #1D9E75 100%);
+  position: relative; overflow: hidden; flex-shrink: 0;
+}
+.wordmark {
+  position: absolute; top: 20px; left: 20px;
+  color: white; font-weight: 600; font-size: 13px; opacity: 0.7;
+}
+.top {
+  height: 255px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 48px 24px 24px; text-align: center;
+}
+.headline {
+  color: white; font-weight: 700; font-size: 28px;
+  line-height: 1.2; letter-spacing: -0.3px;
+}
+.subhead {
+  color: rgba(255,255,255,0.75); font-size: 15px;
+  font-weight: 400; margin-top: 10px;
+}
+.bottom {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 597px; background: white;
+  border-radius: 24px 24px 0 0; overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.handle {
+  width: 32px; height: 4px; background: #DDDDDD;
+  border-radius: 2px; margin: 10px auto; flex-shrink: 0;
+}
+.content { padding: 0 18px; flex: 1; display: flex; flex-direction: column; gap: 14px; }
+
+/* Progress bar */
+.progress-row {
+  display: flex; align-items: center; gap: 10px;
+}
+.progress-bar-bg {
+  flex: 1; height: 5px; background: #EEEEEE; border-radius: 3px; overflow: hidden;
+}
+.progress-bar-fill {
+  width: 22%; height: 100%; background: #1D9E75; border-radius: 3px;
+}
+.progress-label { font-size: 11px; color: #888; font-weight: 600; white-space: nowrap; }
+
+/* Medication grid */
+.med-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.med-card {
+  border: 1px solid #EEEEEE; border-radius: 12px; padding: 14px;
+  position: relative; cursor: pointer;
+}
+.med-card.selected { border: 2px solid #1D9E75; }
+.med-name { font-size: 14px; font-weight: 700; color: #1A1A1A; margin-bottom: 2px; }
+.med-class { font-size: 12px; color: #888; }
+.check-badge {
+  position: absolute; top: 8px; right: 8px;
+  width: 20px; height: 20px; background: #1D9E75;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 11px; font-weight: 700;
+}
+
+/* Injection day row */
+.inject-label { font-size: 13px; font-weight: 700; color: #1A1A1A; margin-bottom: 8px; }
+.day-pills { display: flex; gap: 6px; }
+.day-pill {
+  flex: 1; padding: 8px 4px; border-radius: 8px;
+  border: 1px solid #DDDDDD; background: white;
+  font-size: 11px; font-weight: 600; color: #888;
+  text-align: center;
+}
+.day-pill.active { background: #1D9E75; border-color: #1D9E75; color: white; }
+
+/* Continue button */
+.continue-btn {
+  background: #1D9E75; color: white; border: none;
+  padding: 16px; border-radius: 12px; width: 100%;
+  font-size: 16px; font-weight: 700; cursor: pointer; margin-top: auto;
+}
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="wordmark">FoodWise</div>
+  <div class="top">
+    <div class="headline">Your GLP-1 Plan, Personalized</div>
+    <div class="subhead">Built for Ozempic, Wegovy, Mounjaro &amp; Zepbound</div>
+  </div>
+  <div class="bottom">
+    <div class="handle"></div>
+    <div class="content">
+
+      <div class="progress-row">
+        <div class="progress-bar-bg"><div class="progress-bar-fill"></div></div>
+        <span class="progress-label">2 of 9</span>
+      </div>
+
+      <div class="med-grid">
+        <div class="med-card selected">
+          <div class="check-badge">✓</div>
+          <div class="med-name">Ozempic</div>
+          <div class="med-class">Semaglutide</div>
+        </div>
+        <div class="med-card">
+          <div class="med-name">Wegovy</div>
+          <div class="med-class">Semaglutide</div>
+        </div>
+        <div class="med-card">
+          <div class="med-name">Mounjaro</div>
+          <div class="med-class">Tirzepatide</div>
+        </div>
+        <div class="med-card">
+          <div class="med-name">Zepbound</div>
+          <div class="med-class">Tirzepatide</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="inject-label">When do you inject?</div>
+        <div class="day-pills">
+          <div class="day-pill">Mon</div>
+          <div class="day-pill">Tue</div>
+          <div class="day-pill active">Wed</div>
+          <div class="day-pill">Thu</div>
+          <div class="day-pill">Fri</div>
+          <div class="day-pill">Sat</div>
+          <div class="day-pill">Sun</div>
+        </div>
+      </div>
+
+      <button class="continue-btn">Continue →</button>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

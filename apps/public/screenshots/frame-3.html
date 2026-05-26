@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FoodWise — Frame 3</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; background: #0A2E22;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+.frame {
+  width: 393px; height: 852px;
+  background: linear-gradient(160deg, #0A2E22 0%, #1D9E75 100%);
+  position: relative; overflow: hidden; flex-shrink: 0;
+}
+.wordmark {
+  position: absolute; top: 20px; left: 20px;
+  color: white; font-weight: 600; font-size: 13px; opacity: 0.7;
+}
+.top {
+  height: 255px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 48px 24px 24px; text-align: center;
+}
+.headline {
+  color: white; font-weight: 700; font-size: 28px;
+  line-height: 1.2; letter-spacing: -0.3px;
+}
+.subhead {
+  color: rgba(255,255,255,0.75); font-size: 15px;
+  font-weight: 400; margin-top: 10px;
+}
+.bottom {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 597px; background: white;
+  border-radius: 24px 24px 0 0; overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.handle {
+  width: 32px; height: 4px; background: #DDDDDD;
+  border-radius: 2px; margin: 10px auto; flex-shrink: 0;
+}
+.content { padding: 0 18px; flex: 1; display: flex; flex-direction: column; gap: 14px; }
+
+.section-header { font-size: 16px; font-weight: 700; color: #1A1A1A; }
+
+/* Sliders */
+.slider-row {
+  display: flex; align-items: center; gap: 10px;
+}
+.slider-label { font-size: 13px; font-weight: 600; color: #333; width: 100px; flex-shrink: 0; }
+.slider-track {
+  flex: 1; height: 6px; border-radius: 3px; position: relative;
+}
+.slider-track.amber { background: #FDE68A; }
+.slider-track.green { background: #A7F3D0; }
+.slider-fill {
+  height: 100%; border-radius: 3px; position: absolute; left: 0; top: 0;
+}
+.slider-fill.amber { background: #F59E0B; }
+.slider-fill.green { background: #10B981; }
+.slider-thumb {
+  width: 16px; height: 16px; border-radius: 50%; background: white;
+  border: 2px solid; position: absolute; top: -5px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+.slider-thumb.amber { border-color: #F59E0B; }
+.slider-thumb.green { border-color: #10B981; }
+.slider-val { font-size: 12px; font-weight: 700; color: #888; width: 22px; text-align: right; flex-shrink: 0; }
+
+/* Chips */
+.chips-label { font-size: 12px; font-weight: 600; color: #888; margin-bottom: 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  padding: 5px 12px; border-radius: 20px;
+  font-size: 12px; font-weight: 600;
+}
+.chip.selected { background: #1D9E75; color: white; }
+.chip.unselected { background: white; color: #888; border: 1.5px solid #DDDDDD; }
+
+/* Insight card */
+.insight-card {
+  border-left: 3px solid #1D9E75;
+  padding: 10px 12px; background: #F0FBF6;
+  border-radius: 0 10px 10px 0;
+}
+.insight-header { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.insight-icon { font-size: 14px; }
+.insight-title { font-size: 11px; font-weight: 700; color: #1D9E75; text-transform: uppercase; letter-spacing: 0.5px; }
+.insight-text { font-size: 13px; font-style: italic; color: #444; line-height: 1.5; }
+
+/* Button */
+.log-btn {
+  background: #1D9E75; color: white; border: none;
+  padding: 15px; border-radius: 12px; width: 100%;
+  font-size: 15px; font-weight: 700; cursor: pointer; margin-top: auto;
+}
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="wordmark">FoodWise</div>
+  <div class="top">
+    <div class="headline">Track Symptoms. Improve Your Plan.</div>
+    <div class="subhead">7 days of logs → your first AI insight</div>
+  </div>
+  <div class="bottom">
+    <div class="handle"></div>
+    <div class="content">
+
+      <div class="section-header">How are you feeling today?</div>
+
+      <!-- Sliders -->
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="slider-row">
+          <div class="slider-label">Nausea</div>
+          <div class="slider-track amber" style="position:relative;">
+            <div class="slider-fill amber" style="width:40%;"></div>
+            <div class="slider-thumb amber" style="left:calc(40% - 8px);"></div>
+          </div>
+          <div class="slider-val">2/5</div>
+        </div>
+        <div class="slider-row">
+          <div class="slider-label">Constipation</div>
+          <div class="slider-track green" style="position:relative;">
+            <div class="slider-fill green" style="width:20%;"></div>
+            <div class="slider-thumb green" style="left:calc(20% - 8px);"></div>
+          </div>
+          <div class="slider-val">1/5</div>
+        </div>
+        <div class="slider-row">
+          <div class="slider-label">Fatigue</div>
+          <div class="slider-track amber" style="position:relative;">
+            <div class="slider-fill amber" style="width:60%;"></div>
+            <div class="slider-thumb amber" style="left:calc(60% - 8px);"></div>
+          </div>
+          <div class="slider-val">3/5</div>
+        </div>
+      </div>
+
+      <!-- Food aversion chips -->
+      <div>
+        <div class="chips-label">Food aversions today</div>
+        <div class="chips">
+          <span class="chip selected">Greasy food</span>
+          <span class="chip selected">Red meat</span>
+          <span class="chip unselected">Dairy</span>
+          <span class="chip unselected">Spicy</span>
+          <span class="chip unselected">Raw veg</span>
+        </div>
+      </div>
+
+      <!-- Insight card -->
+      <div class="insight-card">
+        <div class="insight-header">
+          <span class="insight-icon">💡</span>
+          <span class="insight-title">Nori's insight</span>
+        </div>
+        <div class="insight-text">Your nausea was lowest the weeks you had eggs for breakfast — added to next week's plan.</div>
+      </div>
+
+      <button class="log-btn">Log Check-in</button>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>
