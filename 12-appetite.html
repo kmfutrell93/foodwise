@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="apple-touch-icon" href="references/NoriIcon.png" />
+  <title>FoodWise – Appetite Level</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+  <style type="text/tailwindcss">
+    :root {
+      --background: #141311; --foreground: #F4EFE6;
+      --primary: #E89D35; --primary-foreground: #141311;
+      --secondary: #8A9A7C; --muted: #2A2824; --muted-foreground: #9B968C;
+      --accent: #D87F63; --card: #1E1D1A; --border: #2E2C28;
+    }
+    body { background: var(--background); color: var(--foreground); font-family: 'Plus Jakarta Sans', sans-serif; }
+    .btn-primary { background: var(--primary); color: var(--primary-foreground); border-radius: 9999px; font-weight: 700; padding: 18px 32px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; font-size: 16px; opacity: 0.4; pointer-events: none; transition: all 0.2s; }
+    .btn-primary.active { opacity: 1; pointer-events: auto; }
+    .step-dot { width: 8px; height: 8px; border-radius: 9999px; }
+    .card { padding: 20px; border-radius: 20px; border: 2px solid var(--border); background: var(--card); cursor: pointer; transition: all 0.15s; }
+    .card.selected { border-color: var(--primary); background: rgba(232,157,53,0.08); }
+    .emoji { font-size: 36px; margin-bottom: 12px; display: block; }
+  </style>
+  <script>
+    function select(el) {
+      document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      document.querySelector('.btn-primary').classList.add('active');
+      sessionStorage.setItem('appetite', el.dataset.value);
+    }
+  </script>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+  <div class="w-full max-w-[390px] min-h-screen flex flex-col" style="background:#141311">
+
+    <!-- Nav -->
+    <div class="flex items-center justify-between px-6 pt-14 mb-6">
+      <a href="11-budget.html" class="w-10 h-10 rounded-full flex items-center justify-center" style="background:var(--muted)">
+        <iconify-icon icon="solar:arrow-left-bold" style="color:var(--foreground)"></iconify-icon>
+      </a>
+      <div class="flex items-center gap-2">
+        <div class="step-dot" style="background:var(--muted); width:8px;"></div>
+        <div class="step-dot" style="background:var(--muted); width:8px;"></div>
+        <div style="background:var(--primary); width:24px; height:8px; border-radius:9999px;"></div>
+      </div>
+      <div class="w-10"></div>
+    </div>
+
+    <div class="flex-1 px-6 flex flex-col">
+
+      <p class="text-xs font-bold uppercase tracking-widest mb-2" style="color:var(--primary)">Step 3 of 3</p>
+      <h1 class="text-2xl font-extrabold leading-tight mb-2">How's your<br/><span style="color:var(--primary)">appetite been lately?</span></h1>
+      <p class="text-sm mb-6" style="color:var(--muted-foreground)">This helps Nori size your meals just right — not too much, not too little.</p>
+
+      <!-- Three appetite cards -->
+      <div class="flex flex-col gap-4">
+
+        <div class="card" data-value="low" onclick="select(this)">
+          <span class="emoji">😶‍🌫️</span>
+          <div class="flex items-center justify-between mb-1">
+            <p class="font-extrabold text-lg" style="color:var(--foreground)">Low</p>
+            <span class="text-xs font-bold px-2 py-1 rounded-full" style="background:rgba(232,157,53,0.1); color:var(--primary)">Most common</span>
+          </div>
+          <p class="text-sm" style="color:var(--muted-foreground)">Barely hungry — I struggle to finish even small meals</p>
+          <div class="mt-3 p-3 rounded-xl" style="background:var(--muted)">
+            <p class="text-xs font-semibold" style="color:var(--foreground)">Nori's plan: 4–5 ultra-small, protein-dense meals per day</p>
+          </div>
+        </div>
+
+        <div class="card" data-value="moderate" onclick="select(this)">
+          <span class="emoji">🙂</span>
+          <div class="flex items-center justify-between mb-1">
+            <p class="font-extrabold text-lg" style="color:var(--foreground)">Moderate</p>
+          </div>
+          <p class="text-sm" style="color:var(--muted-foreground)">Some hunger — I can eat regular portions if I focus</p>
+          <div class="mt-3 p-3 rounded-xl" style="background:var(--muted)">
+            <p class="text-xs font-semibold" style="color:var(--foreground)">Nori's plan: 3 meals + 1–2 protein-rich snacks</p>
+          </div>
+        </div>
+
+        <div class="card" data-value="normal" onclick="select(this)">
+          <span class="emoji">😄</span>
+          <div class="flex items-center justify-between mb-1">
+            <p class="font-extrabold text-lg" style="color:var(--foreground)">Normal</p>
+          </div>
+          <p class="text-sm" style="color:var(--muted-foreground)">Usual appetite — medication hasn't changed much yet</p>
+          <div class="mt-3 p-3 rounded-xl" style="background:var(--muted)">
+            <p class="text-xs font-semibold" style="color:var(--foreground)">Nori's plan: 3 balanced meals optimized for GLP-1</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom -->
+    <div class="px-6 pb-12 flex flex-col gap-3 mt-6">
+      <a href="13-generating.html" class="btn-primary">
+        Generate my meal plan!
+        <iconify-icon icon="solar:magic-stick-3-bold-duotone"></iconify-icon>
+      </a>
+    </div>
+
+  </div>
+</body>
+</html>

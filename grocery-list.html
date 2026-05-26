@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="apple-touch-icon" href="references/NoriIcon.png" />
+  <title>FoodWise – Grocery List</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+  <style type="text/tailwindcss">
+    :root {
+      --background: #141311; --foreground: #F4EFE6;
+      --primary: #E89D35; --primary-foreground: #141311;
+      --secondary: #8A9A7C; --muted: #2A2824; --muted-foreground: #9B968C;
+      --accent: #D87F63; --card: #1E1D1A; --border: #2E2C28;
+    }
+    body { background: var(--background); color: var(--foreground); font-family: 'Plus Jakarta Sans', sans-serif; }
+    .item-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 16px; border: 1.5px solid transparent; cursor: pointer; transition: all 0.15s; }
+    .item-row.checked { opacity: 0.45; }
+    .item-row.checked .item-name { text-decoration: line-through; }
+    .check-box { width: 24px; height: 24px; border-radius: 8px; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; shrink: 0; flex-shrink: 0; transition: all 0.15s; background: var(--card); }
+    .item-row.checked .check-box { background: var(--secondary); border-color: var(--secondary); }
+  </style>
+  <script>
+    function toggleItem(el) {
+      el.classList.toggle('checked');
+      updateCount();
+    }
+    function updateCount() {
+      const total = document.querySelectorAll('.item-row').length;
+      const checked = document.querySelectorAll('.item-row.checked').length;
+      document.getElementById('checkCount').textContent = `${checked}/${total} checked`;
+      const pct = (checked / total * 100).toFixed(0);
+      document.getElementById('progressBar').style.width = pct + '%';
+      document.getElementById('pctLabel').textContent = pct + '%';
+    }
+    window.onload = updateCount;
+  </script>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+  <div class="w-full max-w-[390px] min-h-screen flex flex-col pb-28 overflow-y-auto" style="background:#141311">
+
+    <!-- Header -->
+    <header class="px-6 pt-14 pb-4 flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-extrabold">Grocery List</h1>
+        <p id="checkCount" class="text-sm" style="color:var(--muted-foreground)">0/18 checked</p>
+      </div>
+      <button class="w-12 h-12 rounded-full flex items-center justify-center" style="background:var(--card); border:1px solid var(--border)">
+        <iconify-icon icon="solar:share-bold-duotone" style="color:var(--primary)" class="text-xl"></iconify-icon>
+      </button>
+    </header>
+
+    <!-- Budget tracker -->
+    <section class="px-6 mb-6">
+      <div class="p-4 rounded-2xl" style="background:var(--card); border:1px solid var(--border)">
+        <div class="flex items-center justify-between mb-2">
+          <p class="text-sm font-bold" style="color:var(--foreground)">Weekly Budget</p>
+          <p class="text-sm font-bold" style="color:var(--secondary)">$51.20 / $75</p>
+        </div>
+        <div class="h-3 rounded-full overflow-hidden mb-1" style="background:var(--muted)">
+          <div id="progressBar" class="h-full rounded-full transition-all" style="width:68%; background:var(--secondary)"></div>
+        </div>
+        <div class="flex items-center justify-between">
+          <p class="text-xs" style="color:var(--muted-foreground)">$23.80 remaining</p>
+          <p id="pctLabel" class="text-xs font-bold" style="color:var(--secondary)">68%</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pantry toggle -->
+    <section class="px-6 mb-6">
+      <div class="flex items-center justify-between p-4 rounded-2xl" style="background:var(--muted)">
+        <div class="flex items-center gap-3">
+          <iconify-icon icon="solar:tag-bold-duotone" style="color:var(--primary)" class="text-xl"></iconify-icon>
+          <div>
+            <p class="text-sm font-bold" style="color:var(--foreground)">Pantry Staples</p>
+            <p class="text-xs" style="color:var(--muted-foreground)">Hide items you likely already have</p>
+          </div>
+        </div>
+        <div class="w-12 h-6 rounded-full relative cursor-pointer" style="background:var(--primary)" onclick="this.style.background = this.style.background === 'var(--muted)' ? 'var(--primary)' : 'var(--muted)'">
+          <div class="absolute right-0.5 top-0.5 w-5 h-5 rounded-full" style="background:white; transition:all 0.2s"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Produce -->
+    <section class="px-6 mb-6">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-lg">🥦</span>
+        <h2 class="font-extrabold text-base">Produce</h2>
+        <span class="text-xs font-bold px-2 py-0.5 rounded-full ml-auto" style="background:var(--muted); color:var(--muted-foreground)">4 items</span>
+      </div>
+      <div class="flex flex-col gap-2">
+        <div class="item-row" onclick="toggleItem(this)" style="background:var(--card)">
+          <div class="check-box"><iconify-icon icon="solar:check-bold" class="text-xs" style="color:white; display:none"></iconify-icon></div>
+          <div class="flex-1">
+            <p class="item-name font-semibold text-sm">Broccoli florets</p>
+            <p class="text-xs mt-0.5" style="color:var(--muted-foreground)">2 bags · ~$4.50</p>
+          </div>
+          <span class="text-xs font-bold" style="color:var(--primary)">$4.50</span>
+        </div>
+        <div class="item-row" onclick="toggleItem(this)" style="background:var(--card)">
+          <div class="check-box"></div>
+          <div class="flex-1">
+            <p class="item-name font-semibold text-sm">Baby spinach</p>
+            <p class="text-xs mt-0.5" style="color:var(--muted-foreground)">1 bag · ~$3.99</p>
+          </div>
+          <span class="text-xs font-bold" style="color:var(--primary)">$3.99</span>
+        </div>
+        <div class="item-row" onclick="toggleItem(this)" style="background:var(--card)">
+          <div class="check-box"></div>
+          <div class="flex-1">
+            <p class="item-name font-semibold text-sm">Cucumbers</p>
+            <p class="text-xs mt-0.5" style="color:var(--muted-foreground)">3 medium · ~$2.50</p>
+          </div>
+          <span class="text-xs font-bold" style="color:var(--primary)">$2.50</span>
+        </div>
+        <div class="item-row" onclick="toggleItem(this)" style="background:var(--card)">
+          <div class="check-box"></div>
+          <div class="flex-1">
+            <p class="item-name font-semibold text-sm">Mixed berries</p>
+            <p class="text-xs mt-0.5" style="color:var(--muted-foreground)">1 bag frozen · ~$4.99</p>
+          </div>
+          <span class="text-xs font-bold" style="color:var(--primary)">$4.99</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Protein -->
+    <section class="px-6 mb-6">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-lg">🥩</span>
+        <h2 class="font-extrabold text-base">Protein</h2>
+        <span class="text-xs font-bold px-2 py-0.5 rounded-full ml-auto" style="background:var(--muted); color:var(--muted-foreground)">5 items</span>
+      </div>
+      <div class="flex flex-col gap-2">
+        <div class="item-row" onclick="toggleItem(this)" style="background:var(--card)">
+          <div class="check-box"></div>
+          <div class="flex-1">
+            <p class="item-name font-semibold text-sm">Salmon fillets</p>
+            <p class="text-xs mt-0.5" style="color:var(--muted-foreground)">4 fillets (6oz each) · ~$14.99</p>
+          </div>
+          <span class="text-xs font-bold" style="color:var(--primary)">$14.99</span>
+        </div>
+        <div class="item-row" onclick="toggleItem(this)" style="background:var(--card)">
+          <div class="check-box"></div>
+          <div class="flex-1">
+            <p class="item-name font-semibold text-sm">Ground turkey (93% lean)</p>
+            <p class="text-xs mt-0.5" style="color:var(--muted-foreground)">1.5 lb · ~$7.99</p>
+          </div>
+          <span class="text-xs font-bold" style="color:var(--primary)">$7.99</span>
+        </div>
+        <div class="item-row" onclick="toggleItem(this)" style="background:var(--card)">
+          <div class="check-box"></div>
+          <div class="flex-1">
+            <p class="item-name font-semibold text-sm">Greek yogurt (2%, plain)</p>
+            <p class="text-xs mt-0.5" style="color:var(--muted-foreground)">32oz tub · ~$6.49</p>
+          </div>
+          <span class="text-xs font-bold" style="color:var(--primary)">$6.49</span>
+        </div>
+        <div class="item-row" onclick="toggleItem(this)" style="background:var(--card)">
+          <div class="check-box"></div>
+          <div class="flex-1">
+            <p class="item-name font-semibold text-sm">Low-fat cottage cheese</p>
+            <p class="text-xs mt-0.5" style="color:var(--muted-foreground)">16oz · ~$3.99</p>
+          </div>
+          <span class="text-xs font-bold" style="color:var(--primary)">$3.99</span>
+        </div>
+        <div class="item-row" onclick="toggleItem(this)" style="background:var(--card)">
+          <div class="check-box"></div>
+          <div class="flex-1">
+            <p class="item-name font-semibold text-sm">Shelled edamame (frozen)</p>
+            <p class="text-xs mt-0.5" style="color:var(--muted-foreground)">12oz bag · ~$3.49</p>
+          </div>
+          <span class="text-xs font-bold" style="color:var(--primary)">$3.49</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pantry -->
+    <section class="px-6 mb-6">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-lg">🫙</span>
+        <h2 class="font-extrabold text-base">Pantry</h2>
+        <span class="text-xs font-bold px-2 py-0.5 rounded-full" style="background:rgba(232,157,53,0.1); color:var(--primary)">Staples</span>
+        <span class="text-xs font-bold px-2 py-0.5 rounded-full ml-auto" style="background:var(--muted); color:var(--muted-foreground)">4 items</span>
+      </div>
+      <div class="flex flex-col gap-2">
+        <div class="item-row" onclick="toggleItem(this)" style="background:var(--card)">
+          <div class="check-box"></div>
+          <div class="flex-1">
+            <p class="item-name font-semibold text-sm">Hemp seeds</p>
+            <p class="text-xs mt-0.5" style="color:var(--muted-foreground)">8oz bag · ~$5.99</p>
+          </div>
+          <span class="text-xs font-bold" style="color:var(--primary)">$5.99</span>
+        </div>
+        <div class="item-row" onclick="toggleItem(this)" style="background:var(--card)">
+          <div class="check-box"></div>
+          <div class="flex-1">
+            <p class="item-name font-semibold text-sm">Soy sauce (low sodium)</p>
+            <p class="text-xs mt-0.5" style="color:var(--muted-foreground)">✓ Likely in pantry</p>
+          </div>
+          <span class="text-xs font-bold" style="color:var(--muted-foreground)">$2.50</span>
+        </div>
+        <div class="item-row" onclick="toggleItem(this)" style="background:var(--card)">
+          <div class="check-box"></div>
+          <div class="flex-1">
+            <p class="item-name font-semibold text-sm">Everything bagel seasoning</p>
+            <p class="text-xs mt-0.5" style="color:var(--muted-foreground)">✓ Likely in pantry</p>
+          </div>
+          <span class="text-xs font-bold" style="color:var(--muted-foreground)">$3.99</span>
+        </div>
+        <div class="item-row" onclick="toggleItem(this)" style="background:var(--card)">
+          <div class="check-box"></div>
+          <div class="flex-1">
+            <p class="item-name font-semibold text-sm">Lemon (fresh)</p>
+            <p class="text-xs mt-0.5" style="color:var(--muted-foreground)">2 lemons · ~$1.50</p>
+          </div>
+          <span class="text-xs font-bold" style="color:var(--primary)">$1.50</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom Nav -->
+    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] max-w-[342px] flex items-center justify-between px-3 py-2" style="background:var(--card); border:1px solid var(--border); border-radius:9999px; box-shadow:0 8px 32px rgba(0,0,0,0.5)">
+      <a href="home.html" class="flex flex-col items-center justify-center w-16 h-12">
+        <iconify-icon icon="solar:home-smile-outline" style="color:var(--muted-foreground)" class="text-2xl"></iconify-icon>
+      </a>
+      <a href="meal-plan.html" class="flex flex-col items-center justify-center w-16 h-12">
+        <iconify-icon icon="solar:chef-hat-outline" style="color:var(--muted-foreground)" class="text-2xl"></iconify-icon>
+      </a>
+      <a href="grocery-list.html" class="flex flex-col items-center justify-center w-16 h-12 rounded-full" style="background:rgba(232,157,53,0.12)">
+        <iconify-icon icon="solar:cart-large-bold" style="color:var(--primary)" class="text-2xl"></iconify-icon>
+      </a>
+      <a href="settings.html" class="flex flex-col items-center justify-center w-16 h-12">
+        <iconify-icon icon="solar:user-rounded-outline" style="color:var(--muted-foreground)" class="text-2xl"></iconify-icon>
+      </a>
+    </nav>
+
+  </div>
+</body>
+</html>

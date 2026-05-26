@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="apple-touch-icon" href="references/NoriIcon.png" />
+  <title>FoodWise – You're Not Alone</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+  <style type="text/tailwindcss">
+    :root {
+      --background: #141311; --foreground: #F4EFE6;
+      --primary: #E89D35; --primary-foreground: #141311;
+      --secondary: #8A9A7C; --muted: #2A2824; --muted-foreground: #9B968C;
+      --accent: #D87F63; --card: #1E1D1A; --border: #2E2C28;
+    }
+    body { background: var(--background); color: var(--foreground); font-family: 'Plus Jakarta Sans', sans-serif; }
+    .btn-primary { background: var(--primary); color: var(--primary-foreground); border-radius: 9999px; font-weight: 700; padding: 18px 32px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; font-size: 16px; }
+    .dot { width: 8px; height: 8px; border-radius: 9999px; background: var(--muted); }
+    .dot.active { background: var(--primary); width: 24px; }
+    @keyframes slide-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .slide-up { animation: slide-up 0.5s ease forwards; }
+    .slide-up-2 { animation: slide-up 0.5s 0.15s ease forwards; opacity: 0; }
+    .slide-up-3 { animation: slide-up 0.5s 0.3s ease forwards; opacity: 0; }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+  <div class="w-full max-w-[390px] min-h-screen flex flex-col overflow-hidden" style="background:#141311">
+
+    <!-- Golden glow -->
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full blur-3xl opacity-10 pointer-events-none" style="background:radial-gradient(circle, #E89D35 0%, transparent 70%)"></div>
+
+    <!-- Nav -->
+    <div class="flex items-center justify-between px-6 pt-14 mb-8">
+      <a href="05-question1.html" class="w-10 h-10 rounded-full flex items-center justify-center" style="background:var(--muted)">
+        <iconify-icon icon="solar:arrow-left-bold" style="color:var(--foreground)"></iconify-icon>
+      </a>
+      <a href="10-restrictions.html" class="text-sm font-medium" style="color:var(--muted-foreground)">Skip</a>
+    </div>
+
+    <div class="flex-1 px-6 flex flex-col">
+
+      <!-- Empathy header -->
+      <div class="slide-up flex flex-col items-center text-center mb-8">
+        <div class="flex items-center justify-center mb-4">
+          <img src="references/NoriCharacter.png" alt="Nori" class="w-14 h-14 object-contain" />
+        </div>
+        <p class="text-lg font-bold mb-1" style="color:var(--primary)">We hear you.</p>
+        <h1 class="text-2xl font-extrabold leading-tight" style="color:var(--foreground)">
+          "Not hitting my protein"<br/>is the <span style="color:var(--primary)">#1 challenge</span><br/>for GLP-1 users.
+        </h1>
+      </div>
+
+      <!-- Stat card -->
+      <div class="slide-up-2 p-5 rounded-3xl mb-5" style="background:var(--card); border:1px solid var(--border)">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background:rgba(232,157,53,0.1)">
+            <iconify-icon icon="solar:users-group-rounded-bold" style="color:var(--primary)" class="text-lg"></iconify-icon>
+          </div>
+          <p class="text-xs font-bold uppercase tracking-wider" style="color:var(--muted-foreground)">From our community</p>
+        </div>
+        <div class="flex items-end gap-2 mb-3">
+          <span class="text-5xl font-extrabold" style="color:var(--primary)">78%</span>
+          <span class="text-sm pb-2" style="color:var(--muted-foreground)">of GLP-1 users</span>
+        </div>
+        <p class="text-sm" style="color:var(--foreground)">report struggling to hit their daily protein goal due to appetite suppression.</p>
+
+        <!-- Visual bar -->
+        <div class="mt-4">
+          <div class="h-3 rounded-full overflow-hidden" style="background:var(--muted)">
+            <div class="h-full rounded-full" style="width:78%; background:var(--primary)"></div>
+          </div>
+          <div class="flex justify-between mt-1.5">
+            <span class="text-xs" style="color:var(--muted-foreground)">Struggling</span>
+            <span class="text-xs font-bold" style="color:var(--primary)">78%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reassurance -->
+      <div class="slide-up-3 p-4 rounded-3xl flex items-start gap-3" style="background:rgba(138,154,124,0.1); border:1px solid rgba(138,154,124,0.2)">
+        <iconify-icon icon="solar:check-circle-bold" style="color:var(--secondary)" class="text-xl mt-0.5 shrink-0"></iconify-icon>
+        <p class="text-sm leading-relaxed" style="color:var(--foreground)">
+          <strong style="color:var(--secondary)">You're not failing.</strong> The medication itself makes protein goals harder. FoodWise was built to solve exactly this.
+        </p>
+      </div>
+    </div>
+
+    <!-- Bottom -->
+    <div class="px-6 pb-12 flex flex-col gap-4 mt-6">
+      <div class="flex items-center justify-center gap-2 mb-2">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <div class="dot active"></div>
+        <div class="dot"></div>
+      </div>
+      <a href="07-question2.html" class="btn-primary">
+        Good to know
+        <iconify-icon icon="solar:arrow-right-bold"></iconify-icon>
+      </a>
+    </div>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;200;300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+    <style type="text/tailwindcss">
+      @theme inline {
+        --color-background: var(--background);
+        --color-foreground: var(--foreground);
+        --color-primary: var(--primary);
+        --color-primary-foreground: var(--primary-foreground);
+        --color-secondary: var(--secondary);
+        --color-secondary-foreground: var(--secondary-foreground);
+        --color-muted: var(--muted);
+        --color-muted-foreground: var(--muted-foreground);
+        --color-accent: var(--accent);
+        --color-accent-foreground: var(--accent-foreground);
+        --color-destructive: var(--destructive);
+        --color-card: var(--card);
+        --color-card-foreground: var(--card-foreground);
+        --color-popover: var(--popover);
+        --color-popover-foreground: var(--popover-foreground);
+        --color-border: var(--border);
+        --color-input: var(--input);
+        --color-ring: var(--ring);
+        --color-chart-1: var(--chart-1);
+        --color-chart-2: var(--chart-2);
+        --color-chart-3: var(--chart-3);
+        --color-chart-4: var(--chart-4);
+        --color-chart-5: var(--chart-5);
+
+        --font-font-sans: var(--font-sans);
+        --font-font-heading: var(--font-heading);
+        --font-font-serif: var(--font-serif);
+        --font-font-mono: var(--font-mono);
+      }
+
+      @theme {
+        --radius-xs: calc(var(--radius) - 8px);
+        --radius-sm: calc(var(--radius) - 4px);
+        --radius-md: calc(var(--radius) - 2px);
+        --radius-lg: var(--radius);
+        --radius-xl: calc(var(--radius) + 4px);
+        --radius-2xl: calc(var(--radius) + 8px);
+        --radius-3xl: calc(var(--radius) + 16px);
+        --radius-4xl: calc(var(--radius) + 24px);
+      }
+
+      * {
+        corner-shape: var(--shape, round);
+      }
+
+      .rounded-full, .rounded-none,
+      .rounded-t-full, .rounded-t-none,
+      .rounded-r-full, .rounded-r-none,
+      .rounded-b-full, .rounded-b-none,
+      .rounded-l-full, .rounded-l-none,
+      .rounded-s-full, .rounded-s-none,
+      .rounded-e-full, .rounded-e-none,
+      .rounded-tl-full, .rounded-tl-none,
+      .rounded-tr-full, .rounded-tr-none,
+      .rounded-bl-full, .rounded-bl-none,
+      .rounded-br-full, .rounded-br-none,
+      .rounded-ss-full, .rounded-ss-none,
+      .rounded-se-full, .rounded-se-none,
+      .rounded-es-full, .rounded-es-none,
+      .rounded-ee-full, .rounded-ee-none {
+        corner-shape: round;
+      }
+
+      @utility rounded-* {
+        border-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-t-* {
+        border-top-left-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+        border-top-right-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-r-* {
+        border-top-right-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+        border-bottom-right-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-b-* {
+        border-bottom-right-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+        border-bottom-left-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-l-* {
+        border-top-left-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+        border-bottom-left-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-tl-* {
+        border-top-left-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-tr-* {
+        border-top-right-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-bl-* {
+        border-bottom-left-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-br-* {
+        border-bottom-right-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-s-* {
+        border-start-start-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+        border-end-start-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-e-* {
+        border-start-end-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+        border-end-end-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-ss-* {
+        border-start-start-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-se-* {
+        border-start-end-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-es-* {
+        border-end-start-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-ee-* {
+        border-end-end-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+
+      :root {
+        --shape: squircle;
+        --shape-multiplier: 1;
+
+          --background: #141311;
+        --foreground: #F4EFE6;
+        --primary: #E89D35;
+        --primary-foreground: #141311;
+        --secondary: #8A9A7C;
+        --secondary-foreground: #141311;
+        --muted: #2A2824;
+        --muted-foreground: #9B968C;
+        --accent: #D87F63;
+        --accent-foreground: #141311;
+        --destructive: #E06555;
+        --card: #1E1D1A;
+        --card-foreground: #F4EFE6;
+        --popover: #1E1D1A;
+        --popover-foreground: #F4EFE6;
+        --border: #2E2C28;
+        --input: #22201D;
+        --ring: #E89D35;
+        --chart-1: #E89D35;
+        --chart-2: #8A9A7C;
+        --chart-3: #D87F63;
+        --chart-4: #E06555;
+        --chart-5: #5C6B50;
+
+        --font-sans: "Plus Jakarta Sans";
+        --font-heading: "Plus Jakarta Sans";
+        --font-serif: "Playfair Display";
+        --font-mono: "JetBrains Mono";
+
+        --radius: 1.5rem;
+      }
+
+      @supports (corner-shape: squircle) {
+        :root {
+          --shape-multiplier: 2.5;
+        }
+      }
+
+      /* Prevent layout shift for icons without explicit dimensions */
+      iconify-icon:not([width]):not([height]) {
+        display: inline-block;
+        width: 1em;
+        height: 1em;
+      }
+
+      /* Hide scrollbars */
+      *,
+      *::before,
+      *::after {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+      *::-webkit-scrollbar {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="min-h-screen bg-background text-foreground pb-24 font-sans">
+      <header class="p-6 flex items-center justify-between pt-12">
+        <div class="flex items-center gap-4">
+          <img
+            src="https://lh3.googleusercontent.com/a/ACg8ocJbZto7hYNAaPjefZCj5rGoRU4qBuoaZHFowS0I66XHFpq1Sw=s96-c"
+            alt="Kenneth Futrell"
+            class="w-14 h-14 rounded-full border-2 border-card object-cover shadow-sm"
+          />
+          <div>
+            <p class="text-sm text-muted-foreground font-medium mb-0.5">Good morning,</p>
+            <h1 class="text-2xl font-heading font-bold text-foreground">Kenneth</h1>
+          </div>
+        </div>
+        <button
+          class="w-12 h-12 rounded-full bg-card flex items-center justify-center border border-border relative"
+        >
+          <span
+            class="absolute top-3 right-3 w-2.5 h-2.5 bg-destructive rounded-full border-2 border-card"
+          ></span
+          ><iconify-icon
+            icon="solar:bell-bing-bold-duotone"
+            class="text-2xl text-muted-foreground"
+          ></iconify-icon>
+        </button>
+      </header>
+      <section class="px-6 mb-8">
+        <div
+          class="bg-card border border-border rounded-3xl p-5 flex items-center justify-between shadow-sm relative overflow-hidden"
+        >
+          <div class="absolute -right-6 -top-6 w-24 h-24 bg-primary/10 rounded-full blur-2xl"></div>
+          <div class="flex items-center gap-4 relative z-10">
+            <div class="w-12 h-12 rounded-full bg-primary/15 flex items-center justify-center">
+              <iconify-icon
+                icon="solar:syringe-bold-duotone"
+                class="text-2xl text-primary"
+              ></iconify-icon>
+            </div>
+            <div>
+              <p class="font-bold text-base text-foreground mb-0.5">
+                Wegovy <span class="text-muted-foreground font-normal ml-1">• Day 4</span>
+              </p>
+              <div class="flex items-center gap-1.5">
+                <div class="flex gap-1">
+                  <div class="w-1.5 h-1.5 rounded-full bg-primary"></div>
+                  <div class="w-1.5 h-1.5 rounded-full bg-primary"></div>
+                  <div class="w-1.5 h-1.5 rounded-full bg-primary"></div>
+                  <div class="w-1.5 h-1.5 rounded-full bg-primary"></div>
+                  <div class="w-1.5 h-1.5 rounded-full bg-muted"></div>
+                  <div class="w-1.5 h-1.5 rounded-full bg-muted"></div>
+                  <div class="w-1.5 h-1.5 rounded-full bg-muted"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="px-6 mb-8">
+        <div
+          class="bg-gradient-to-br from-secondary/20 to-card border border-secondary/20 rounded-3xl p-5 shadow-sm"
+        >
+          <div class="flex items-start gap-4 mb-4">
+            <div
+              class="w-10 h-10 rounded-full bg-secondary/30 flex items-center justify-center shrink-0 mt-1"
+            >
+              <iconify-icon
+                icon="solar:magic-stick-3-bold-duotone"
+                class="text-xl text-secondary"
+              ></iconify-icon>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-secondary mb-1">AI Insight</h3>
+              <p class="text-sm text-foreground leading-relaxed">
+                It's Day 4, you might experience slight appetite return today. Aim for high-protein,
+                fiber-rich meals to maintain fullness.
+              </p>
+            </div>
+          </div>
+          <button
+            class="w-full py-3.5 bg-secondary text-secondary-foreground rounded-full text-sm font-bold flex items-center justify-center gap-2 shadow-sm"
+          >
+            <iconify-icon icon="solar:clipboard-check-bold" class="text-lg"></iconify-icon>Log
+            Today's Symptoms
+          </button>
+        </div>
+      </section>
+      <section class="mb-8">
+        <div class="px-6 flex items-center justify-between mb-4">
+          <h2 class="text-lg font-heading font-bold">Daily Progress</h2>
+          <button class="text-sm text-primary font-medium">Details</button>
+        </div>
+        <div class="overflow-x-auto pb-4 no-scrollbar">
+          <div class="flex gap-4 px-6 w-max">
+            <div
+              class="bg-card border border-border rounded-3xl p-5 w-36 flex flex-col items-center justify-center text-center shrink-0"
+            >
+              <div class="relative w-16 h-16 flex items-center justify-center mb-3">
+                <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                  <path
+                    class="text-muted"
+                    stroke-dasharray="100, 100"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="4"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    class="text-primary"
+                    stroke-dasharray="85, 100"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="4"
+                    stroke-linecap="round"
+                  /></svg
+                ><iconify-icon
+                  icon="hugeicons:steak"
+                  class="absolute text-xl text-primary"
+                ></iconify-icon>
+              </div>
+              <h3 class="text-2xl font-heading font-bold text-foreground">
+                85<span class="text-xs text-muted-foreground font-normal ml-0.5">g</span>
+              </h3>
+              <p class="text-xs text-muted-foreground mt-0.5">Protein</p>
+            </div>
+            <div
+              class="bg-card border border-border rounded-3xl p-5 w-36 flex flex-col items-center justify-center text-center shrink-0"
+            >
+              <div class="relative w-16 h-16 flex items-center justify-center mb-3">
+                <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                  <path
+                    class="text-muted"
+                    stroke-dasharray="100, 100"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="4"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    class="text-chart-3"
+                    stroke-dasharray="65, 100"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="4"
+                    stroke-linecap="round"
+                  /></svg
+                ><iconify-icon
+                  icon="solar:flame-bold-duotone"
+                  class="absolute text-xl text-chart-3"
+                ></iconify-icon>
+              </div>
+              <h3 class="text-2xl font-heading font-bold text-foreground">1,240</h3>
+              <p class="text-xs text-muted-foreground mt-0.5">Calories</p>
+            </div>
+            <div
+              class="bg-card border border-border rounded-3xl p-5 w-36 flex flex-col items-center justify-center text-center shrink-0"
+            >
+              <div class="relative w-16 h-16 flex items-center justify-center mb-3">
+                <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                  <path
+                    class="text-muted"
+                    stroke-dasharray="100, 100"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="4"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    class="text-accent"
+                    stroke-dasharray="40, 100"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="4"
+                    stroke-linecap="round"
+                  /></svg
+                ><iconify-icon
+                  icon="solar:waterdrop-bold-duotone"
+                  class="absolute text-xl text-accent"
+                ></iconify-icon>
+              </div>
+              <h3 class="text-2xl font-heading font-bold text-foreground">
+                42<span class="text-xs text-muted-foreground font-normal ml-0.5">oz</span>
+              </h3>
+              <p class="text-xs text-muted-foreground mt-0.5">Hydration</p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="px-6 mb-10">
+        <div class="bg-card border border-border rounded-3xl p-5 flex items-center gap-4">
+          <div
+            class="w-14 h-14 rounded-2xl bg-chart-1/10 flex items-center justify-center shrink-0 border border-chart-1/20"
+          >
+            <iconify-icon
+              icon="solar:fire-bold-duotone"
+              class="text-3xl text-chart-1"
+            ></iconify-icon>
+          </div>
+          <div class="flex-1">
+            <div class="flex justify-between items-center mb-1">
+              <h3 class="font-bold text-foreground">12 Day Streak!</h3>
+              <span class="text-xs font-bold text-chart-1 bg-chart-1/10 px-2 py-0.5 rounded-full"
+                >+50 XP</span
+              >
+            </div>
+            <p class="text-xs text-muted-foreground">
+              You've hit your protein goals for 12 days straight. Keep it up!
+            </p>
+          </div>
+        </div>
+      </section>
+      <section class="px-6 mb-8">
+        <h2 class="text-lg font-heading font-bold mb-4">Quick Actions</h2>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="relative overflow-hidden rounded-3xl h-40 group cursor-pointer">
+            <img
+              src="https://ggrhecslgdflloszjkwl.supabase.co/storage/v1/object/public/user-assets/tMpcXEPryqV/components/TSsgmbQ8MVv.png"
+              alt="Healthy meal"
+              class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-50 transition-opacity"
+            />
+            <div
+              class="absolute inset-0 bg-gradient-to-t from-background/90 via-background/40 to-transparent"
+            ></div>
+            <div class="absolute bottom-4 left-4 right-4">
+              <div
+                class="w-8 h-8 rounded-full bg-primary/20 backdrop-blur-md flex items-center justify-center mb-2 border border-primary/30"
+              >
+                <iconify-icon
+                  icon="solar:chef-hat-bold-duotone"
+                  class="text-primary text-sm"
+                ></iconify-icon>
+              </div>
+              <h3 class="font-bold text-foreground text-sm">Generate Plan</h3>
+            </div>
+          </div>
+          <div class="flex flex-col gap-4">
+            <div
+              class="bg-card border border-border rounded-2xl p-4 flex-1 flex items-center gap-3 cursor-pointer hover:bg-muted/50 transition-colors"
+            >
+              <div
+                class="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center shrink-0"
+              >
+                <iconify-icon
+                  icon="solar:cart-large-bold-duotone"
+                  class="text-xl text-accent"
+                ></iconify-icon>
+              </div>
+              <span class="font-bold text-sm text-foreground">Grocery List</span>
+            </div>
+            <div
+              class="bg-card border border-border rounded-2xl p-4 flex-1 flex items-center gap-3 cursor-pointer hover:bg-muted/50 transition-colors"
+            >
+              <div
+                class="w-10 h-10 rounded-full bg-chart-2/10 flex items-center justify-center shrink-0"
+              >
+                <iconify-icon
+                  icon="solar:graph-up-bold-duotone"
+                  class="text-xl text-chart-2"
+                ></iconify-icon>
+              </div>
+              <span class="font-bold text-sm text-foreground">View Trends</span>
+            </div>
+          </div>
+        </div>
+      </section>
+      <nav
+        class="fixed bottom-6 left-6 right-6 bg-card border border-border/50 backdrop-blur-xl rounded-full p-2 flex items-center justify-between shadow-2xl shadow-background"
+      >
+        <button
+          class="flex flex-col items-center justify-center w-16 h-12 bg-primary/10 rounded-full"
+        >
+          <iconify-icon
+            icon="solar:home-smile-bold"
+            class="text-2xl text-primary mb-0.5"
+          ></iconify-icon></button
+        ><button class="flex flex-col items-center justify-center w-16 h-12">
+          <iconify-icon
+            icon="solar:chef-hat-outline"
+            class="text-2xl text-muted-foreground mb-0.5"
+          ></iconify-icon></button
+        ><button class="flex flex-col items-center justify-center w-16 h-12 relative">
+          <span class="absolute top-2 right-4 w-2 h-2 bg-accent rounded-full"></span
+          ><iconify-icon
+            icon="solar:cart-large-outline"
+            class="text-2xl text-muted-foreground mb-0.5"
+          ></iconify-icon></button
+        ><button class="flex flex-col items-center justify-center w-16 h-12">
+          <iconify-icon
+            icon="solar:user-rounded-outline"
+            class="text-2xl text-muted-foreground mb-0.5"
+          ></iconify-icon>
+        </button>
+      </nav>
+    </div>
+  </body>
+</html>

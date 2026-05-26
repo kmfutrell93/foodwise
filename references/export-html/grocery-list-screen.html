@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GroceryListScreen</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;200;300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+    <style type="text/tailwindcss">
+      @theme inline {
+        --color-background: var(--background);
+        --color-foreground: var(--foreground);
+        --color-primary: var(--primary);
+        --color-primary-foreground: var(--primary-foreground);
+        --color-secondary: var(--secondary);
+        --color-secondary-foreground: var(--secondary-foreground);
+        --color-muted: var(--muted);
+        --color-muted-foreground: var(--muted-foreground);
+        --color-accent: var(--accent);
+        --color-accent-foreground: var(--accent-foreground);
+        --color-destructive: var(--destructive);
+        --color-card: var(--card);
+        --color-card-foreground: var(--card-foreground);
+        --color-popover: var(--popover);
+        --color-popover-foreground: var(--popover-foreground);
+        --color-border: var(--border);
+        --color-input: var(--input);
+        --color-ring: var(--ring);
+        --color-chart-1: var(--chart-1);
+        --color-chart-2: var(--chart-2);
+        --color-chart-3: var(--chart-3);
+        --color-chart-4: var(--chart-4);
+        --color-chart-5: var(--chart-5);
+
+        --font-font-sans: var(--font-sans);
+        --font-font-heading: var(--font-heading);
+        --font-font-serif: var(--font-serif);
+        --font-font-mono: var(--font-mono);
+      }
+
+      @theme {
+        --radius-xs: calc(var(--radius) - 8px);
+        --radius-sm: calc(var(--radius) - 4px);
+        --radius-md: calc(var(--radius) - 2px);
+        --radius-lg: var(--radius);
+        --radius-xl: calc(var(--radius) + 4px);
+        --radius-2xl: calc(var(--radius) + 8px);
+        --radius-3xl: calc(var(--radius) + 16px);
+        --radius-4xl: calc(var(--radius) + 24px);
+      }
+
+      * {
+        corner-shape: var(--shape, round);
+      }
+
+      .rounded-full, .rounded-none,
+      .rounded-t-full, .rounded-t-none,
+      .rounded-r-full, .rounded-r-none,
+      .rounded-b-full, .rounded-b-none,
+      .rounded-l-full, .rounded-l-none,
+      .rounded-s-full, .rounded-s-none,
+      .rounded-e-full, .rounded-e-none,
+      .rounded-tl-full, .rounded-tl-none,
+      .rounded-tr-full, .rounded-tr-none,
+      .rounded-bl-full, .rounded-bl-none,
+      .rounded-br-full, .rounded-br-none,
+      .rounded-ss-full, .rounded-ss-none,
+      .rounded-se-full, .rounded-se-none,
+      .rounded-es-full, .rounded-es-none,
+      .rounded-ee-full, .rounded-ee-none {
+        corner-shape: round;
+      }
+
+      @utility rounded-* {
+        border-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-t-* {
+        border-top-left-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+        border-top-right-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-r-* {
+        border-top-right-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+        border-bottom-right-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-b-* {
+        border-bottom-right-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+        border-bottom-left-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-l-* {
+        border-top-left-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+        border-bottom-left-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-tl-* {
+        border-top-left-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-tr-* {
+        border-top-right-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-bl-* {
+        border-bottom-left-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-br-* {
+        border-bottom-right-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-s-* {
+        border-start-start-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+        border-end-start-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-e-* {
+        border-start-end-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+        border-end-end-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-ss-* {
+        border-start-start-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-se-* {
+        border-start-end-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-es-* {
+        border-end-start-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-ee-* {
+        border-end-end-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+
+      :root {
+        --shape: squircle;
+        --shape-multiplier: 1;
+
+          --background: #141311;
+        --foreground: #F4EFE6;
+        --primary: #E89D35;
+        --primary-foreground: #141311;
+        --secondary: #8A9A7C;
+        --secondary-foreground: #141311;
+        --muted: #2A2824;
+        --muted-foreground: #9B968C;
+        --accent: #D87F63;
+        --accent-foreground: #141311;
+        --destructive: #E06555;
+        --card: #1E1D1A;
+        --card-foreground: #F4EFE6;
+        --popover: #1E1D1A;
+        --popover-foreground: #F4EFE6;
+        --border: #2E2C28;
+        --input: #22201D;
+        --ring: #E89D35;
+        --chart-1: #E89D35;
+        --chart-2: #8A9A7C;
+        --chart-3: #D87F63;
+        --chart-4: #E06555;
+        --chart-5: #5C6B50;
+
+        --font-sans: "Plus Jakarta Sans";
+        --font-heading: "Plus Jakarta Sans";
+        --font-serif: "Playfair Display";
+        --font-mono: "JetBrains Mono";
+
+        --radius: 1.5rem;
+      }
+
+      @supports (corner-shape: squircle) {
+        :root {
+          --shape-multiplier: 2.5;
+        }
+      }
+
+      /* Prevent layout shift for icons without explicit dimensions */
+      iconify-icon:not([width]):not([height]) {
+        display: inline-block;
+        width: 1em;
+        height: 1em;
+      }
+
+      /* Hide scrollbars */
+      *,
+      *::before,
+      *::after {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+      *::-webkit-scrollbar {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="min-h-screen bg-background text-foreground pb-32 font-sans">
+      <header class="p-6 pt-12 flex items-center justify-between mb-4">
+        <div>
+          <h1 class="text-3xl font-heading font-bold mb-1">Shopping</h1>
+          <p class="text-sm text-muted-foreground">Oct 21 — Oct 27 Plan</p>
+        </div>
+        <div class="flex gap-2">
+          <button
+            class="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center"
+          >
+            <iconify-icon
+              icon="solar:share-bold-duotone"
+              class="text-xl text-primary"
+            ></iconify-icon></button
+          ><button
+            class="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center"
+          >
+            <iconify-icon
+              icon="solar:menu-dots-bold"
+              class="text-xl text-muted-foreground"
+            ></iconify-icon>
+          </button>
+        </div>
+      </header>
+      <section class="px-6 mb-8">
+        <div class="bg-card border border-border rounded-3xl p-5 shadow-sm">
+          <div class="flex justify-between items-center mb-4">
+            <div>
+              <p class="text-xs text-muted-foreground font-bold uppercase tracking-wider">
+                Estimated Total
+              </p>
+              <p class="text-2xl font-bold">
+                $84.52 <span class="text-sm text-muted-foreground font-normal">/ $100.00</span>
+              </p>
+            </div>
+            <div
+              class="w-12 h-12 rounded-full border-4 border-muted border-t-primary flex items-center justify-center"
+            >
+              <span class="text-[10px] font-bold">84%</span>
+            </div>
+          </div>
+          <div
+            class="flex items-center gap-2 p-3 bg-secondary/5 rounded-2xl border border-secondary/10"
+          >
+            <iconify-icon
+              icon="solar:tag-bold-duotone"
+              class="text-lg text-secondary"
+            ></iconify-icon>
+            <p class="text-xs text-foreground font-medium italic">
+              Save $12 by switching to store-brand quinoa.
+            </p>
+          </div>
+        </div>
+      </section>
+      <div class="px-6 space-y-10">
+        <section>
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-heading font-bold flex items-center gap-2">
+              <iconify-icon icon="solar:leaf-bold-duotone" class="text-secondary"></iconify-icon
+              >Produce
+            </h2>
+            <span class="text-xs text-muted-foreground font-medium">4 items</span>
+          </div>
+          <div class="space-y-4">
+            <div class="flex items-center gap-4 group">
+              <button
+                class="w-6 h-6 rounded-lg border-2 border-border flex items-center justify-center transition-colors group-hover:border-primary"
+              ></button>
+              <div class="flex-1">
+                <p class="font-bold text-sm">Baby Spinach (2 bags)</p>
+                <p class="text-[10px] text-muted-foreground">Organic preferred</p>
+              </div>
+              <span class="text-xs font-medium text-muted-foreground">$7.98</span>
+            </div>
+            <div class="flex items-center gap-4">
+              <button
+                class="w-6 h-6 rounded-lg border-2 border-primary bg-primary flex items-center justify-center"
+              >
+                <iconify-icon
+                  icon="solar:check-read-bold"
+                  class="text-primary-foreground text-xs"
+                ></iconify-icon>
+              </button>
+              <div class="flex-1">
+                <p class="font-bold text-sm line-through text-muted-foreground">Lemons (3 large)</p>
+                <p class="text-[10px] text-muted-foreground italic">Added to cart</p>
+              </div>
+              <span class="text-xs font-medium text-muted-foreground line-through">$2.50</span>
+            </div>
+            <div class="flex items-center gap-4">
+              <button
+                class="w-6 h-6 rounded-lg border-2 border-border flex items-center justify-center"
+              ></button>
+              <div class="flex-1">
+                <p class="font-bold text-sm">Fresh Berries Mix</p>
+                <div class="flex items-center gap-1 mt-1 text-accent">
+                  <iconify-icon icon="solar:magic-stick-3-bold" class="text-xs"></iconify-icon
+                  ><span class="text-[10px] font-bold">Swap for Frozen (-$4.50)</span>
+                </div>
+              </div>
+              <span class="text-xs font-medium text-muted-foreground">$8.99</span>
+            </div>
+          </div>
+        </section>
+        <section>
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-heading font-bold flex items-center gap-2">
+              <iconify-icon icon="hugeicons:steak" class="text-primary"></iconify-icon>Protein
+            </h2>
+            <span class="text-xs text-muted-foreground font-medium">3 items</span>
+          </div>
+          <div class="space-y-4">
+            <div class="flex items-center gap-4">
+              <button
+                class="w-6 h-6 rounded-lg border-2 border-border flex items-center justify-center"
+              ></button>
+              <div class="flex-1">
+                <p class="font-bold text-sm">Chicken Breast (2 lbs)</p>
+                <p class="text-[10px] text-muted-foreground">Lean cuts recommended</p>
+              </div>
+              <span class="text-xs font-medium text-muted-foreground">$14.50</span>
+            </div>
+            <div class="flex items-center gap-4">
+              <button
+                class="w-6 h-6 rounded-lg border-2 border-border flex items-center justify-center"
+              ></button>
+              <div class="flex-1">
+                <p class="font-bold text-sm">Greek Yogurt (32 oz)</p>
+                <p class="text-[10px] text-muted-foreground">0% Fat, Plain</p>
+              </div>
+              <span class="text-xs font-medium text-muted-foreground">$6.49</span>
+            </div>
+          </div>
+        </section>
+      </div>
+      <nav
+        class="fixed bottom-6 left-6 right-6 bg-card border border-border/50 backdrop-blur-xl rounded-full p-2 flex items-center justify-between shadow-2xl"
+      >
+        <button class="flex flex-col items-center justify-center w-16 h-12">
+          <iconify-icon
+            icon="solar:home-smile-outline"
+            class="text-2xl text-muted-foreground mb-0.5"
+          ></iconify-icon></button
+        ><button class="flex flex-col items-center justify-center w-16 h-12">
+          <iconify-icon
+            icon="solar:chef-hat-outline"
+            class="text-2xl text-muted-foreground mb-0.5"
+          ></iconify-icon></button
+        ><button
+          class="flex flex-col items-center justify-center w-16 h-12 bg-primary/10 rounded-full"
+        >
+          <iconify-icon
+            icon="solar:cart-large-bold"
+            class="text-2xl text-primary mb-0.5"
+          ></iconify-icon></button
+        ><button class="flex flex-col items-center justify-center w-16 h-12">
+          <iconify-icon
+            icon="solar:user-rounded-outline"
+            class="text-2xl text-muted-foreground mb-0.5"
+          ></iconify-icon>
+        </button>
+      </nav>
+    </div>
+  </body>
+</html>

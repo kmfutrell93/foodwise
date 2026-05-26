@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="apple-touch-icon" href="references/NoriIcon.png" />
+  <title>FoodWise – Protein Goal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+  <style type="text/tailwindcss">
+    :root {
+      --background: #141311; --foreground: #F4EFE6;
+      --primary: #E89D35; --primary-foreground: #141311;
+      --secondary: #8A9A7C; --muted: #2A2824; --muted-foreground: #9B968C;
+      --accent: #D87F63; --card: #1E1D1A; --border: #2E2C28;
+    }
+    body { background: var(--background); color: var(--foreground); font-family: 'Plus Jakarta Sans', sans-serif; }
+    .btn-primary { background: var(--primary); color: var(--primary-foreground); border-radius: 9999px; font-weight: 700; padding: 18px 32px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; font-size: 16px; opacity: 0.4; pointer-events: none; transition: all 0.2s; }
+    .btn-primary.active { opacity: 1; pointer-events: auto; }
+    .dot { width: 8px; height: 8px; border-radius: 9999px; background: var(--muted); }
+    .dot.active { background: var(--primary); width: 24px; }
+    .pill { padding: 14px 16px; border-radius: 16px; border: 1.5px solid var(--border); background: var(--card); cursor: pointer; text-align: center; transition: all 0.15s; }
+    .pill.selected { border-color: var(--primary); background: rgba(232,157,53,0.1); }
+    .pill .pct { font-size: 22px; font-weight: 800; display: block; }
+    .pill .label { font-size: 11px; color: var(--muted-foreground); margin-top: 2px; }
+    .pill.selected .pct { color: var(--primary); }
+  </style>
+  <script>
+    function select(el) {
+      document.querySelectorAll('.pill').forEach(p => p.classList.remove('selected'));
+      el.classList.add('selected');
+      document.querySelector('.btn-primary').classList.add('active');
+      sessionStorage.setItem('q2', el.dataset.value);
+    }
+  </script>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+  <div class="w-full max-w-[390px] min-h-screen flex flex-col" style="background:#141311">
+
+    <!-- Nav -->
+    <div class="flex items-center justify-between px-6 pt-14 mb-6">
+      <a href="06-mirror1.html" class="w-10 h-10 rounded-full flex items-center justify-center" style="background:var(--muted)">
+        <iconify-icon icon="solar:arrow-left-bold" style="color:var(--foreground)"></iconify-icon>
+      </a>
+      <span class="text-xs font-bold px-3 py-1.5 rounded-full" style="background:var(--muted); color:var(--muted-foreground)">Question 2 of 2</span>
+      <a href="10-restrictions.html" class="text-sm font-medium" style="color:var(--muted-foreground)">Skip</a>
+    </div>
+
+    <div class="flex-1 px-6 flex flex-col">
+
+      <!-- Nori -->
+      <div class="flex items-center gap-3 mb-6">
+        <img src="references/NoriCharacter.png" alt="Nori" class="w-12 h-12 object-contain" />
+        <div class="px-4 py-3 rounded-2xl rounded-tl-sm" style="background:var(--card); border:1px solid var(--border)">
+          <p class="text-sm font-medium" style="color:var(--foreground)">Be honest — this helps me build your plan better. 😊</p>
+        </div>
+      </div>
+
+      <h1 class="text-2xl font-extrabold leading-tight mb-2">
+        On a typical day, how<br/>much of your <span style="color:var(--primary)">protein<br/>goal</span> do you hit?
+      </h1>
+      <p class="text-sm mb-6" style="color:var(--muted-foreground)">GLP-1 users should aim for 100–130g protein daily.</p>
+
+      <!-- Grid of pills -->
+      <div class="grid grid-cols-3 gap-3 mb-4">
+        <div class="pill" data-value="under25" onclick="select(this)">
+          <span class="pct" style="color:var(--foreground)">Under 25%</span>
+          <span class="label">Almost never</span>
+        </div>
+        <div class="pill" data-value="25-50" onclick="select(this)">
+          <span class="pct" style="color:var(--foreground)">25–50%</span>
+          <span class="label">Rarely</span>
+        </div>
+        <div class="pill" data-value="50-75" onclick="select(this)">
+          <span class="pct" style="color:var(--foreground)">50–75%</span>
+          <span class="label">Sometimes</span>
+        </div>
+        <div class="pill" data-value="75-100" onclick="select(this)">
+          <span class="pct" style="color:var(--foreground)">75–100%</span>
+          <span class="label">Most days</span>
+        </div>
+        <div class="pill" data-value="100plus" onclick="select(this)">
+          <span class="pct" style="color:var(--foreground)">100%+</span>
+          <span class="label">Every day</span>
+        </div>
+        <div class="pill" data-value="unsure" onclick="select(this)">
+          <span class="pct" style="color:var(--foreground)">Not sure</span>
+          <span class="label">Don't track</span>
+        </div>
+      </div>
+
+      <!-- Helpful context -->
+      <div class="p-4 rounded-2xl flex items-center gap-3" style="background:var(--muted)">
+        <iconify-icon icon="solar:info-circle-bold-duotone" style="color:var(--primary)" class="text-lg shrink-0"></iconify-icon>
+        <p class="text-xs leading-relaxed" style="color:var(--muted-foreground)">
+          Most GLP-1 users hit <strong style="color:var(--foreground)">less than 50%</strong> of their protein goal — and don't even know it.
+        </p>
+      </div>
+    </div>
+
+    <!-- Bottom -->
+    <div class="px-6 pb-12 flex flex-col gap-4 mt-6">
+      <div class="flex items-center justify-center gap-2 mb-2">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <div class="dot active"></div>
+      </div>
+      <a href="08-mirror2.html" class="btn-primary">
+        Be honest with me
+        <iconify-icon icon="solar:arrow-right-bold"></iconify-icon>
+      </a>
+    </div>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="apple-touch-icon" href="references/NoriIcon.png" />
+  <title>FoodWise – Welcome</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+  <style type="text/tailwindcss">
+    :root {
+      --background: #141311; --foreground: #F4EFE6;
+      --primary: #E89D35; --primary-foreground: #141311;
+      --secondary: #8A9A7C; --secondary-foreground: #141311;
+      --muted: #2A2824; --muted-foreground: #9B968C;
+      --accent: #D87F63; --accent-foreground: #141311;
+      --card: #1E1D1A; --card-foreground: #F4EFE6;
+      --border: #2E2C28; --destructive: #E06555;
+    }
+    body { background: var(--background); color: var(--foreground); font-family: 'Plus Jakarta Sans', sans-serif; }
+    .btn-primary { background: var(--primary); color: var(--primary-foreground); border-radius: 9999px; font-weight: 700; padding: 18px 32px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; font-size: 16px; }
+    .dot { width: 8px; height: 8px; border-radius: 9999px; background: var(--muted); }
+    .dot.active { background: var(--primary); width: 24px; }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+  <div class="w-full max-w-[390px] min-h-screen flex flex-col relative overflow-hidden" style="background:#141311">
+
+    <!-- Background glow -->
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full blur-3xl opacity-20 pointer-events-none" style="background:radial-gradient(circle, #E89D35 0%, transparent 70%)"></div>
+    <div class="absolute bottom-0 right-0 w-64 h-64 rounded-full blur-3xl opacity-10 pointer-events-none" style="background:radial-gradient(circle, #8A9A7C 0%, transparent 70%)"></div>
+
+    <!-- Skip -->
+    <div class="flex justify-end px-6 pt-14">
+      <a href="10-restrictions.html" class="text-sm font-medium" style="color:var(--muted-foreground)">Skip</a>
+    </div>
+
+    <!-- Nori mascot -->
+    <div class="flex-1 flex flex-col items-center justify-center px-6 text-center">
+      <div class="relative mb-6">
+        <div class="flex items-center justify-center mx-auto">
+          <img src="references/NoriCharacter.png" alt="Nori" class="w-40 h-40 object-contain drop-shadow-2xl" />
+        </div>
+        <!-- Speech bubble -->
+        <div class="absolute -top-2 -right-4 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg" style="background:var(--primary); color:var(--primary-foreground)">
+          Hey there! 👋
+        </div>
+      </div>
+
+      <h1 class="text-4xl font-extrabold leading-tight mb-3" style="color:var(--foreground)">
+        Meet <span style="color:var(--primary)">Nori</span>,<br/>your GLP-1<br/>nutrition guide.
+      </h1>
+      <p class="text-base leading-relaxed mb-2" style="color:var(--muted-foreground)">
+        Built for Ozempic, Wegovy, Mounjaro &amp; Zepbound users who want to eat smarter — not just less.
+      </p>
+
+      <!-- Trust badges -->
+      <div class="flex items-center gap-4 mt-4 mb-2">
+        <div class="flex items-center gap-1.5">
+          <iconify-icon icon="solar:star-bold" style="color:var(--primary)" class="text-sm"></iconify-icon>
+          <span class="text-xs font-semibold" style="color:var(--muted-foreground)">4.9 Rating</span>
+        </div>
+        <div class="w-px h-3" style="background:var(--border)"></div>
+        <div class="flex items-center gap-1.5">
+          <iconify-icon icon="solar:users-group-rounded-bold" style="color:var(--secondary)" class="text-sm"></iconify-icon>
+          <span class="text-xs font-semibold" style="color:var(--muted-foreground)">50K+ Users</span>
+        </div>
+        <div class="w-px h-3" style="background:var(--border)"></div>
+        <div class="flex items-center gap-1.5">
+          <iconify-icon icon="solar:shield-check-bold" style="color:var(--secondary)" class="text-sm"></iconify-icon>
+          <span class="text-xs font-semibold" style="color:var(--muted-foreground)">Science-based</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom -->
+    <div class="px-6 pb-12 flex flex-col gap-4">
+      <!-- Progress dots -->
+      <div class="flex items-center justify-center gap-2 mb-2">
+        <div class="dot active"></div>
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+      <a href="02-problem.html" class="btn-primary">
+        Let's get started
+        <iconify-icon icon="solar:arrow-right-bold"></iconify-icon>
+      </a>
+      <p class="text-xs text-center" style="color:var(--muted-foreground)">Free 7-day trial · No credit card required to start</p>
+    </div>
+
+  </div>
+</body>
+</html>

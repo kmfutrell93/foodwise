@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="apple-touch-icon" href="references/NoriIcon.png" />
+  <title>FoodWise – What We'll Do Together</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+  <style type="text/tailwindcss">
+    :root {
+      --background: #141311; --foreground: #F4EFE6;
+      --primary: #E89D35; --primary-foreground: #141311;
+      --secondary: #8A9A7C; --muted: #2A2824; --muted-foreground: #9B968C;
+      --accent: #D87F63; --card: #1E1D1A; --border: #2E2C28;
+    }
+    body { background: var(--background); color: var(--foreground); font-family: 'Plus Jakarta Sans', sans-serif; }
+    .btn-primary { background: var(--primary); color: var(--primary-foreground); border-radius: 9999px; font-weight: 700; padding: 18px 32px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; font-size: 16px; }
+    @keyframes check-pop { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .check-item:nth-child(1) .check-icon { animation: check-pop 0.3s cubic-bezier(0.34,1.56,0.64,1) 0.1s forwards; transform: scale(0); }
+    .check-item:nth-child(2) .check-icon { animation: check-pop 0.3s cubic-bezier(0.34,1.56,0.64,1) 0.25s forwards; transform: scale(0); }
+    .check-item:nth-child(3) .check-icon { animation: check-pop 0.3s cubic-bezier(0.34,1.56,0.64,1) 0.4s forwards; transform: scale(0); }
+    .check-item:nth-child(4) .check-icon { animation: check-pop 0.3s cubic-bezier(0.34,1.56,0.64,1) 0.55s forwards; transform: scale(0); }
+    .check-item:nth-child(5) .check-icon { animation: check-pop 0.3s cubic-bezier(0.34,1.56,0.64,1) 0.7s forwards; transform: scale(0); }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+  <div class="w-full max-w-[390px] min-h-screen flex flex-col" style="background:#141311">
+
+    <!-- Nav -->
+    <div class="flex items-center justify-between px-6 pt-14 mb-6">
+      <a href="15-review.html" class="w-10 h-10 rounded-full flex items-center justify-center" style="background:var(--muted)">
+        <iconify-icon icon="solar:arrow-left-bold" style="color:var(--foreground)"></iconify-icon>
+      </a>
+      <div></div>
+    </div>
+
+    <div class="flex-1 px-6 flex flex-col">
+
+      <!-- Header -->
+      <div class="flex items-center gap-3 mb-6">
+        <img src="references/NoriCharacter.png" alt="Nori" class="w-12 h-12 object-contain" />
+        <div>
+          <h1 class="text-2xl font-extrabold leading-tight">Here's what FoodWise<br/>does for you <span style="color:var(--primary)">every day</span></h1>
+        </div>
+      </div>
+
+      <!-- Journey checklist -->
+      <div class="flex flex-col gap-3 mb-6">
+
+        <div class="check-item flex items-start gap-4 p-4 rounded-2xl" style="background:var(--card); border:1px solid var(--border)">
+          <div class="check-icon w-10 h-10 rounded-full flex items-center justify-center shrink-0" style="background:rgba(232,157,53,0.15)">
+            <iconify-icon icon="solar:chef-hat-bold-duotone" style="color:var(--primary)" class="text-xl"></iconify-icon>
+          </div>
+          <div>
+            <p class="font-bold text-sm" style="color:var(--foreground)">AI-built GLP-1 meal plans</p>
+            <p class="text-xs mt-0.5" style="color:var(--muted-foreground)">Fresh plans every week, personalized to your body &amp; budget</p>
+          </div>
+        </div>
+
+        <div class="check-item flex items-start gap-4 p-4 rounded-2xl" style="background:var(--card); border:1px solid var(--border)">
+          <div class="check-icon w-10 h-10 rounded-full flex items-center justify-center shrink-0" style="background:rgba(138,154,124,0.15)">
+            <iconify-icon icon="solar:dumbbell-bold-duotone" style="color:var(--secondary)" class="text-xl"></iconify-icon>
+          </div>
+          <div>
+            <p class="font-bold text-sm" style="color:var(--foreground)">Muscle preservation focus</p>
+            <p class="text-xs mt-0.5" style="color:var(--muted-foreground)">Every meal is engineered to hit 100–130g protein daily</p>
+          </div>
+        </div>
+
+        <div class="check-item flex items-start gap-4 p-4 rounded-2xl" style="background:var(--card); border:1px solid var(--border)">
+          <div class="check-icon w-10 h-10 rounded-full flex items-center justify-center shrink-0" style="background:rgba(216,127,99,0.15)">
+            <iconify-icon icon="solar:syringe-bold-duotone" style="color:var(--accent)" class="text-xl"></iconify-icon>
+          </div>
+          <div>
+            <p class="font-bold text-sm" style="color:var(--foreground)">Injection-day smart menus</p>
+            <p class="text-xs mt-0.5" style="color:var(--muted-foreground)">Gentle, low-nausea meals on your dose days</p>
+          </div>
+        </div>
+
+        <div class="check-item flex items-start gap-4 p-4 rounded-2xl" style="background:var(--card); border:1px solid var(--border)">
+          <div class="check-icon w-10 h-10 rounded-full flex items-center justify-center shrink-0" style="background:rgba(232,157,53,0.15)">
+            <iconify-icon icon="solar:cart-large-bold-duotone" style="color:var(--primary)" class="text-xl"></iconify-icon>
+          </div>
+          <div>
+            <p class="font-bold text-sm" style="color:var(--foreground)">Auto-generated grocery lists</p>
+            <p class="text-xs mt-0.5" style="color:var(--muted-foreground)">Budget-tracked, categorized, and ready to shop</p>
+          </div>
+        </div>
+
+        <div class="check-item flex items-start gap-4 p-4 rounded-2xl" style="background:var(--card); border:1px solid var(--border)">
+          <div class="check-icon w-10 h-10 rounded-full flex items-center justify-center shrink-0" style="background:rgba(138,154,124,0.15)">
+            <iconify-icon icon="solar:graph-up-bold-duotone" style="color:var(--secondary)" class="text-xl"></iconify-icon>
+          </div>
+          <div>
+            <p class="font-bold text-sm" style="color:var(--foreground)">Progress rings &amp; streaks</p>
+            <p class="text-xs mt-0.5" style="color:var(--muted-foreground)">Gamified tracking for protein, fiber, water &amp; workouts</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Bottom -->
+    <div class="px-6 pb-12 flex flex-col gap-4">
+      <a href="17-habit.html" class="btn-primary">
+        This is exactly what I need
+        <iconify-icon icon="solar:arrow-right-bold"></iconify-icon>
+      </a>
+    </div>
+
+  </div>
+</body>
+</html>

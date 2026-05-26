@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="apple-touch-icon" href="references/NoriIcon.png" />
+  <title>FoodWise – The Problem</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+  <style type="text/tailwindcss">
+    :root {
+      --background: #141311; --foreground: #F4EFE6;
+      --primary: #E89D35; --primary-foreground: #141311;
+      --secondary: #8A9A7C; --muted: #2A2824; --muted-foreground: #9B968C;
+      --accent: #D87F63; --card: #1E1D1A; --border: #2E2C28;
+    }
+    body { background: var(--background); color: var(--foreground); font-family: 'Plus Jakarta Sans', sans-serif; }
+    .btn-primary { background: var(--primary); color: var(--primary-foreground); border-radius: 9999px; font-weight: 700; padding: 18px 32px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; font-size: 16px; }
+    .dot { width: 8px; height: 8px; border-radius: 9999px; background: var(--muted); }
+    .dot.active { background: var(--primary); width: 24px; }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+  <div class="w-full max-w-[390px] min-h-screen flex flex-col relative overflow-hidden" style="background:#141311">
+
+    <!-- Nav -->
+    <div class="flex items-center justify-between px-6 pt-14 mb-6">
+      <a href="01-welcome.html" class="w-10 h-10 rounded-full flex items-center justify-center" style="background:var(--muted)">
+        <iconify-icon icon="solar:arrow-left-bold" style="color:var(--foreground)"></iconify-icon>
+      </a>
+      <a href="10-restrictions.html" class="text-sm font-medium" style="color:var(--muted-foreground)">Skip</a>
+    </div>
+
+    <!-- Content -->
+    <div class="flex-1 px-6 flex flex-col">
+
+      <!-- Nori small -->
+      <div class="flex items-center gap-3 mb-6 p-4 rounded-3xl" style="background:var(--card); border:1px solid var(--border)">
+        <img src="references/NoriCharacter.png" alt="Nori" class="w-12 h-12 object-contain" />
+        <div>
+          <p class="text-xs font-semibold mb-0.5" style="color:var(--muted-foreground)">Nori says</p>
+          <p class="text-sm font-medium" style="color:var(--foreground)">"There's something most GLP-1 users don't realize..."</p>
+        </div>
+      </div>
+
+      <h1 class="text-3xl font-extrabold leading-tight mb-3">
+        You're eating less.<br/>
+        <span style="color:var(--primary)">But is your body<br/>getting what it needs?</span>
+      </h1>
+      <p class="text-base leading-relaxed mb-8" style="color:var(--muted-foreground)">
+        GLP-1 medications suppress your appetite — but they can't tell the difference between <em style="color:var(--foreground); font-style:normal; font-weight:600">healthy restriction</em> and <em style="color:var(--accent); font-style:normal; font-weight:600">dangerous deficiency.</em>
+      </p>
+
+      <!-- Three problems -->
+      <div class="flex flex-col gap-3 mb-8">
+        <div class="flex items-center gap-4 p-4 rounded-2xl" style="background:var(--card); border:1px solid var(--border)">
+          <div class="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0" style="background:rgba(232,157,53,0.15)">
+            <iconify-icon icon="solar:bolt-bold-duotone" style="color:var(--primary)" class="text-xl"></iconify-icon>
+          </div>
+          <div>
+            <p class="font-bold text-sm" style="color:var(--foreground)">Appetite is suppressed</p>
+            <p class="text-xs mt-0.5" style="color:var(--muted-foreground)">You eat less food than your body needs</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-4 p-4 rounded-2xl" style="background:var(--card); border:1px solid var(--border)">
+          <div class="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0" style="background:rgba(216,127,99,0.15)">
+            <iconify-icon icon="solar:shield-warning-bold-duotone" style="color:var(--accent)" class="text-xl"></iconify-icon>
+          </div>
+          <div>
+            <p class="font-bold text-sm" style="color:var(--foreground)">Nutrients go missing</p>
+            <p class="text-xs mt-0.5" style="color:var(--muted-foreground)">Protein, fiber &amp; micronutrients fall short</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-4 p-4 rounded-2xl" style="background:var(--card); border:1px solid var(--border)">
+          <div class="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0" style="background:rgba(138,154,124,0.15)">
+            <iconify-icon icon="solar:dumbbell-bold-duotone" style="color:var(--secondary)" class="text-xl"></iconify-icon>
+          </div>
+          <div>
+            <p class="font-bold text-sm" style="color:var(--foreground)">Muscle starts to fade</p>
+            <p class="text-xs mt-0.5" style="color:var(--muted-foreground)">Your body breaks down lean mass for energy</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom -->
+    <div class="px-6 pb-12 flex flex-col gap-4">
+      <div class="flex items-center justify-center gap-2 mb-2">
+        <div class="dot"></div>
+        <div class="dot active"></div>
+        <div class="dot"></div><div class="dot"></div>
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+      <a href="03-solution.html" class="btn-primary">
+        I want to know more
+        <iconify-icon icon="solar:arrow-right-bold"></iconify-icon>
+      </a>
+    </div>
+
+  </div>
+</body>
+</html>

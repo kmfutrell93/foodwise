@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="apple-touch-icon" href="references/NoriIcon.png" />
+  <title>FoodWise – Settings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+  <style type="text/tailwindcss">
+    :root {
+      --background: #141311; --foreground: #F4EFE6;
+      --primary: #E89D35; --primary-foreground: #141311;
+      --secondary: #8A9A7C; --muted: #2A2824; --muted-foreground: #9B968C;
+      --accent: #D87F63; --card: #1E1D1A; --border: #2E2C28; --destructive: #E06555;
+    }
+    body { background: var(--background); color: var(--foreground); font-family: 'Plus Jakarta Sans', sans-serif; }
+    .row { display: flex; align-items: center; padding: 16px; border-bottom: 1px solid var(--border); }
+    .row:last-child { border-bottom: none; }
+    .toggle { width: 48px; height: 26px; border-radius: 9999px; position: relative; cursor: pointer; background: var(--primary); }
+    .toggle-off { background: var(--muted); }
+    .toggle-knob { position: absolute; top: 3px; right: 3px; width: 20px; height: 20px; border-radius: 50%; background: white; transition: all 0.2s; }
+    .toggle-off .toggle-knob { right: auto; left: 3px; }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+  <div class="w-full max-w-[390px] min-h-screen flex flex-col pb-28 overflow-y-auto" style="background:#141311">
+
+    <!-- Header -->
+    <header class="px-6 pt-14 pb-6">
+      <h1 class="text-2xl font-extrabold">Profile &amp; Settings</h1>
+    </header>
+
+    <!-- User card -->
+    <section class="px-6 mb-6">
+      <div class="p-5 rounded-3xl flex items-center gap-4" style="background:var(--card); border:1px solid var(--border)">
+        <div class="relative">
+          <img src="references/NoriCharacter.png" alt="Alex" class="w-16 h-16 object-contain" />
+        </div>
+        <div class="flex-1">
+          <p class="font-extrabold text-lg">Alex Johnson</p>
+          <p class="text-sm" style="color:var(--muted-foreground)">alex@example.com</p>
+          <span class="inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full mt-1" style="background:rgba(232,157,53,0.1); color:var(--primary)">
+            <iconify-icon icon="solar:crown-bold-duotone" class="text-sm"></iconify-icon>
+            FoodWise Premium
+          </span>
+        </div>
+        <iconify-icon icon="solar:pen-bold-duotone" style="color:var(--muted-foreground)" class="text-xl"></iconify-icon>
+      </div>
+    </section>
+
+    <!-- GLP-1 settings -->
+    <section class="px-6 mb-6">
+      <p class="text-xs font-extrabold uppercase tracking-widest mb-3" style="color:var(--muted-foreground)">GLP-1 Medication</p>
+      <div class="rounded-2xl overflow-hidden" style="background:var(--card); border:1px solid var(--border)">
+        <div class="row">
+          <div class="w-9 h-9 rounded-full flex items-center justify-center mr-3 shrink-0" style="background:rgba(232,157,53,0.12)">
+            <iconify-icon icon="solar:syringe-bold-duotone" style="color:var(--primary)" class="text-base"></iconify-icon>
+          </div>
+          <div class="flex-1">
+            <p class="font-semibold text-sm">Medication</p>
+            <p class="text-xs" style="color:var(--muted-foreground)">Wegovy (Semaglutide)</p>
+          </div>
+          <iconify-icon icon="solar:alt-arrow-right-bold" style="color:var(--muted-foreground)"></iconify-icon>
+        </div>
+        <div class="row">
+          <div class="w-9 h-9 rounded-full flex items-center justify-center mr-3 shrink-0" style="background:rgba(216,127,99,0.12)">
+            <iconify-icon icon="solar:calendar-bold-duotone" style="color:var(--accent)" class="text-base"></iconify-icon>
+          </div>
+          <div class="flex-1">
+            <p class="font-semibold text-sm">Injection Day</p>
+            <p class="text-xs" style="color:var(--muted-foreground)">Every Friday</p>
+          </div>
+          <iconify-icon icon="solar:alt-arrow-right-bold" style="color:var(--muted-foreground)"></iconify-icon>
+        </div>
+        <div class="row">
+          <div class="w-9 h-9 rounded-full flex items-center justify-center mr-3 shrink-0" style="background:rgba(138,154,124,0.12)">
+            <iconify-icon icon="solar:graph-up-bold-duotone" style="color:var(--secondary)" class="text-base"></iconify-icon>
+          </div>
+          <div class="flex-1">
+            <p class="font-semibold text-sm">Dosage</p>
+            <p class="text-xs" style="color:var(--muted-foreground)">0.5mg (Week 4)</p>
+          </div>
+          <iconify-icon icon="solar:alt-arrow-right-bold" style="color:var(--muted-foreground)"></iconify-icon>
+        </div>
+      </div>
+    </section>
+
+    <!-- Nutrition goals -->
+    <section class="px-6 mb-6">
+      <p class="text-xs font-extrabold uppercase tracking-widest mb-3" style="color:var(--muted-foreground)">Nutrition Goals</p>
+      <div class="rounded-2xl overflow-hidden" style="background:var(--card); border:1px solid var(--border)">
+        <div class="row">
+          <div class="w-9 h-9 rounded-full flex items-center justify-center mr-3 shrink-0" style="background:rgba(232,157,53,0.12)">
+            <iconify-icon icon="hugeicons:steak" style="color:var(--primary)" class="text-base"></iconify-icon>
+          </div>
+          <div class="flex-1">
+            <p class="font-semibold text-sm">Daily Protein Goal</p>
+            <p class="text-xs" style="color:var(--muted-foreground)">120g / day</p>
+          </div>
+          <iconify-icon icon="solar:alt-arrow-right-bold" style="color:var(--muted-foreground)"></iconify-icon>
+        </div>
+        <div class="row">
+          <div class="w-9 h-9 rounded-full flex items-center justify-center mr-3 shrink-0" style="background:rgba(216,127,99,0.12)">
+            <iconify-icon icon="solar:flame-bold-duotone" style="color:var(--accent)" class="text-base"></iconify-icon>
+          </div>
+          <div class="flex-1">
+            <p class="font-semibold text-sm">Calorie Target</p>
+            <p class="text-xs" style="color:var(--muted-foreground)">1,380 cal / day</p>
+          </div>
+          <iconify-icon icon="solar:alt-arrow-right-bold" style="color:var(--muted-foreground)"></iconify-icon>
+        </div>
+        <div class="row">
+          <div class="w-9 h-9 rounded-full flex items-center justify-center mr-3 shrink-0" style="background:rgba(232,157,53,0.12)">
+            <iconify-icon icon="solar:cart-large-bold-duotone" style="color:var(--primary)" class="text-base"></iconify-icon>
+          </div>
+          <div class="flex-1">
+            <p class="font-semibold text-sm">Weekly Budget</p>
+            <p class="text-xs" style="color:var(--muted-foreground)">$75 / week</p>
+          </div>
+          <iconify-icon icon="solar:alt-arrow-right-bold" style="color:var(--muted-foreground)"></iconify-icon>
+        </div>
+      </div>
+    </section>
+
+    <!-- Notifications -->
+    <section class="px-6 mb-6">
+      <p class="text-xs font-extrabold uppercase tracking-widest mb-3" style="color:var(--muted-foreground)">Notifications</p>
+      <div class="rounded-2xl overflow-hidden" style="background:var(--card); border:1px solid var(--border)">
+        <div class="row">
+          <div class="flex-1">
+            <p class="font-semibold text-sm">Daily Protein Reminder</p>
+            <p class="text-xs" style="color:var(--muted-foreground)">8:00 AM</p>
+          </div>
+          <div class="toggle" onclick="this.classList.toggle('toggle-off')"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="row">
+          <div class="flex-1">
+            <p class="font-semibold text-sm">Hydration Reminders</p>
+            <p class="text-xs" style="color:var(--muted-foreground)">Every 2 hours</p>
+          </div>
+          <div class="toggle" onclick="this.classList.toggle('toggle-off')"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="row">
+          <div class="flex-1">
+            <p class="font-semibold text-sm">Injection Day Alert</p>
+            <p class="text-xs" style="color:var(--muted-foreground)">Morning of injection day</p>
+          </div>
+          <div class="toggle" onclick="this.classList.toggle('toggle-off')"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="row">
+          <div class="flex-1">
+            <p class="font-semibold text-sm">Weekly Report</p>
+            <p class="text-xs" style="color:var(--muted-foreground)">Every Sunday, 7:00 PM</p>
+          </div>
+          <div class="toggle" onclick="this.classList.toggle('toggle-off')"><div class="toggle-knob"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- App / Legal -->
+    <section class="px-6 mb-6">
+      <p class="text-xs font-extrabold uppercase tracking-widest mb-3" style="color:var(--muted-foreground)">App & Legal</p>
+      <div class="rounded-2xl overflow-hidden" style="background:var(--card); border:1px solid var(--border)">
+        <div class="row cursor-pointer">
+          <div class="flex-1"><p class="font-semibold text-sm">Subscription</p></div>
+          <span class="text-xs font-bold px-2 py-1 rounded-full mr-2" style="background:rgba(138,154,124,0.1); color:var(--secondary)">Active</span>
+          <iconify-icon icon="solar:alt-arrow-right-bold" style="color:var(--muted-foreground)"></iconify-icon>
+        </div>
+        <div class="row cursor-pointer">
+          <div class="flex-1"><p class="font-semibold text-sm">Medical Disclaimer</p></div>
+          <iconify-icon icon="solar:alt-arrow-right-bold" style="color:var(--muted-foreground)"></iconify-icon>
+        </div>
+        <div class="row cursor-pointer">
+          <div class="flex-1"><p class="font-semibold text-sm">Privacy Policy</p></div>
+          <iconify-icon icon="solar:alt-arrow-right-bold" style="color:var(--muted-foreground)"></iconify-icon>
+        </div>
+        <div class="row cursor-pointer">
+          <div class="flex-1"><p class="font-semibold text-sm">About FoodWise</p></div>
+          <iconify-icon icon="solar:alt-arrow-right-bold" style="color:var(--muted-foreground)"></iconify-icon>
+        </div>
+      </div>
+    </section>
+
+    <!-- Danger zone -->
+    <section class="px-6 mb-8">
+      <div class="rounded-2xl overflow-hidden" style="background:var(--card); border:1px solid rgba(224,101,85,0.2)">
+        <div class="row cursor-pointer">
+          <iconify-icon icon="solar:logout-bold-duotone" style="color:var(--destructive)" class="text-xl mr-3"></iconify-icon>
+          <p class="font-semibold text-sm" style="color:var(--destructive)">Sign Out</p>
+        </div>
+        <div class="row cursor-pointer">
+          <iconify-icon icon="solar:trash-bin-minimalistic-bold-duotone" style="color:var(--destructive)" class="text-xl mr-3"></iconify-icon>
+          <p class="font-semibold text-sm" style="color:var(--destructive)">Delete Account</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Version -->
+    <p class="text-xs text-center pb-6" style="color:var(--muted-foreground)">FoodWise v1.0.0 · Made with ❤️ for GLP-1 users</p>
+
+    <!-- Bottom Nav -->
+    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] max-w-[342px] flex items-center justify-between px-3 py-2" style="background:var(--card); border:1px solid var(--border); border-radius:9999px; box-shadow:0 8px 32px rgba(0,0,0,0.5)">
+      <a href="home.html" class="flex flex-col items-center justify-center w-16 h-12">
+        <iconify-icon icon="solar:home-smile-outline" style="color:var(--muted-foreground)" class="text-2xl"></iconify-icon>
+      </a>
+      <a href="meal-plan.html" class="flex flex-col items-center justify-center w-16 h-12">
+        <iconify-icon icon="solar:chef-hat-outline" style="color:var(--muted-foreground)" class="text-2xl"></iconify-icon>
+      </a>
+      <a href="grocery-list.html" class="flex flex-col items-center justify-center w-16 h-12">
+        <iconify-icon icon="solar:cart-large-outline" style="color:var(--muted-foreground)" class="text-2xl"></iconify-icon>
+      </a>
+      <a href="settings.html" class="flex flex-col items-center justify-center w-16 h-12 rounded-full" style="background:rgba(232,157,53,0.12)">
+        <iconify-icon icon="solar:user-rounded-bold" style="color:var(--primary)" class="text-2xl"></iconify-icon>
+      </a>
+    </nav>
+
+  </div>
+</body>
+</html>

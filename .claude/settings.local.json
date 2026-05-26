@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/kenny/Developer/FoodWise/**)",
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(npm --version)",
+      "Bash(npx create-expo-app@latest mobile --template default)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('dependencies',{}\\), indent=2\\)\\)\")",
+      "Bash(rm -rf \"/Users/kenny/Documents/FoodWise App/mobile/app/\\(tabs\\)\" \"/Users/kenny/Documents/FoodWise App/mobile/app/modal.tsx\")",
+      "Bash(mkdir -p \"/Users/kenny/Documents/FoodWise App/mobile/app/\\(onboarding\\)\" \"/Users/kenny/Documents/FoodWise App/mobile/app/\\(app\\)\" \"/Users/kenny/Documents/FoodWise App/mobile/lib\" \"/Users/kenny/Documents/FoodWise App/mobile/constants\" \"/Users/kenny/Documents/FoodWise App/mobile/components/ui\" \"/Users/kenny/Documents/FoodWise App/mobile/context\" \"/Users/kenny/Documents/FoodWise App/mobile/supabase/functions\")",
+      "Bash(find ~/foodwise -type f | sort)",
+      "Read(//Users/kenny/foodwise/**)",
+      "Bash(pnpm --version)",
+      "Bash(npx create-expo-app@latest . --template default)",
+      "Bash(python3 -c ' *)",
+      "Bash(python3)",
+      "Bash(unzip -p Privacyandterms.zip FoodWise_Privacy_Policy.md)",
+      "Bash(unzip -p Privacyandterms.zip FoodWise_Terms_of_Service.md)",
+      "Bash(/Users/kenny/foodwise/apps/mobile/node_modules/.bin/tsc --noEmit --project /Users/kenny/foodwise/apps/mobile/tsconfig.json)",
+      "Bash(sips -g pixelWidth -g pixelHeight -g hasAlpha /Users/kenny/foodwise/apps/mobile/assets/images/nori_icon.png)",
+      "Bash(convert --version)",
+      "Bash(npx expo-doctor *)"
+    ]
+  }
+}

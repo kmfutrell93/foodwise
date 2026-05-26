@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="apple-touch-icon" href="references/NoriIcon.png" />
+  <title>FoodWise – Home</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+  <style type="text/tailwindcss">
+    :root {
+      --background: #141311; --foreground: #F4EFE6;
+      --primary: #E89D35; --primary-foreground: #141311;
+      --secondary: #8A9A7C; --muted: #2A2824; --muted-foreground: #9B968C;
+      --accent: #D87F63; --card: #1E1D1A; --border: #2E2C28;
+      --destructive: #E06555;
+    }
+    body { background: var(--background); color: var(--foreground); font-family: 'Plus Jakarta Sans', sans-serif; }
+    @keyframes ring-fill { from { stroke-dasharray: 0, 100; } to { stroke-dasharray: var(--fill), 100; } }
+    .ring-animate { animation: ring-fill 1.2s cubic-bezier(0.4,0,0.2,1) 0.3s forwards; stroke-dasharray: 0, 100; }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+  <div class="w-full max-w-[390px] min-h-screen flex flex-col pb-28 overflow-y-auto" style="background:#141311">
+
+    <!-- Header -->
+    <header class="px-6 pt-14 pb-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="relative">
+          <img src="references/NoriCharacter.png" alt="Nori" class="w-14 h-14 object-contain" />
+          <span class="absolute bottom-0 right-0 w-4 h-4 rounded-full border-2" style="background:#4ade80; border-color:var(--background)"></span>
+        </div>
+        <div>
+          <p class="text-sm font-medium" style="color:var(--muted-foreground)">Good morning,</p>
+          <h1 class="text-2xl font-extrabold">Alex 👋</h1>
+        </div>
+      </div>
+      <button class="w-12 h-12 rounded-full flex items-center justify-center relative" style="background:var(--card); border:1px solid var(--border)">
+        <span class="absolute top-2.5 right-2.5 w-2.5 h-2.5 rounded-full" style="background:var(--destructive); border:2px solid var(--background)"></span>
+        <iconify-icon icon="solar:bell-bing-bold-duotone" style="color:var(--muted-foreground)" class="text-xl"></iconify-icon>
+      </button>
+    </header>
+
+    <!-- Injection day card -->
+    <section class="px-6 mb-5">
+      <div class="p-4 rounded-2xl flex items-center justify-between" style="background:rgba(232,157,53,0.08); border:1px solid rgba(232,157,53,0.2)">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background:rgba(232,157,53,0.15)">
+            <iconify-icon icon="solar:syringe-bold-duotone" style="color:var(--primary)" class="text-xl"></iconify-icon>
+          </div>
+          <div>
+            <p class="font-bold text-sm" style="color:var(--foreground)">Wegovy <span style="color:var(--muted-foreground); font-weight:400">· Day 4 of 7</span></p>
+            <div class="flex gap-1 mt-1">
+              <div class="w-5 h-1.5 rounded-full" style="background:var(--primary)"></div>
+              <div class="w-5 h-1.5 rounded-full" style="background:var(--primary)"></div>
+              <div class="w-5 h-1.5 rounded-full" style="background:var(--primary)"></div>
+              <div class="w-5 h-1.5 rounded-full" style="background:var(--primary)"></div>
+              <div class="w-5 h-1.5 rounded-full" style="background:var(--muted)"></div>
+              <div class="w-5 h-1.5 rounded-full" style="background:var(--muted)"></div>
+              <div class="w-5 h-1.5 rounded-full" style="background:var(--muted)"></div>
+            </div>
+          </div>
+        </div>
+        <span class="text-xs font-bold px-2.5 py-1.5 rounded-full" style="background:rgba(232,157,53,0.15); color:var(--primary)">Next: Fri</span>
+      </div>
+    </section>
+
+    <!-- AI Insight -->
+    <section class="px-6 mb-6">
+      <div class="p-4 rounded-2xl flex items-start gap-3" style="background:rgba(138,154,124,0.1); border:1px solid rgba(138,154,124,0.2)">
+        <img src="references/NoriCharacter.png" alt="Nori" class="w-9 h-9 object-contain shrink-0 mt-0.5" />
+        <div class="flex-1">
+          <p class="text-xs font-bold mb-1" style="color:var(--secondary)">Nori's insight for today</p>
+          <p class="text-sm leading-relaxed" style="color:var(--foreground)">It's Day 4 — appetite may return slightly. Use this window to hit <strong style="color:var(--primary)">protein early</strong>. Start with your yogurt parfait!</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Daily Progress rings (horizontal scroll) -->
+    <section class="mb-6">
+      <div class="flex items-center justify-between px-6 mb-3">
+        <h2 class="font-extrabold text-lg">Daily Progress</h2>
+        <button class="text-sm font-bold" style="color:var(--primary)">Details</button>
+      </div>
+      <div class="flex gap-4 px-6 overflow-x-auto pb-2" style="scrollbar-width:none">
+        <!-- Protein ring -->
+        <div class="shrink-0 w-36 p-4 rounded-3xl flex flex-col items-center" style="background:var(--card); border:1px solid var(--border)">
+          <div class="relative w-16 h-16 flex items-center justify-center mb-2">
+            <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--muted)" stroke-width="4"/>
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--primary)" stroke-width="4" stroke-linecap="round" class="ring-animate" style="--fill:72"/>
+            </svg>
+            <iconify-icon icon="hugeicons:steak" style="color:var(--primary)" class="absolute text-xl"></iconify-icon>
+          </div>
+          <p class="text-2xl font-extrabold">86<span class="text-xs font-normal" style="color:var(--muted-foreground)">g</span></p>
+          <p class="text-xs" style="color:var(--muted-foreground)">Protein</p>
+          <p class="text-xs font-bold mt-1" style="color:var(--primary)">86/120g</p>
+        </div>
+        <!-- Fiber ring -->
+        <div class="shrink-0 w-36 p-4 rounded-3xl flex flex-col items-center" style="background:var(--card); border:1px solid var(--border)">
+          <div class="relative w-16 h-16 flex items-center justify-center mb-2">
+            <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--muted)" stroke-width="4"/>
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--secondary)" stroke-width="4" stroke-linecap="round" class="ring-animate" style="--fill:60"/>
+            </svg>
+            <iconify-icon icon="solar:leaf-bold-duotone" style="color:var(--secondary)" class="absolute text-xl"></iconify-icon>
+          </div>
+          <p class="text-2xl font-extrabold">15<span class="text-xs font-normal" style="color:var(--muted-foreground)">g</span></p>
+          <p class="text-xs" style="color:var(--muted-foreground)">Fiber</p>
+          <p class="text-xs font-bold mt-1" style="color:var(--secondary)">15/25g</p>
+        </div>
+        <!-- Water ring -->
+        <div class="shrink-0 w-36 p-4 rounded-3xl flex flex-col items-center" style="background:var(--card); border:1px solid var(--border)">
+          <div class="relative w-16 h-16 flex items-center justify-center mb-2">
+            <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--muted)" stroke-width="4"/>
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" class="ring-animate" style="--fill:48"/>
+            </svg>
+            <iconify-icon icon="solar:waterdrop-bold-duotone" style="color:var(--accent)" class="absolute text-xl"></iconify-icon>
+          </div>
+          <p class="text-2xl font-extrabold">48<span class="text-xs font-normal" style="color:var(--muted-foreground)">oz</span></p>
+          <p class="text-xs" style="color:var(--muted-foreground)">Hydration</p>
+          <p class="text-xs font-bold mt-1" style="color:var(--accent)">48/80oz</p>
+        </div>
+        <!-- Calories ring -->
+        <div class="shrink-0 w-36 p-4 rounded-3xl flex flex-col items-center" style="background:var(--card); border:1px solid var(--border)">
+          <div class="relative w-16 h-16 flex items-center justify-center mb-2">
+            <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--muted)" stroke-width="4"/>
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#E06555" stroke-width="4" stroke-linecap="round" class="ring-animate" style="--fill:65"/>
+            </svg>
+            <iconify-icon icon="solar:flame-bold-duotone" style="color:#E06555" class="absolute text-xl"></iconify-icon>
+          </div>
+          <p class="text-2xl font-extrabold">860</p>
+          <p class="text-xs" style="color:var(--muted-foreground)">Calories</p>
+          <p class="text-xs font-bold mt-1" style="color:#E06555">860/1,380</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Streak card -->
+    <section class="px-6 mb-6">
+      <div class="p-4 rounded-3xl flex items-center gap-4" style="background:var(--card); border:1px solid var(--border)">
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0" style="background:rgba(232,157,53,0.12); border:1px solid rgba(232,157,53,0.2)">
+          <iconify-icon icon="solar:fire-bold-duotone" style="color:var(--primary)" class="text-3xl"></iconify-icon>
+        </div>
+        <div class="flex-1">
+          <div class="flex items-center justify-between mb-1">
+            <p class="font-extrabold" style="color:var(--foreground)">12 Day Streak! 🔥</p>
+            <span class="text-xs font-bold px-2 py-1 rounded-full" style="background:rgba(232,157,53,0.1); color:var(--primary)">+50 XP</span>
+          </div>
+          <p class="text-xs" style="color:var(--muted-foreground)">Protein goal hit 12 days straight. Keep going!</p>
+          <!-- Mini week view -->
+          <div class="flex gap-1.5 mt-2">
+            <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs" style="background:var(--primary)">✓</div>
+            <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs" style="background:var(--primary)">✓</div>
+            <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs" style="background:var(--primary)">✓</div>
+            <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs" style="background:var(--primary)">✓</div>
+            <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs" style="background:var(--muted); color:var(--muted-foreground)">·</div>
+            <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs" style="background:var(--muted); color:var(--muted-foreground)">·</div>
+            <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs" style="background:var(--muted); color:var(--muted-foreground)">·</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Today's meals -->
+    <section class="mb-6">
+      <div class="flex items-center justify-between px-6 mb-3">
+        <h2 class="font-extrabold text-lg">Today's Meals</h2>
+        <a href="meal-plan.html" class="text-sm font-bold" style="color:var(--primary)">Full plan</a>
+      </div>
+      <div class="flex gap-4 px-6 overflow-x-auto pb-2" style="scrollbar-width:none">
+        <!-- Breakfast -->
+        <div class="shrink-0 w-52 rounded-3xl overflow-hidden" style="background:var(--card); border:1px solid var(--border)">
+          <div class="h-24 flex items-center justify-center text-4xl" style="background:var(--muted)">🥣</div>
+          <div class="p-3">
+            <span class="text-xs font-bold px-2 py-0.5 rounded-full" style="background:rgba(232,157,53,0.1); color:var(--primary)">Breakfast · 7am</span>
+            <p class="font-extrabold text-sm mt-2 mb-1" style="color:var(--foreground)">Greek Yogurt Parfait</p>
+            <p class="text-xs" style="color:var(--muted-foreground)">26g protein · 280 cal</p>
+          </div>
+        </div>
+        <!-- Lunch -->
+        <div class="shrink-0 w-52 rounded-3xl overflow-hidden" style="background:var(--card); border:1px solid var(--border)">
+          <div class="h-24 flex items-center justify-center text-4xl" style="background:var(--muted)">🥗</div>
+          <div class="p-3">
+            <span class="text-xs font-bold px-2 py-0.5 rounded-full" style="background:rgba(138,154,124,0.1); color:var(--secondary)">Lunch · 12:30pm</span>
+            <p class="font-extrabold text-sm mt-2 mb-1" style="color:var(--foreground)">Turkey Egg Roll Bowl</p>
+            <p class="text-xs" style="color:var(--muted-foreground)">42g protein · 420 cal</p>
+          </div>
+        </div>
+        <!-- Dinner -->
+        <div class="shrink-0 w-52 rounded-3xl overflow-hidden" style="background:var(--card); border:1px solid var(--border)">
+          <div class="h-24 flex items-center justify-center text-4xl" style="background:var(--muted)">🐟</div>
+          <div class="p-3">
+            <span class="text-xs font-bold px-2 py-0.5 rounded-full" style="background:rgba(216,127,99,0.1); color:var(--accent)">Dinner · 6:30pm</span>
+            <p class="font-extrabold text-sm mt-2 mb-1" style="color:var(--foreground)">Lemon Herb Salmon</p>
+            <p class="text-xs" style="color:var(--muted-foreground)">32g protein · 530 cal</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick actions -->
+    <section class="px-6 mb-8">
+      <h2 class="font-extrabold text-lg mb-3">Quick Actions</h2>
+      <div class="grid grid-cols-2 gap-3">
+        <a href="meal-plan.html" class="p-4 rounded-2xl flex items-center gap-3" style="background:var(--card); border:1px solid var(--border)">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background:rgba(232,157,53,0.12)">
+            <iconify-icon icon="solar:chef-hat-bold-duotone" style="color:var(--primary)" class="text-xl"></iconify-icon>
+          </div>
+          <span class="font-bold text-sm">Meal Plan</span>
+        </a>
+        <a href="grocery-list.html" class="p-4 rounded-2xl flex items-center gap-3" style="background:var(--card); border:1px solid var(--border)">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background:rgba(216,127,99,0.12)">
+            <iconify-icon icon="solar:cart-large-bold-duotone" style="color:var(--accent)" class="text-xl"></iconify-icon>
+          </div>
+          <span class="font-bold text-sm">Grocery List</span>
+        </a>
+        <button class="p-4 rounded-2xl flex items-center gap-3" style="background:rgba(138,154,124,0.1); border:1px solid rgba(138,154,124,0.2)">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background:rgba(138,154,124,0.15)">
+            <iconify-icon icon="solar:clipboard-check-bold" style="color:var(--secondary)" class="text-xl"></iconify-icon>
+          </div>
+          <span class="font-bold text-sm">Log Symptoms</span>
+        </button>
+        <button class="p-4 rounded-2xl flex items-center gap-3" style="background:var(--card); border:1px solid var(--border)">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background:rgba(232,157,53,0.12)">
+            <iconify-icon icon="solar:graph-up-bold-duotone" style="color:var(--primary)" class="text-xl"></iconify-icon>
+          </div>
+          <span class="font-bold text-sm">View Trends</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Bottom Nav -->
+    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] max-w-[342px] flex items-center justify-between px-3 py-2" style="background:var(--card); border:1px solid var(--border); border-radius:9999px; box-shadow:0 8px 32px rgba(0,0,0,0.5)">
+      <a href="home.html" class="flex flex-col items-center justify-center w-16 h-12 rounded-full" style="background:rgba(232,157,53,0.12)">
+        <iconify-icon icon="solar:home-smile-bold" style="color:var(--primary)" class="text-2xl"></iconify-icon>
+      </a>
+      <a href="meal-plan.html" class="flex flex-col items-center justify-center w-16 h-12">
+        <iconify-icon icon="solar:chef-hat-outline" style="color:var(--muted-foreground)" class="text-2xl"></iconify-icon>
+      </a>
+      <a href="grocery-list.html" class="flex flex-col items-center justify-center w-16 h-12 relative">
+        <span class="absolute top-2 right-3 w-2 h-2 rounded-full" style="background:var(--accent)"></span>
+        <iconify-icon icon="solar:cart-large-outline" style="color:var(--muted-foreground)" class="text-2xl"></iconify-icon>
+      </a>
+      <a href="settings.html" class="flex flex-col items-center justify-center w-16 h-12">
+        <iconify-icon icon="solar:user-rounded-outline" style="color:var(--muted-foreground)" class="text-2xl"></iconify-icon>
+      </a>
+    </nav>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="apple-touch-icon" href="references/NoriIcon.png" />
+  <title>FoodWise – Your Plan Is Ready</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+  <style type="text/tailwindcss">
+    :root {
+      --background: #141311; --foreground: #F4EFE6;
+      --primary: #E89D35; --primary-foreground: #141311;
+      --secondary: #8A9A7C; --muted: #2A2824; --muted-foreground: #9B968C;
+      --accent: #D87F63; --card: #1E1D1A; --border: #2E2C28;
+    }
+    body { background: var(--background); color: var(--foreground); font-family: 'Plus Jakarta Sans', sans-serif; }
+    .btn-primary { background: var(--primary); color: var(--primary-foreground); border-radius: 9999px; font-weight: 700; padding: 18px 32px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; font-size: 16px; }
+    @keyframes slide-in { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    .meal-card:nth-child(1) { animation: slide-in 0.4s ease forwards; }
+    .meal-card:nth-child(2) { animation: slide-in 0.4s 0.1s ease forwards; opacity: 0; }
+    .meal-card:nth-child(3) { animation: slide-in 0.4s 0.2s ease forwards; opacity: 0; }
+    .meal-card:nth-child(4) { animation: slide-in 0.4s 0.3s ease forwards; opacity: 0; }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+  <div class="w-full max-w-[390px] min-h-screen flex flex-col overflow-hidden" style="background:#141311">
+
+    <!-- Header -->
+    <div class="px-6 pt-14 pb-4">
+      <div class="flex items-center gap-3 mb-4">
+        <img src="references/NoriCharacter.png" alt="Nori" class="w-10 h-10 object-contain" />
+        <div>
+          <p class="text-xs font-bold" style="color:var(--primary)">Nori built this just for you</p>
+          <p class="text-xs" style="color:var(--muted-foreground)">Optimized for GLP-1 · $75 budget · Low appetite</p>
+        </div>
+      </div>
+      <h1 class="text-2xl font-extrabold">🎉 Your plan is ready!</h1>
+    </div>
+
+    <!-- Macro summary strip -->
+    <div class="mx-6 mb-6 p-4 rounded-2xl flex items-center justify-between" style="background:var(--muted)">
+      <div class="text-center">
+        <p class="text-lg font-extrabold" style="color:var(--primary)">118g</p>
+        <p class="text-xs" style="color:var(--muted-foreground)">Protein</p>
+      </div>
+      <div class="w-px h-8" style="background:var(--border)"></div>
+      <div class="text-center">
+        <p class="text-lg font-extrabold" style="color:var(--secondary)">24g</p>
+        <p class="text-xs" style="color:var(--muted-foreground)">Fiber</p>
+      </div>
+      <div class="w-px h-8" style="background:var(--border)"></div>
+      <div class="text-center">
+        <p class="text-lg font-extrabold" style="color:var(--accent)">1,380</p>
+        <p class="text-xs" style="color:var(--muted-foreground)">Calories</p>
+      </div>
+      <div class="w-px h-8" style="background:var(--border)"></div>
+      <div class="text-center">
+        <p class="text-lg font-extrabold" style="color:var(--foreground)">$10.50</p>
+        <p class="text-xs" style="color:var(--muted-foreground)">Today</p>
+      </div>
+    </div>
+
+    <!-- Meal cards scroll -->
+    <div class="flex-1 overflow-y-auto px-6 pb-4 flex flex-col gap-4">
+
+      <div class="meal-card p-4 rounded-3xl" style="background:var(--card); border:1px solid var(--border)">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-full" style="background:rgba(232,157,53,0.1); color:var(--primary)">Breakfast</span>
+          <span class="text-xs" style="color:var(--muted-foreground)">7:00 AM</span>
+        </div>
+        <p class="font-extrabold text-base mb-1" style="color:var(--foreground)">Greek Yogurt Protein Parfait</p>
+        <p class="text-xs mb-3" style="color:var(--muted-foreground)">2% Greek yogurt, mixed berries, hemp seeds, honey drizzle</p>
+        <div class="flex items-center gap-3">
+          <span class="text-xs font-bold px-2 py-1 rounded-full" style="background:rgba(138,154,124,0.15); color:var(--secondary)">26g protein</span>
+          <span class="text-xs font-bold px-2 py-1 rounded-full" style="background:var(--muted); color:var(--muted-foreground)">280 cal</span>
+          <span class="text-xs font-bold px-2 py-1 rounded-full" style="background:var(--muted); color:var(--muted-foreground)">$2.10</span>
+        </div>
+      </div>
+
+      <div class="meal-card p-4 rounded-3xl" style="background:var(--card); border:1px solid var(--border)">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-full" style="background:rgba(138,154,124,0.1); color:var(--secondary)">Lunch</span>
+          <span class="text-xs" style="color:var(--muted-foreground)">12:30 PM</span>
+        </div>
+        <p class="font-extrabold text-base mb-1" style="color:var(--foreground)">Turkey &amp; Edamame Egg Roll Bowl</p>
+        <p class="text-xs mb-3" style="color:var(--muted-foreground)">Ground turkey, shredded cabbage, edamame, soy-ginger sauce, sesame</p>
+        <div class="flex items-center gap-3">
+          <span class="text-xs font-bold px-2 py-1 rounded-full" style="background:rgba(138,154,124,0.15); color:var(--secondary)">42g protein</span>
+          <span class="text-xs font-bold px-2 py-1 rounded-full" style="background:var(--muted); color:var(--muted-foreground)">420 cal</span>
+          <span class="text-xs font-bold px-2 py-1 rounded-full" style="background:var(--muted); color:var(--muted-foreground)">$4.20</span>
+        </div>
+      </div>
+
+      <div class="meal-card p-4 rounded-3xl" style="background:var(--card); border:1px solid var(--border)">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-full" style="background:rgba(216,127,99,0.1); color:var(--accent)">Snack</span>
+          <span class="text-xs" style="color:var(--muted-foreground)">3:00 PM</span>
+        </div>
+        <p class="font-extrabold text-base mb-1" style="color:var(--foreground)">Cottage Cheese &amp; Cucumber Bites</p>
+        <p class="text-xs mb-3" style="color:var(--muted-foreground)">Low-fat cottage cheese, sliced cucumbers, everything bagel seasoning</p>
+        <div class="flex items-center gap-3">
+          <span class="text-xs font-bold px-2 py-1 rounded-full" style="background:rgba(138,154,124,0.15); color:var(--secondary)">18g protein</span>
+          <span class="text-xs font-bold px-2 py-1 rounded-full" style="background:var(--muted); color:var(--muted-foreground)">150 cal</span>
+          <span class="text-xs font-bold px-2 py-1 rounded-full" style="background:var(--muted); color:var(--muted-foreground)">$1.50</span>
+        </div>
+      </div>
+
+      <div class="meal-card p-4 rounded-3xl" style="background:var(--card); border:1px solid var(--border)">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-full" style="background:rgba(92,107,80,0.2); color:#8A9A7C)">Dinner</span>
+          <span class="text-xs" style="color:var(--muted-foreground)">6:30 PM</span>
+        </div>
+        <p class="font-extrabold text-base mb-1" style="color:var(--foreground)">Lemon Herb Salmon &amp; Broccoli</p>
+        <p class="text-xs mb-3" style="color:var(--muted-foreground)">Pan-seared salmon fillet, steamed broccoli, lemon-dill sauce</p>
+        <div class="flex items-center gap-3">
+          <span class="text-xs font-bold px-2 py-1 rounded-full" style="background:rgba(138,154,124,0.15); color:var(--secondary)">32g protein</span>
+          <span class="text-xs font-bold px-2 py-1 rounded-full" style="background:var(--muted); color:var(--muted-foreground)">530 cal</span>
+          <span class="text-xs font-bold px-2 py-1 rounded-full" style="background:var(--muted); color:var(--muted-foreground)">$2.70</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom -->
+    <div class="px-6 pb-10 pt-4" style="background:linear-gradient(to top, #141311 80%, transparent)">
+      <a href="15-review.html" class="btn-primary">
+        Love it! Keep going
+        <iconify-icon icon="solar:arrow-right-bold"></iconify-icon>
+      </a>
+    </div>
+
+  </div>
+</body>
+</html>

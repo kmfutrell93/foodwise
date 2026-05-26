@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="apple-touch-icon" href="references/NoriIcon.png" />
+  <title>FoodWise – Premium App</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+  <style type="text/tailwindcss">
+    :root {
+      --background: #141311; --foreground: #F4EFE6;
+      --primary: #E89D35; --primary-foreground: #141311;
+      --secondary: #8A9A7C; --muted: #2A2824; --muted-foreground: #9B968C;
+      --accent: #D87F63; --card: #1E1D1A; --border: #2E2C28;
+    }
+    body { background: var(--background); color: var(--foreground); font-family: 'Plus Jakarta Sans', sans-serif; }
+    .btn-primary { background: var(--primary); color: var(--primary-foreground); border-radius: 9999px; font-weight: 700; padding: 18px 32px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; font-size: 16px; }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+  <div class="w-full max-w-[390px] min-h-screen flex flex-col" style="background:#141311">
+
+    <!-- Nav -->
+    <div class="flex items-center justify-between px-6 pt-14 mb-6">
+      <a href="18-commitment.html" class="w-10 h-10 rounded-full flex items-center justify-center" style="background:var(--muted)">
+        <iconify-icon icon="solar:arrow-left-bold" style="color:var(--foreground)"></iconify-icon>
+      </a>
+    </div>
+
+    <div class="flex-1 px-6 flex flex-col">
+
+      <!-- Premium badge -->
+      <div class="flex justify-center mb-8">
+        <div class="flex flex-col items-center gap-3 p-8 rounded-full" style="background:linear-gradient(135deg, rgba(232,157,53,0.15) 0%, rgba(232,157,53,0.05) 100%); border:2px solid rgba(232,157,53,0.3)">
+          <iconify-icon icon="solar:crown-bold-duotone" style="color:var(--primary)" class="text-6xl"></iconify-icon>
+        </div>
+      </div>
+
+      <h1 class="text-3xl font-extrabold leading-tight mb-4 text-center">
+        FoodWise is a<br/><span style="color:var(--primary)">premium app.</span>
+      </h1>
+
+      <p class="text-base leading-relaxed mb-6 text-center" style="color:var(--muted-foreground)">
+        We charge because we're committed to your <strong style="color:var(--foreground)">real results</strong> — not your scroll time. No ads. No upsells. Just the tool that works.
+      </p>
+
+      <!-- Why premium card -->
+      <div class="p-5 rounded-3xl mb-6" style="background:var(--card); border:1px solid var(--border)">
+        <p class="text-sm font-bold mb-4" style="color:var(--muted-foreground)">Your subscription funds:</p>
+        <div class="flex flex-col gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style="background:rgba(232,157,53,0.12)">
+              <iconify-icon icon="solar:magic-stick-3-bold-duotone" style="color:var(--primary)" class="text-base"></iconify-icon>
+            </div>
+            <p class="text-sm" style="color:var(--foreground)">Live AI meal generation (Claude-powered)</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style="background:rgba(138,154,124,0.12)">
+              <iconify-icon icon="solar:graph-up-bold-duotone" style="color:var(--secondary)" class="text-base"></iconify-icon>
+            </div>
+            <p class="text-sm" style="color:var(--foreground)">Continuous product improvements</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style="background:rgba(216,127,99,0.12)">
+              <iconify-icon icon="solar:users-group-rounded-bold-duotone" style="color:var(--accent)" class="text-base"></iconify-icon>
+            </div>
+            <p class="text-sm" style="color:var(--foreground)">A team dedicated to GLP-1 nutrition research</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Free trial highlight -->
+      <div class="p-5 rounded-3xl text-center" style="background:rgba(138,154,124,0.1); border:1px solid rgba(138,154,124,0.25)">
+        <p class="text-4xl font-extrabold mb-1" style="color:var(--secondary)">7 days</p>
+        <p class="text-base font-bold" style="color:var(--foreground)">completely free to start.</p>
+        <p class="text-sm mt-2" style="color:var(--muted-foreground)">No credit card required to begin. Cancel anytime.</p>
+      </div>
+
+    </div>
+
+    <!-- Bottom -->
+    <div class="px-6 pb-12 flex flex-col gap-4 mt-6">
+      <a href="20-comparison.html" class="btn-primary">
+        Tell me more
+        <iconify-icon icon="solar:arrow-right-bold"></iconify-icon>
+      </a>
+    </div>
+
+  </div>
+</body>
+</html>

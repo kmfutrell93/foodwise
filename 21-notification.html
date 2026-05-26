@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="apple-touch-icon" href="references/NoriIcon.png" />
+  <title>FoodWise – We've Got Your Back</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+  <style type="text/tailwindcss">
+    :root {
+      --background: #141311; --foreground: #F4EFE6;
+      --primary: #E89D35; --primary-foreground: #141311;
+      --secondary: #8A9A7C; --muted: #2A2824; --muted-foreground: #9B968C;
+      --accent: #D87F63; --card: #1E1D1A; --border: #2E2C28;
+    }
+    body { background: var(--background); color: var(--foreground); font-family: 'Plus Jakarta Sans', sans-serif; }
+    .btn-primary { background: var(--primary); color: var(--primary-foreground); border-radius: 9999px; font-weight: 700; padding: 18px 32px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; font-size: 16px; box-shadow: 0 6px 24px rgba(232,157,53,0.3); }
+    .btn-ghost { background: transparent; color: var(--muted-foreground); border-radius: 9999px; font-weight: 500; padding: 14px 32px; display: flex; align-items: center; justify-content: center; width: 100%; font-size: 14px; }
+    @keyframes wiggle { 0%,100%{transform:rotate(-5deg)} 50%{transform:rotate(5deg)} }
+    .wiggle { animation: wiggle 0.5s ease-in-out 1s 3; }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+  <div class="w-full max-w-[390px] min-h-screen flex flex-col items-center relative" style="background:#141311">
+
+    <!-- Soft glow -->
+    <div class="absolute top-1/3 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full blur-3xl opacity-15 pointer-events-none" style="background:radial-gradient(circle, #8A9A7C 0%, transparent 70%)"></div>
+
+    <!-- Nav -->
+    <div class="w-full flex items-center justify-start px-6 pt-14 mb-4">
+      <a href="20-comparison.html" class="w-10 h-10 rounded-full flex items-center justify-center" style="background:var(--muted)">
+        <iconify-icon icon="solar:arrow-left-bold" style="color:var(--foreground)"></iconify-icon>
+      </a>
+    </div>
+
+    <div class="flex-1 flex flex-col items-center justify-center px-6 text-center w-full">
+
+      <!-- Nori with clock -->
+      <div class="relative mb-6">
+        <div class="flex items-center justify-center">
+          <img src="references/NoriCharacter.png" alt="Nori" class="w-28 h-28 object-contain" />
+        </div>
+        <div class="wiggle absolute -top-1 -right-1 w-12 h-12 rounded-full flex items-center justify-center" style="background:var(--primary); box-shadow:0 4px 12px rgba(232,157,53,0.4)">
+          <iconify-icon icon="solar:bell-bing-bold-duotone" class="text-2xl" style="color:var(--primary-foreground)"></iconify-icon>
+        </div>
+      </div>
+
+      <h1 class="text-3xl font-extrabold leading-tight mb-3" style="color:var(--foreground)">
+        We've got your<br/>back on <span style="color:var(--secondary)">Day 6.</span>
+      </h1>
+
+      <p class="text-base leading-relaxed mb-8" style="color:var(--muted-foreground)">
+        We'll send you a reminder <strong style="color:var(--foreground)">1 day before your free trial ends</strong> — so you're never caught off guard.
+      </p>
+
+      <!-- What we promise -->
+      <div class="w-full p-5 rounded-3xl mb-6 text-left" style="background:var(--card); border:1px solid var(--border)">
+        <p class="text-sm font-bold mb-4 text-center" style="color:var(--muted-foreground)">Our promise to you</p>
+        <div class="flex flex-col gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style="background:rgba(138,154,124,0.15)">
+              <iconify-icon icon="solar:check-circle-bold" style="color:var(--secondary)" class="text-base"></iconify-icon>
+            </div>
+            <p class="text-sm" style="color:var(--foreground)">Reminder sent on Day 6 of trial</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style="background:rgba(138,154,124,0.15)">
+              <iconify-icon icon="solar:check-circle-bold" style="color:var(--secondary)" class="text-base"></iconify-icon>
+            </div>
+            <p class="text-sm" style="color:var(--foreground)">No sneaky charges before you're ready</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style="background:rgba(138,154,124,0.15)">
+              <iconify-icon icon="solar:check-circle-bold" style="color:var(--secondary)" class="text-base"></iconify-icon>
+            </div>
+            <p class="text-sm" style="color:var(--foreground)">Cancel in your phone settings anytime</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mock notification preview -->
+      <div class="w-full p-4 rounded-2xl" style="background:rgba(255,255,255,0.05); border:1px solid var(--border)">
+        <p class="text-xs font-bold mb-3" style="color:var(--muted-foreground)">You'll receive something like this:</p>
+        <div class="flex items-start gap-3 p-3 rounded-xl" style="background:var(--muted)">
+          <img src="references/NoriCharacter.png" alt="FoodWise" class="w-10 h-10 object-contain rounded-xl shrink-0" />
+          <div>
+            <p class="text-xs font-bold" style="color:var(--foreground)">FoodWise</p>
+            <p class="text-xs mt-1 leading-relaxed" style="color:var(--muted-foreground)">Your free trial ends tomorrow! Keep your personalized meal plans — tap to continue your journey. 🌟</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom -->
+    <div class="px-6 pb-12 w-full flex flex-col gap-3">
+      <a href="22-paywall.html" class="btn-primary">
+        <iconify-icon icon="solar:bell-bing-bold-duotone"></iconify-icon>
+        Allow Notifications
+      </a>
+      <a href="22-paywall.html" class="btn-ghost">No thanks, continue anyway</a>
+    </div>
+
+  </div>
+</body>
+</html>

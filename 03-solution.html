@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="apple-touch-icon" href="references/NoriIcon.png" />
+  <title>FoodWise – The Right Way</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+  <style type="text/tailwindcss">
+    :root {
+      --background: #141311; --foreground: #F4EFE6;
+      --primary: #E89D35; --primary-foreground: #141311;
+      --secondary: #8A9A7C; --muted: #2A2824; --muted-foreground: #9B968C;
+      --accent: #D87F63; --card: #1E1D1A; --border: #2E2C28; --destructive: #E06555;
+    }
+    body { background: var(--background); color: var(--foreground); font-family: 'Plus Jakarta Sans', sans-serif; }
+    .btn-primary { background: var(--primary); color: var(--primary-foreground); border-radius: 9999px; font-weight: 700; padding: 18px 32px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; font-size: 16px; }
+    .dot { width: 8px; height: 8px; border-radius: 9999px; background: var(--muted); }
+    .dot.active { background: var(--primary); width: 24px; }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+  <div class="w-full max-w-[390px] min-h-screen flex flex-col relative" style="background:#141311">
+
+    <!-- Nav -->
+    <div class="flex items-center justify-between px-6 pt-14 mb-6">
+      <a href="02-problem.html" class="w-10 h-10 rounded-full flex items-center justify-center" style="background:var(--muted)">
+        <iconify-icon icon="solar:arrow-left-bold" style="color:var(--foreground)"></iconify-icon>
+      </a>
+      <a href="10-restrictions.html" class="text-sm font-medium" style="color:var(--muted-foreground)">Skip</a>
+    </div>
+
+    <div class="flex-1 px-6 flex flex-col">
+
+      <p class="text-sm font-bold uppercase tracking-widest mb-3" style="color:var(--primary)">The Right Way</p>
+      <h1 class="text-3xl font-extrabold leading-tight mb-3">
+        Most GLP-1 users<br/>make the same<br/><span style="color:var(--accent)">costly mistake.</span>
+      </h1>
+      <p class="text-base leading-relaxed mb-6" style="color:var(--muted-foreground)">
+        They focus on eating <strong style="color:var(--foreground)">less.</strong><br/>
+        The real goal is eating <strong style="color:var(--primary)">right.</strong>
+      </p>
+
+      <!-- Two paths comparison -->
+      <div class="grid grid-cols-2 gap-3 mb-6">
+        <!-- Wrong path -->
+        <div class="p-4 rounded-3xl flex flex-col gap-3" style="background:rgba(224,101,85,0.1); border:1px solid rgba(224,101,85,0.2)">
+          <div class="flex items-center gap-2">
+            <iconify-icon icon="solar:close-circle-bold" style="color:var(--destructive)" class="text-lg"></iconify-icon>
+            <span class="text-xs font-bold" style="color:var(--destructive)">Without FoodWise</span>
+          </div>
+          <ul class="flex flex-col gap-2">
+            <li class="text-xs leading-tight" style="color:var(--muted-foreground)">• Guessing what to eat</li>
+            <li class="text-xs leading-tight" style="color:var(--muted-foreground)">• Skipping meals</li>
+            <li class="text-xs leading-tight" style="color:var(--muted-foreground)">• Losing muscle</li>
+            <li class="text-xs leading-tight" style="color:var(--muted-foreground)">• Low energy &amp; fatigue</li>
+            <li class="text-xs leading-tight" style="color:var(--muted-foreground)">• Hitting a plateau</li>
+          </ul>
+        </div>
+        <!-- Right path -->
+        <div class="p-4 rounded-3xl flex flex-col gap-3" style="background:rgba(138,154,124,0.1); border:1px solid rgba(138,154,124,0.25)">
+          <div class="flex items-center gap-2">
+            <iconify-icon icon="solar:check-circle-bold" style="color:var(--secondary)" class="text-lg"></iconify-icon>
+            <span class="text-xs font-bold" style="color:var(--secondary)">With FoodWise</span>
+          </div>
+          <ul class="flex flex-col gap-2">
+            <li class="text-xs leading-tight" style="color:var(--foreground)">• AI-built meal plans</li>
+            <li class="text-xs leading-tight" style="color:var(--foreground)">• High protein, low volume</li>
+            <li class="text-xs leading-tight" style="color:var(--foreground)">• Muscle preserved</li>
+            <li class="text-xs leading-tight" style="color:var(--foreground)">• Steady energy</li>
+            <li class="text-xs leading-tight" style="color:var(--foreground)">• Budget-friendly</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Nori + quote -->
+      <div class="flex items-start gap-3 p-4 rounded-3xl" style="background:var(--card); border:1px solid var(--border)">
+        <img src="references/NoriCharacter.png" alt="Nori" class="w-10 h-10 object-contain shrink-0 mt-0.5" />
+        <p class="text-sm leading-relaxed" style="color:var(--foreground)">
+          "On GLP-1, every bite counts double. FoodWise makes sure each one works <em style="font-style:normal; font-weight:700; color:var(--primary)">harder for you.</em>"
+        </p>
+      </div>
+    </div>
+
+    <!-- Bottom -->
+    <div class="px-6 pb-12 flex flex-col gap-4">
+      <div class="flex items-center justify-center gap-2 mb-2">
+        <div class="dot"></div><div class="dot"></div>
+        <div class="dot active"></div>
+        <div class="dot"></div><div class="dot"></div>
+        <div class="dot"></div><div class="dot"></div>
+      </div>
+      <a href="04-aha.html" class="btn-primary">
+        Show me the right way
+        <iconify-icon icon="solar:arrow-right-bold"></iconify-icon>
+      </a>
+    </div>
+
+  </div>
+</body>
+</html>

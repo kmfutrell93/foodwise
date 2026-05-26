@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="apple-touch-icon" href="references/NoriIcon.png" />
+  <title>FoodWise – Quick Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+  <style type="text/tailwindcss">
+    :root {
+      --background: #141311; --foreground: #F4EFE6;
+      --primary: #E89D35; --primary-foreground: #141311;
+      --secondary: #8A9A7C; --muted: #2A2824; --muted-foreground: #9B968C;
+      --accent: #D87F63; --card: #1E1D1A; --border: #2E2C28;
+    }
+    body { background: var(--background); color: var(--foreground); font-family: 'Plus Jakarta Sans', sans-serif; }
+    .btn-primary { background: var(--primary); color: var(--primary-foreground); border-radius: 9999px; font-weight: 700; padding: 18px 32px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; font-size: 16px; }
+    .btn-ghost { background: transparent; color: var(--muted-foreground); border-radius: 9999px; font-weight: 600; padding: 14px 32px; display: flex; align-items: center; justify-content: center; width: 100%; font-size: 14px; }
+    @keyframes celebrate { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+    .celebrate { animation: celebrate 0.6s ease 0.3s forwards; }
+    .star { font-size: 36px; cursor: pointer; transition: transform 0.1s; opacity: 0.3; }
+    .star.lit { opacity: 1; }
+    .star:hover { transform: scale(1.2); }
+  </style>
+  <script>
+    function rateStar(n) {
+      document.querySelectorAll('.star').forEach((s, i) => {
+        s.classList.toggle('lit', i < n);
+      });
+      document.querySelector('.btn-primary').style.opacity = '1';
+      document.querySelector('.btn-primary').style.pointerEvents = 'auto';
+    }
+  </script>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+  <div class="w-full max-w-[390px] min-h-screen flex flex-col items-center relative overflow-hidden" style="background:#141311">
+
+    <!-- Confetti glow -->
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full blur-3xl opacity-15 pointer-events-none" style="background:radial-gradient(circle, #E89D35 0%, transparent 65%)"></div>
+
+    <div class="flex-1 flex flex-col items-center justify-center px-6 text-center w-full">
+
+      <!-- Nori celebrating -->
+      <div class="celebrate flex items-center justify-center mb-4">
+        <img src="references/NoriCharacter.png" alt="Nori" class="w-24 h-24 object-contain" />
+      </div>
+
+      <div class="mb-2 flex items-center gap-2">
+        <span class="text-2xl">🎉</span>
+        <span class="text-2xl">🎉</span>
+        <span class="text-2xl">🎉</span>
+      </div>
+
+      <h1 class="text-2xl font-extrabold leading-tight mb-3" style="color:var(--foreground)">
+        You just planned<br/>like a <span style="color:var(--primary)">nutrition expert!</span>
+      </h1>
+
+      <p class="text-sm leading-relaxed mb-8" style="color:var(--muted-foreground)">
+        That meal plan? It's real. That's exactly what FoodWise generates for you <strong style="color:var(--foreground)">every week</strong>, personalized to your preferences and budget.
+      </p>
+
+      <!-- Star rating -->
+      <div class="w-full p-6 rounded-3xl mb-6" style="background:var(--card); border:1px solid var(--border)">
+        <p class="font-bold text-base mb-1" style="color:var(--foreground)">How are you feeling about FoodWise?</p>
+        <p class="text-sm mb-5" style="color:var(--muted-foreground)">Tap a star to rate your experience so far</p>
+
+        <!-- Stars -->
+        <div class="flex items-center justify-center gap-3 mb-4">
+          <span class="star" onclick="rateStar(1)">⭐</span>
+          <span class="star" onclick="rateStar(2)">⭐</span>
+          <span class="star" onclick="rateStar(3)">⭐</span>
+          <span class="star" onclick="rateStar(4)">⭐</span>
+          <span class="star lit" onclick="rateStar(5)">⭐</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom -->
+    <div class="px-6 pb-12 w-full flex flex-col gap-3">
+      <a href="16-summary.html" class="btn-primary" style="opacity:1">
+        Leave a quick review
+        <iconify-icon icon="solar:star-bold"></iconify-icon>
+      </a>
+      <a href="16-summary.html" class="btn-ghost">Not now</a>
+    </div>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="apple-touch-icon" href="references/NoriIcon.png" />
+  <title>FoodWise – Weekly Budget</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+  <style type="text/tailwindcss">
+    :root {
+      --background: #141311; --foreground: #F4EFE6;
+      --primary: #E89D35; --primary-foreground: #141311;
+      --secondary: #8A9A7C; --muted: #2A2824; --muted-foreground: #9B968C;
+      --accent: #D87F63; --card: #1E1D1A; --border: #2E2C28;
+    }
+    body { background: var(--background); color: var(--foreground); font-family: 'Plus Jakarta Sans', sans-serif; }
+    .btn-primary { background: var(--primary); color: var(--primary-foreground); border-radius: 9999px; font-weight: 700; padding: 18px 32px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; font-size: 16px; }
+    .step-dot { width: 8px; height: 8px; border-radius: 9999px; }
+
+    input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 9999px; background: var(--muted); outline: none; cursor: pointer; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 28px; height: 28px; border-radius: 50%; background: var(--primary); cursor: pointer; box-shadow: 0 0 0 4px rgba(232,157,53,0.2); }
+    input[type=range]::-moz-range-thumb { width: 28px; height: 28px; border-radius: 50%; background: var(--primary); cursor: pointer; border: none; }
+  </style>
+  <script>
+    function updateBudget(val) {
+      document.getElementById('budgetDisplay').textContent = '$' + val;
+      // meals calc: roughly $10.50/day → ~val/10.50 ≈ meals
+      const days = Math.floor(val / 10.5);
+      document.getElementById('mealsInfo').textContent = `~${days} days of meals · ${Math.round(val/7*100)/100}/day`;
+      // update slider fill
+      const pct = (val - 40) / (200 - 40) * 100;
+      document.getElementById('sliderTrack').style.width = pct + '%';
+    }
+    window.onload = () => updateBudget(75);
+  </script>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+  <div class="w-full max-w-[390px] min-h-screen flex flex-col" style="background:#141311">
+
+    <!-- Nav -->
+    <div class="flex items-center justify-between px-6 pt-14 mb-6">
+      <a href="10-restrictions.html" class="w-10 h-10 rounded-full flex items-center justify-center" style="background:var(--muted)">
+        <iconify-icon icon="solar:arrow-left-bold" style="color:var(--foreground)"></iconify-icon>
+      </a>
+      <div class="flex items-center gap-2">
+        <div class="step-dot" style="background:var(--muted); width:8px; border-radius:9999px;"></div>
+        <div class="step-dot" style="background:var(--primary); width:24px; border-radius:9999px; height:8px;"></div>
+        <div class="step-dot" style="background:var(--muted)"></div>
+      </div>
+      <div class="w-10"></div>
+    </div>
+
+    <div class="flex-1 px-6 flex flex-col">
+
+      <p class="text-xs font-bold uppercase tracking-widest mb-2" style="color:var(--primary)">Step 2 of 3</p>
+      <h1 class="text-2xl font-extrabold leading-tight mb-2">What's your<br/><span style="color:var(--primary)">weekly grocery budget?</span></h1>
+      <p class="text-sm mb-8" style="color:var(--muted-foreground)">We'll build meals that maximize nutrition within your budget.</p>
+
+      <!-- Big budget display -->
+      <div class="flex flex-col items-center mb-8">
+        <div class="relative mb-2">
+          <span id="budgetDisplay" class="font-extrabold" style="font-size:72px; color:var(--primary); line-height:1">$75</span>
+          <span class="absolute -right-10 bottom-3 text-lg font-bold" style="color:var(--muted-foreground)">/week</span>
+        </div>
+        <p id="mealsInfo" class="text-sm font-medium" style="color:var(--muted-foreground)">~7 days of meals · $10.71/day</p>
+      </div>
+
+      <!-- Slider -->
+      <div class="relative mb-8">
+        <div class="relative">
+          <!-- Track fill visual -->
+          <div class="absolute top-1/2 left-0 h-1.5 rounded-full -translate-y-1/2" style="background:var(--muted); width:100%; z-index:0;"></div>
+          <div id="sliderTrack" class="absolute top-1/2 left-0 h-1.5 rounded-full -translate-y-1/2" style="background:var(--primary); width:21%; z-index:1; pointer-events:none;"></div>
+          <input type="range" min="40" max="200" value="75" step="5" oninput="updateBudget(this.value)" class="relative" style="z-index:2; background:transparent;" />
+        </div>
+        <div class="flex justify-between mt-3">
+          <span class="text-xs font-bold" style="color:var(--muted-foreground)">$40</span>
+          <span class="text-xs font-bold" style="color:var(--muted-foreground)">$200</span>
+        </div>
+      </div>
+
+      <!-- Budget tier cards -->
+      <div class="grid grid-cols-3 gap-3">
+        <div class="p-3 rounded-2xl text-center cursor-pointer" style="background:var(--card); border:1px solid var(--border)" onclick="document.querySelector('input').value=55; updateBudget(55)">
+          <p class="text-sm font-extrabold" style="color:var(--foreground)">$55</p>
+          <p class="text-xs mt-1" style="color:var(--muted-foreground)">Budget</p>
+        </div>
+        <div class="p-3 rounded-2xl text-center cursor-pointer" style="background:rgba(232,157,53,0.1); border:1px solid rgba(232,157,53,0.3)" onclick="document.querySelector('input').value=75; updateBudget(75)">
+          <p class="text-sm font-extrabold" style="color:var(--primary)">$75</p>
+          <p class="text-xs mt-1" style="color:var(--primary)">Most popular</p>
+        </div>
+        <div class="p-3 rounded-2xl text-center cursor-pointer" style="background:var(--card); border:1px solid var(--border)" onclick="document.querySelector('input').value=100; updateBudget(100)">
+          <p class="text-sm font-extrabold" style="color:var(--foreground)">$100</p>
+          <p class="text-xs mt-1" style="color:var(--muted-foreground)">Premium</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom -->
+    <div class="px-6 pb-12 flex flex-col gap-3 mt-6">
+      <a href="12-appetite.html" class="btn-primary">
+        Next: My appetite level
+        <iconify-icon icon="solar:arrow-right-bold"></iconify-icon>
+      </a>
+    </div>
+
+  </div>
+</body>
+</html>

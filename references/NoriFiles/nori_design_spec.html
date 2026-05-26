@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Nori Mascot System – FoodWise Design Spec</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #0f0f14; color: #e8e8f0; min-height: 100vh; padding: 40px 32px; }
+  h1 { font-size: 28px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .subtitle { color: #7c7c9a; font-size: 14px; margin-bottom: 36px; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; }
+  .primary   { background: #2d2b6e; color: #a5a3ff; }
+  .secondary { background: #1e3a2a; color: #6fcf97; }
+  .rare      { background: #3a2216; color: #f2994a; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px; }
+  .card { background: #16161f; border: 1px solid #2a2a3a; border-radius: 16px; overflow: hidden; }
+  .card-header { padding: 20px 20px 0; display: flex; gap: 18px; align-items: flex-start; }
+  .pose-img-wrap { width: 100px; min-width: 100px; height: 110px; background: #1e1e2c; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+  .pose-img-wrap img { max-width: 88px; max-height: 100px; object-fit: contain; }
+  .header-meta { flex: 1; }
+  .pose-id { font-size: 11px; color: #555570; font-weight: 500; margin-bottom: 4px; letter-spacing: 0.06em; text-transform: uppercase; }
+  .pose-name { font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .pose-desc { font-size: 13px; color: #9090b0; line-height: 1.5; }
+  .card-body { padding: 16px 20px 20px; }
+  .divider { height: 1px; background: #22223a; margin: 14px 0; }
+  .meta-row { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .meta-label { font-size: 11px; color: #55556a; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .meta-value { font-size: 13px; color: #c8c8e0; line-height: 1.5; }
+  .screens { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .screen-pill { background: #1e1e30; border: 1px solid #2e2e48; border-radius: 6px; padding: 3px 9px; font-size: 11px; color: #9090c0; }
+  .copy-box { background: #0a0a12; border: 1px solid #2a2a42; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #b0e0d0; font-style: italic; line-height: 1.6; margin-top: 4px; }
+  .emotion-row { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
+  .emotion-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .asset-name { font-size: 12px; font-family: monospace; background: #0e0e1a; border: 1px solid #2a2a3a; border-radius: 5px; padding: 3px 8px; color: #7ac; display: inline-block; margin-top: 4px; }
+  .section-label { font-size: 11px; color: #44445a; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 16px; margin-top: 32px; border-bottom: 1px solid #1e1e2e; padding-bottom: 8px; }
+  .philosophy { background: #12121e; border: 1px solid #2a2a42; border-radius: 12px; padding: 20px 24px; margin-bottom: 32px; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+  .phil-item { }
+  .phil-icon { font-size: 20px; margin-bottom: 6px; }
+  .phil-title { font-size: 13px; font-weight: 600; color: #d0d0f0; margin-bottom: 3px; }
+  .phil-desc { font-size: 12px; color: #7070a0; line-height: 1.5; }
+  header-strip { display: flex; align-items: center; gap: 12px; }
+</style>
+</head>
+<body>
+
+<h1>🦉 Nori — FoodWise Mascot System</h1>
+<p class="subtitle">Design Spec · v1.0 · FoodWise GLP-1 Meal Planning App · 7 Pose Assets Detected</p>
+
+<div class="philosophy">
+  <div class="phil-item">
+    <div class="phil-icon">🧠</div>
+    <div class="phil-title">Smart Wellness Coach</div>
+    <div class="phil-desc">Nori communicates expertise without condescension — like a knowledgeable friend.</div>
+  </div>
+  <div class="phil-item">
+    <div class="phil-icon">❤️</div>
+    <div class="phil-title">Emotionally Safe</div>
+    <div class="phil-desc">Never judgmental. Reduces anxiety during onboarding and health tracking.</div>
+  </div>
+  <div class="phil-item">
+    <div class="phil-icon">🎯</div>
+    <div class="phil-title">Action-Oriented</div>
+    <div class="phil-desc">Each pose drives a specific UX behavior — guidance, celebration, or insight.</div>
+  </div>
+  <div class="phil-item">
+    <div class="phil-icon">✨</div>
+    <div class="phil-title">Warm, Not Childish</div>
+    <div class="phil-desc">Adult wellness tone. Friendly companion energy, not gamified reward loop.</div>
+  </div>
+</div>
+
+<div class="section-label">Pose Assets — 7 Detected</div>
+
+<div class="grid">
+
+  <!-- POSE 1 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="pose-img-wrap">
+        <img src="nori_pointing_left.png" alt="Nori Pointing Left" />
+      </div>
+      <div class="header-meta">
+        <div class="pose-id">Pose 01</div>
+        <div class="pose-name">Onboarding Guide</div>
+        <div class="pose-desc">Nori extends arm confidently, pointing left — directing attention to an element or next action.</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="divider"></div>
+      <div class="meta-label">Asset Filename</div>
+      <div class="asset-name">nori_pointing_left.png</div>
+      <div class="divider"></div>
+      <div class="meta-label">Best Use Case</div>
+      <div class="meta-value">Onboarding walkthroughs, highlighting left-side CTAs, tab navigation, back-navigation prompts</div>
+      <div class="divider"></div>
+      <div class="meta-label">Recommended Screens</div>
+      <div class="screens">
+        <span class="screen-pill">Onboarding Step 1–3</span>
+        <span class="screen-pill">Tutorial Overlay</span>
+        <span class="screen-pill">Nav Guidance</span>
+      </div>
+      <div class="divider"></div>
+      <div class="meta-label">Suggested Microcopy</div>
+      <div class="copy-box">"Let's start by telling me a little about you." · "Swipe back anytime — I'll be here." · "Tap here to see your daily plan."</div>
+      <div class="divider"></div>
+      <div class="meta-row">
+        <div>
+          <div class="meta-label">Emotional Intent</div>
+          <div class="emotion-row"><div class="emotion-dot" style="background:#7ac4ff"></div><div class="meta-value">Confident · Guiding · Reassuring</div></div>
+        </div>
+        <div style="margin-left:auto">
+          <div class="meta-label">Priority</div>
+          <span class="badge primary">PRIMARY</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POSE 2 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="pose-img-wrap">
+        <img src="nori_tablet.png" alt="Nori with Tablet" />
+      </div>
+      <div class="header-meta">
+        <div class="pose-id">Pose 02</div>
+        <div class="pose-name">AI Meal Planner</div>
+        <div class="pose-desc">Nori holds a tablet/device, actively engaged — indicating data processing, personalization, or review.</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="divider"></div>
+      <div class="meta-label">Asset Filename</div>
+      <div class="asset-name">nori_tablet.png</div>
+      <div class="divider"></div>
+      <div class="meta-label">Best Use Case</div>
+      <div class="meta-value">Loading screens, AI meal plan generation, progress report review, personalization flows</div>
+      <div class="divider"></div>
+      <div class="meta-label">Recommended Screens</div>
+      <div class="screens">
+        <span class="screen-pill">Meal Plan Generation</span>
+        <span class="screen-pill">Loading / Processing</span>
+        <span class="screen-pill">Weekly Review</span>
+        <span class="screen-pill">Profile Setup</span>
+      </div>
+      <div class="divider"></div>
+      <div class="meta-label">Suggested Microcopy</div>
+      <div class="copy-box">"Building your personalized plan..." · "I'm reviewing your week — give me just a second." · "Here's what I've put together based on your goals."</div>
+      <div class="divider"></div>
+      <div class="meta-row">
+        <div>
+          <div class="meta-label">Emotional Intent</div>
+          <div class="emotion-row"><div class="emotion-dot" style="background:#a0e0a0"></div><div class="meta-value">Focused · Capable · Trustworthy</div></div>
+        </div>
+        <div style="margin-left:auto">
+          <div class="meta-label">Priority</div>
+          <span class="badge primary">PRIMARY</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POSE 3 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="pose-img-wrap">
+        <img src="nori_happy_hands.png" alt="Nori Happy Hands Together" />
+      </div>
+      <div class="header-meta">
+        <div class="pose-id">Pose 03</div>
+        <div class="pose-name">Celebration Moment</div>
+        <div class="pose-desc">Nori clasps hands together with a radiant, eyes-closed smile — pure joy and positive reinforcement.</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="divider"></div>
+      <div class="meta-label">Asset Filename</div>
+      <div class="asset-name">nori_happy_hands.png</div>
+      <div class="divider"></div>
+      <div class="meta-label">Best Use Case</div>
+      <div class="meta-value">Goal completions, streak milestones, first meal logged, onboarding complete, weekly wins</div>
+      <div class="divider"></div>
+      <div class="meta-label">Recommended Screens</div>
+      <div class="screens">
+        <span class="screen-pill">Goal Complete</span>
+        <span class="screen-pill">Streak Reward</span>
+        <span class="screen-pill">Onboarding Done</span>
+        <span class="screen-pill">First Log</span>
+      </div>
+      <div class="divider"></div>
+      <div class="meta-label">Suggested Microcopy</div>
+      <div class="copy-box">"You did it! 7-day streak complete." · "Your plan is ready — I'm so excited for you!" · "First meal logged. That's how it starts!"</div>
+      <div class="divider"></div>
+      <div class="meta-row">
+        <div>
+          <div class="meta-label">Emotional Intent</div>
+          <div class="emotion-row"><div class="emotion-dot" style="background:#ffe066"></div><div class="meta-value">Joyful · Warm · Celebratory</div></div>
+        </div>
+        <div style="margin-left:auto">
+          <div class="meta-label">Priority</div>
+          <span class="badge primary">PRIMARY</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POSE 4 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="pose-img-wrap">
+        <img src="nori_thumbs_up.png" alt="Nori Thumbs Up" />
+      </div>
+      <div class="header-meta">
+        <div class="pose-id">Pose 04</div>
+        <div class="pose-name">Approval &amp; Confirmation</div>
+        <div class="pose-desc">Nori gives a confident thumbs up — signaling approval, smart choice validation, or task success.</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="divider"></div>
+      <div class="meta-label">Asset Filename</div>
+      <div class="asset-name">nori_thumbs_up.png</div>
+      <div class="divider"></div>
+      <div class="meta-label">Best Use Case</div>
+      <div class="meta-value">Meal approved, healthy food choice logged, form submitted successfully, daily check-in complete</div>
+      <div class="divider"></div>
+      <div class="meta-label">Recommended Screens</div>
+      <div class="screens">
+        <span class="screen-pill">Meal Log Confirmation</span>
+        <span class="screen-pill">Success States</span>
+        <span class="screen-pill">Check-in Complete</span>
+        <span class="screen-pill">Settings Saved</span>
+      </div>
+      <div class="divider"></div>
+      <div class="meta-label">Suggested Microcopy</div>
+      <div class="copy-box">"Solid choice — that meal fits your plan perfectly." · "Logged! You're right on track." · "Check-in complete. Keep that momentum going."</div>
+      <div class="divider"></div>
+      <div class="meta-row">
+        <div>
+          <div class="meta-label">Emotional Intent</div>
+          <div class="emotion-row"><div class="emotion-dot" style="background:#a0c8ff"></div><div class="meta-value">Affirming · Calm · Validating</div></div>
+        </div>
+        <div style="margin-left:auto">
+          <div class="meta-label">Priority</div>
+          <span class="badge secondary">SECONDARY</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POSE 5 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="pose-img-wrap">
+        <img src="nori_lightbulb.png" alt="Nori Lightbulb Idea" />
+      </div>
+      <div class="header-meta">
+        <div class="pose-id">Pose 05</div>
+        <div class="pose-name">Insight &amp; Education</div>
+        <div class="pose-desc">Nori points upward with a glowing lightbulb — delivering tips, GLP-1 education, and nutrition insights.</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="divider"></div>
+      <div class="meta-label">Asset Filename</div>
+      <div class="asset-name">nori_lightbulb.png</div>
+      <div class="divider"></div>
+      <div class="meta-label">Best Use Case</div>
+      <div class="meta-value">Nutrition tips, GLP-1 education cards, FAQ system, smart suggestions, contextual coaching moments</div>
+      <div class="divider"></div>
+      <div class="meta-label">Recommended Screens</div>
+      <div class="screens">
+        <span class="screen-pill">Tips &amp; Learn</span>
+        <span class="screen-pill">GLP-1 Guide</span>
+        <span class="screen-pill">Nutrition Insight</span>
+        <span class="screen-pill">FAQ / Help</span>
+        <span class="screen-pill">Tooltip</span>
+      </div>
+      <div class="divider"></div>
+      <div class="meta-label">Suggested Microcopy</div>
+      <div class="copy-box">"Did you know? Protein slows digestion and helps GLP-1 work more effectively." · "Here's a tip for this week..." · "Nori's Insight: High-fiber foods extend satiety by 40%."</div>
+      <div class="divider"></div>
+      <div class="meta-row">
+        <div>
+          <div class="meta-label">Emotional Intent</div>
+          <div class="emotion-row"><div class="emotion-dot" style="background:#ffd080"></div><div class="meta-value">Curious · Insightful · Empowering</div></div>
+        </div>
+        <div style="margin-left:auto">
+          <div class="meta-label">Priority</div>
+          <span class="badge primary">PRIMARY</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POSE 6 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="pose-img-wrap">
+        <img src="nori_pointing_right_1.png" alt="Nori Pointing Right (Feature Discovery)" />
+      </div>
+      <div class="header-meta">
+        <div class="pose-id">Pose 06</div>
+        <div class="pose-name">Feature Discovery</div>
+        <div class="pose-desc">Nori points right with a calm, open expression — ideal for directing users to features or next steps.</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="divider"></div>
+      <div class="meta-label">Asset Filename</div>
+      <div class="asset-name">nori_pointing_right_1.png</div>
+      <div class="divider"></div>
+      <div class="meta-label">Best Use Case</div>
+      <div class="meta-value">Empty states, feature discovery prompts, error recovery guidance, contextual help nudges</div>
+      <div class="divider"></div>
+      <div class="meta-label">Recommended Screens</div>
+      <div class="screens">
+        <span class="screen-pill">Empty State</span>
+        <span class="screen-pill">Error Recovery</span>
+        <span class="screen-pill">Feature Highlight</span>
+        <span class="screen-pill">First-Use Prompt</span>
+      </div>
+      <div class="divider"></div>
+      <div class="meta-label">Suggested Microcopy</div>
+      <div class="copy-box">"Nothing here yet — tap to log your first meal." · "Let's try that again — here's what to do next." · "New feature! Your macro tracker just got smarter."</div>
+      <div class="divider"></div>
+      <div class="meta-row">
+        <div>
+          <div class="meta-label">Emotional Intent</div>
+          <div class="emotion-row"><div class="emotion-dot" style="background:#c0a0ff"></div><div class="meta-value">Helpful · Neutral · Directional</div></div>
+        </div>
+        <div style="margin-left:auto">
+          <div class="meta-label">Priority</div>
+          <span class="badge secondary">SECONDARY</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POSE 7 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="pose-img-wrap">
+        <img src="nori_pointing_right_2.png" alt="Nori Pointing Right (CTA)" />
+      </div>
+      <div class="header-meta">
+        <div class="pose-id">Pose 07</div>
+        <div class="pose-name">CTA Reinforcement</div>
+        <div class="pose-desc">Nori points right with slightly more energy — an alternate right-point for CTA emphasis and progression nudges.</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="divider"></div>
+      <div class="meta-label">Asset Filename</div>
+      <div class="asset-name">nori_pointing_right_2.png</div>
+      <div class="divider"></div>
+      <div class="meta-label">Best Use Case</div>
+      <div class="meta-value">Step progression CTAs, "Continue" button reinforcement, push notification previews, re-engagement flows</div>
+      <div class="divider"></div>
+      <div class="meta-label">Recommended Screens</div>
+      <div class="screens">
+        <span class="screen-pill">Onboarding Step 4–6</span>
+        <span class="screen-pill">Continue CTA</span>
+        <span class="screen-pill">Re-engagement</span>
+        <span class="screen-pill">Push Notification</span>
+      </div>
+      <div class="divider"></div>
+      <div class="meta-label">Suggested Microcopy</div>
+      <div class="copy-box">"You're almost done — one more step!" · "Continue to see your plan →" · "Welcome back! Your plan is waiting."</div>
+      <div class="divider"></div>
+      <div class="meta-row">
+        <div>
+          <div class="meta-label">Emotional Intent</div>
+          <div class="emotion-row"><div class="emotion-dot" style="background:#80e0c0"></div><div class="meta-value">Encouraging · Forward-Moving · Friendly</div></div>
+        </div>
+        <div style="margin-left:auto">
+          <div class="meta-label">Priority</div>
+          <span class="badge rare">RARE / ALT</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="section-label" style="margin-top:40px">Implementation Notes for Developers</div>
+<div style="background:#12121e;border:1px solid #2a2a42;border-radius:12px;padding:20px 24px;font-size:13px;color:#9090b0;line-height:1.8;">
+  <strong style="color:#d0d0f0">File Format:</strong> All assets exported as <code style="background:#1e1e30;padding:2px 6px;border-radius:4px;color:#7ac">PNG</code> with transparent background (RGBA). Ready for React Native <code style="background:#1e1e30;padding:2px 6px;border-radius:4px;color:#7ac">&lt;Image&gt;</code> or Expo <code style="background:#1e1e30;padding:2px 6px;border-radius:4px;color:#7ac">Asset</code> loading.<br>
+  <strong style="color:#d0d0f0">Recommended Size:</strong> Display at 80–120px width on mobile. Use <code style="background:#1e1e30;padding:2px 6px;border-radius:4px;color:#7ac">resizeMode="contain"</code>.<br>
+  <strong style="color:#d0d0f0">Animation Tip:</strong> For <em>nori_tablet</em> and <em>nori_lightbulb</em>, consider a subtle <code style="background:#1e1e30;padding:2px 6px;border-radius:4px;color:#7ac">float</code> CSS/Animated loop (+4px Y, 1.8s ease-in-out infinite) for loading states.<br>
+  <strong style="color:#d0d0f0">Accessibility:</strong> Always include <code style="background:#1e1e30;padding:2px 6px;border-radius:4px;color:#7ac">accessibilityLabel</code> per pose. Example: <em>"Nori the owl pointing at next step"</em>.<br>
+  <strong style="color:#d0d0f0">Folder Convention:</strong> <code style="background:#1e1e30;padding:2px 6px;border-radius:4px;color:#7ac">assets/mascot/nori_[pose].png</code> · <code style="background:#1e1e30;padding:2px 6px;border-radius:4px;color:#7ac">assets/mascot/nori_[pose]@2x.png</code>
+</div>
+
+</body>
+</html>

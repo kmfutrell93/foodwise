@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="apple-touch-icon" href="references/NoriIcon.png" />
+  <title>FoodWise – Screen Navigator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+  <style type="text/tailwindcss">
+    :root {
+      --background: #0E0D0B; --foreground: #F4EFE6;
+      --primary: #E89D35; --primary-foreground: #141311;
+      --secondary: #8A9A7C; --muted: #1E1D1A; --muted-foreground: #9B968C;
+      --accent: #D87F63; --card: #1A1917; --border: #2E2C28;
+    }
+    body { background: var(--background); color: var(--foreground); font-family: 'Plus Jakarta Sans', sans-serif; }
+    .screen-link { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 16px; border: 1.5px solid var(--border); background: var(--card); text-decoration: none; color: var(--foreground); transition: all 0.15s; }
+    .screen-link:hover { border-color: var(--primary); background: rgba(232,157,53,0.05); }
+    .num { min-width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; background: var(--muted); color: var(--muted-foreground); }
+    .num.onboarding { background: rgba(232,157,53,0.1); color: var(--primary); }
+    .num.main { background: rgba(138,154,124,0.1); color: var(--secondary); }
+  </style>
+</head>
+<body class="min-h-screen p-6 max-w-lg mx-auto">
+
+  <!-- Header -->
+  <div class="flex items-center gap-4 mb-8 pt-8">
+    <img src="references/NoriCharacter.png" alt="Nori" class="w-14 h-14 object-contain" />
+    <div>
+      <h1 class="text-2xl font-extrabold">FoodWise</h1>
+      <p class="text-sm" style="color:var(--muted-foreground)">GLP-1 Meal Planner · Screen Navigator</p>
+    </div>
+  </div>
+
+  <!-- Quick launch -->
+  <div class="mb-8">
+    <a href="01-welcome.html" class="block w-full py-4 rounded-2xl text-center font-extrabold text-base" style="background:var(--primary); color:var(--primary-foreground)">
+      ▶ Start Full Onboarding Flow
+    </a>
+    <a href="home.html" class="block w-full py-4 rounded-2xl text-center font-bold text-base mt-3" style="background:var(--muted); color:var(--foreground)">
+      → Jump to Main App (Home)
+    </a>
+  </div>
+
+  <!-- INTRODUCTION -->
+  <div class="mb-6">
+    <div class="flex items-center gap-2 mb-3">
+      <div class="h-px flex-1" style="background:var(--border)"></div>
+      <span class="text-xs font-extrabold uppercase tracking-widest px-3" style="color:var(--primary)">Introduction (Screens 1–8)</span>
+      <div class="h-px flex-1" style="background:var(--border)"></div>
+    </div>
+    <div class="flex flex-col gap-2">
+      <a href="01-welcome.html" class="screen-link"><span class="num onboarding">01</span><div><p class="font-bold text-sm">Welcome / Splash</p><p class="text-xs" style="color:var(--muted-foreground)">Nori intro · trust badges · CTA</p></div></a>
+      <a href="02-problem.html" class="screen-link"><span class="num onboarding">02</span><div><p class="font-bold text-sm">The Problem</p><p class="text-xs" style="color:var(--muted-foreground)">Appetite suppression &amp; nutrient gaps</p></div></a>
+      <a href="03-solution.html" class="screen-link"><span class="num onboarding">03</span><div><p class="font-bold text-sm">The Right Way</p><p class="text-xs" style="color:var(--muted-foreground)">Without vs. with FoodWise comparison</p></div></a>
+      <a href="04-aha.html" class="screen-link"><span class="num onboarding">04</span><div><p class="font-bold text-sm">AHA Statistic</p><p class="text-xs" style="color:var(--muted-foreground)">"30% of weight lost on GLP-1 is muscle"</p></div></a>
+      <a href="05-question1.html" class="screen-link"><span class="num onboarding">05</span><div><p class="font-bold text-sm">Question 1</p><p class="text-xs" style="color:var(--muted-foreground)">What's your biggest GLP-1 struggle?</p></div></a>
+      <a href="06-mirror1.html" class="screen-link"><span class="num onboarding">06</span><div><p class="font-bold text-sm">Mirror 1</p><p class="text-xs" style="color:var(--muted-foreground)">"78% of GLP-1 users share your struggle"</p></div></a>
+      <a href="07-question2.html" class="screen-link"><span class="num onboarding">07</span><div><p class="font-bold text-sm">Question 2</p><p class="text-xs" style="color:var(--muted-foreground)">How much of your protein goal do you hit?</p></div></a>
+      <a href="08-mirror2.html" class="screen-link"><span class="num onboarding">08</span><div><p class="font-bold text-sm">Mirror 2</p><p class="text-xs" style="color:var(--muted-foreground)">Before/after meal comparison visual</p></div></a>
+    </div>
+  </div>
+
+  <!-- CLIMAX -->
+  <div class="mb-6">
+    <div class="flex items-center gap-2 mb-3">
+      <div class="h-px flex-1" style="background:var(--border)"></div>
+      <span class="text-xs font-extrabold uppercase tracking-widest px-3" style="color:var(--accent)">Climax – Try It (Screens 9–15)</span>
+      <div class="h-px flex-1" style="background:var(--border)"></div>
+    </div>
+    <div class="flex flex-col gap-2">
+      <a href="09-try-intro.html" class="screen-link"><span class="num" style="background:rgba(216,127,99,0.1); color:var(--accent)">09</span><div><p class="font-bold text-sm">Try It Intro</p><p class="text-xs" style="color:var(--muted-foreground)">Nori excited · 3-step preview</p></div></a>
+      <a href="10-restrictions.html" class="screen-link"><span class="num" style="background:rgba(216,127,99,0.1); color:var(--accent)">10</span><div><p class="font-bold text-sm">Step 1: Dietary Needs</p><p class="text-xs" style="color:var(--muted-foreground)">Multi-select dietary restriction tags</p></div></a>
+      <a href="11-budget.html" class="screen-link"><span class="num" style="background:rgba(216,127,99,0.1); color:var(--accent)">11</span><div><p class="font-bold text-sm">Step 2: Weekly Budget</p><p class="text-xs" style="color:var(--muted-foreground)">Interactive slider · $40–$200</p></div></a>
+      <a href="12-appetite.html" class="screen-link"><span class="num" style="background:rgba(216,127,99,0.1); color:var(--accent)">12</span><div><p class="font-bold text-sm">Step 3: Appetite Level</p><p class="text-xs" style="color:var(--muted-foreground)">Low / Moderate / Normal cards</p></div></a>
+      <a href="13-generating.html" class="screen-link"><span class="num" style="background:rgba(216,127,99,0.1); color:var(--accent)">13</span><div><p class="font-bold text-sm">Generating Plan</p><p class="text-xs" style="color:var(--muted-foreground)">Animated loading · auto-advances</p></div></a>
+      <a href="14-meal-reveal.html" class="screen-link"><span class="num" style="background:rgba(216,127,99,0.1); color:var(--accent)">14</span><div><p class="font-bold text-sm">Meal Plan Reveal</p><p class="text-xs" style="color:var(--muted-foreground)">4 meals · macros · budget breakdown</p></div></a>
+      <a href="15-review.html" class="screen-link"><span class="num" style="background:rgba(216,127,99,0.1); color:var(--accent)">15</span><div><p class="font-bold text-sm">Review Prompt</p><p class="text-xs" style="color:var(--muted-foreground)">Star rating · "Leave a quick review"</p></div></a>
+    </div>
+  </div>
+
+  <!-- CONCLUSION -->
+  <div class="mb-6">
+    <div class="flex items-center gap-2 mb-3">
+      <div class="h-px flex-1" style="background:var(--border)"></div>
+      <span class="text-xs font-extrabold uppercase tracking-widest px-3" style="color:var(--secondary)">Conclusion + Paywall (Screens 16–22)</span>
+      <div class="h-px flex-1" style="background:var(--border)"></div>
+    </div>
+    <div class="flex flex-col gap-2">
+      <a href="16-summary.html" class="screen-link"><span class="num" style="background:rgba(138,154,124,0.1); color:var(--secondary)">16</span><div><p class="font-bold text-sm">Journey Summary</p><p class="text-xs" style="color:var(--muted-foreground)">5 animated feature checkmarks</p></div></a>
+      <a href="17-habit.html" class="screen-link"><span class="num" style="background:rgba(138,154,124,0.1); color:var(--secondary)">17</span><div><p class="font-bold text-sm">Habit Builder</p><p class="text-xs" style="color:var(--muted-foreground)">2 minutes/day timeline · coffee stacking</p></div></a>
+      <a href="18-commitment.html" class="screen-link"><span class="num" style="background:rgba(138,154,124,0.1); color:var(--secondary)">18</span><div><p class="font-bold text-sm">Commitment Screen</p><p class="text-xs" style="color:var(--muted-foreground)">"Are you committed?" · 3-promise card</p></div></a>
+      <a href="19-pricing-intro.html" class="screen-link"><span class="num" style="background:rgba(138,154,124,0.1); color:var(--secondary)">19</span><div><p class="font-bold text-sm">Pricing Intro</p><p class="text-xs" style="color:var(--muted-foreground)">Premium reveal · 7-day free trial</p></div></a>
+      <a href="20-comparison.html" class="screen-link"><span class="num" style="background:rgba(138,154,124,0.1); color:var(--secondary)">20</span><div><p class="font-bold text-sm">Price Comparison</p><p class="text-xs" style="color:var(--muted-foreground)">Less than a Starbucks · visual bars</p></div></a>
+      <a href="21-notification.html" class="screen-link"><span class="num" style="background:rgba(138,154,124,0.1); color:var(--secondary)">21</span><div><p class="font-bold text-sm">Notification Opt-in</p><p class="text-xs" style="color:var(--muted-foreground)">"Day 6 reminder" · mock notification preview</p></div></a>
+      <a href="22-paywall.html" class="screen-link"><span class="num" style="background:rgba(138,154,124,0.1); color:var(--secondary)">22</span><div><p class="font-bold text-sm">Paywall</p><p class="text-xs" style="color:var(--muted-foreground)">Monthly $12.99 · Annual $79.99 · 7-day trial</p></div></a>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div class="mb-10">
+    <div class="flex items-center gap-2 mb-3">
+      <div class="h-px flex-1" style="background:var(--border)"></div>
+      <span class="text-xs font-extrabold uppercase tracking-widest px-3" style="color:var(--foreground)">Main App Screens</span>
+      <div class="h-px flex-1" style="background:var(--border)"></div>
+    </div>
+    <div class="flex flex-col gap-2">
+      <a href="home.html" class="screen-link"><span class="num main">🏠</span><div><p class="font-bold text-sm">Home / Dashboard</p><p class="text-xs" style="color:var(--muted-foreground)">Rings, streaks, daily meals, quick actions</p></div></a>
+      <a href="meal-plan.html" class="screen-link"><span class="num main">🍽</span><div><p class="font-bold text-sm">Meal Plan</p><p class="text-xs" style="color:var(--muted-foreground)">Weekly calendar · day selector · injection day badge</p></div></a>
+      <a href="grocery-list.html" class="screen-link"><span class="num main">🛒</span><div><p class="font-bold text-sm">Grocery List</p><p class="text-xs" style="color:var(--muted-foreground)">Interactive checkoffs · budget tracker · pantry toggle</p></div></a>
+      <a href="settings.html" class="screen-link"><span class="num main">⚙️</span><div><p class="font-bold text-sm">Settings / Profile</p><p class="text-xs" style="color:var(--muted-foreground)">GLP-1 config · goals · notifications · privacy</p></div></a>
+    </div>
+  </div>
+
+  <p class="text-xs text-center pb-8" style="color:var(--muted-foreground)">FoodWise GLP-1 Meal Planner · 26 screens total · Open in browser for best experience</p>
+</body>
+</html>
