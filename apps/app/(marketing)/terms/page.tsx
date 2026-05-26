@@ -33,7 +33,7 @@ export default function TermsPage() {
           </div>
         </FadeInWhenVisible>
 
-        <div className="space-y-8" style={{ fontSize: 16, lineHeight: 1.7, color: '#444444' }}>
+        <div className="space-y-8 text-[#94A3B8]">
           <Section title="1. Acceptance">
             <p>By using FoodWise you agree to these terms.</p>
           </Section>

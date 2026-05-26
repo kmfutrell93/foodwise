@@ -7,7 +7,7 @@ import AppStoreButton from '../AppStoreButton'
 export default function FinalCTASection() {
   return (
     <section
-      className="py-24 px-4 text-center relative overflow-hidden"
+      className="py-16 px-4 text-center relative overflow-hidden"
       style={{
         background:
           'radial-gradient(ellipse at center, rgba(29,158,117,0.2) 0%, transparent 60%), #0A1628',
@@ -51,7 +51,7 @@ export default function FinalCTASection() {
           transition={{ delay: 0.1 }}
           className="text-[#94A3B8] text-lg"
         >
-          Start your 7-day free trial. Download FoodWise free on the App Store.
+          7-day free trial. Free to download.
         </motion.p>
 
         <motion.div

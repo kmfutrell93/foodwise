@@ -60,8 +60,15 @@ export default function HeroSection() {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="text-lg sm:text-xl text-[#94A3B8] max-w-lg leading-relaxed mb-8"
           >
-            Injection-day aware meal plans for Ozempic, Wegovy, Mounjaro, and Zepbound.
-            Protein-first. Built for GLP-1 life.
+            Protein-first meal plans for{' '}
+            <span className="text-white font-semibold">Ozempic</span>
+            ,{' '}
+            <span className="text-white font-semibold">Wegovy</span>
+            ,{' '}
+            <span className="text-white font-semibold">Mounjaro</span>
+            {' '}and{' '}
+            <span className="text-white font-semibold">Zepbound</span>
+            .
           </motion.p>
 
           <motion.div
@@ -74,6 +81,17 @@ export default function HeroSection() {
             <p className="text-[#64748B] text-sm">
               Free to start · 7-day Pro trial · No credit card needed
             </p>
+            <div className="flex items-center gap-4 mt-2">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[#1D9E75] font-bold text-sm">Free</span>
+                <span className="text-[#64748B] text-sm">— 3 meal plans/month</span>
+              </div>
+              <span className="text-[#1A3A5C]">|</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[#A8F0D8] font-bold text-sm">Pro $12.99</span>
+                <span className="text-[#64748B] text-sm">— unlimited everything</span>
+              </div>
+            </div>
           </motion.div>
         </div>
 
@@ -99,25 +117,6 @@ export default function HeroSection() {
           </motion.div>
         </motion.div>
       </div>
-
-      {/* Stat pills */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.6 }}
-        className="relative z-10 flex flex-wrap justify-center gap-3 mt-12"
-      >
-        {['🌿 Built for GLP-1', '💪 100–120g protein daily', '💉 Injection-day aware'].map(
-          (pill) => (
-            <div
-              key={pill}
-              className="glass-card px-4 py-2 border border-[#1D9E75]/30 text-sm text-[#A8F0D8] font-medium"
-            >
-              {pill}
-            </div>
-          )
-        )}
-      </motion.div>
 
       {/* Scroll chevron */}
       <motion.div

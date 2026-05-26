@@ -9,27 +9,30 @@ const steps = [
     nori: '/nori/nori_pointing_right_2.png',
     bubble: "I'll remember your injection day 💉",
     title: 'Tell Nori your medication and injection day',
-    body: "Choose Ozempic, Wegovy, Mounjaro, or Zepbound. Add your dose day. That's all Nori needs.",
+    body: "Tell Nori you're on Ozempic, Wegovy, Mounjaro, or Zepbound — and your injection day.",
   },
   {
     number: '2',
     nori: '/nori/nori_tablet.png',
     bubble: 'Your plan is ready in seconds ⚡',
     title: 'Get a 7-day plan built around your schedule',
-    body: 'Your first AI-generated meal plan is ready in seconds. Protein-first. Injection-day aware. Budget-matched.',
+    body: 'Your protein-first, injection-aware plan is ready in seconds.',
   },
   {
     number: '3',
     nori: '/nori/nori_lightbulb.png',
     bubble: 'I get smarter about you every week 🧠',
     title: 'Track, learn, and improve every week',
-    body: 'Log symptoms, build streaks, get a weekly AI report. FoodWise gets smarter about you over time.',
+    body: 'Log symptoms, build streaks, get smarter every week.',
   },
 ]
 
 export default function HowItWorksSection() {
   return (
-    <section className="py-20 px-4 bg-[#0A1628]">
+    <section
+      className="py-14 px-4"
+      style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(29,158,117,0.06) 0%, transparent 50%), #0A1628' }}
+    >
       <div className="max-w-6xl mx-auto">
 
         <motion.p

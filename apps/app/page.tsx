@@ -2,6 +2,8 @@ import Navbar from '@/components/Navbar'
 import HeroSection from '@/components/sections/HeroSection'
 import ProblemSection from '@/components/sections/ProblemSection'
 import SolutionSection from '@/components/sections/SolutionSection'
+import PricingStripSection from '@/components/sections/PricingStripSection'
+import SmartFridgeSection from '@/components/sections/SmartFridgeSection'
 import HowItWorksSection from '@/components/sections/HowItWorksSection'
 import PricingSection from '@/components/sections/PricingSection'
 import MedicationsSection from '@/components/sections/MedicationsSection'
@@ -15,6 +17,8 @@ export default function Home() {
       <HeroSection />
       <ProblemSection />
       <SolutionSection />
+      <PricingStripSection />
+      <SmartFridgeSection />
       <HowItWorksSection />
       <PricingSection />
       <MedicationsSection />

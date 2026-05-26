@@ -27,7 +27,7 @@ const meds = [
 
 export default function MedicationsSection() {
   return (
-    <section className="py-20 px-4 bg-[#0A1628]">
+    <section className="py-14 px-4 bg-[#080F1E] border-t border-[#1A3A5C]/50">
       <div className="max-w-6xl mx-auto">
 
         <motion.p
@@ -49,18 +49,7 @@ export default function MedicationsSection() {
           Built for the four major GLP-1 medications.
         </motion.h2>
 
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.2 }}
-          className="text-[#94A3B8] text-center max-w-2xl mx-auto mb-12 leading-relaxed"
-        >
-          Each medication has a different nausea profile, side effect window, and dose escalation
-          schedule. FoodWise knows the difference and adjusts your plan accordingly.
-        </motion.p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-12">
           {meds.map((med, i) => (
             <motion.div
               key={med.name}
@@ -68,8 +57,14 @@ export default function MedicationsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.1 }}
-              className="glass-card p-6 hover:border-[#1D9E75]/50 hover:shadow-[0_0_30px_rgba(29,158,117,0.1)] transition-all duration-300"
+              className="relative glass-card p-6 hover:border-[#1D9E75]/50 hover:shadow-[0_0_30px_rgba(29,158,117,0.1)] transition-all duration-300"
             >
+              <div className="absolute top-4 right-4 opacity-20">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M10.5 20.5L3.5 13.5a5 5 0 017-7l7 7a5 5 0 01-7 7z"/>
+                  <line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/>
+                </svg>
+              </div>
               <h3 className="text-white font-bold text-xl mb-1">{med.name}</h3>
               <p className="text-[#1D9E75] text-sm font-medium mb-3">{med.generic}</p>
               <p className="text-[#94A3B8] text-sm leading-relaxed">{med.desc}</p>

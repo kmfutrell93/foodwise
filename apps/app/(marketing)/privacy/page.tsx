@@ -19,7 +19,7 @@ export default function PrivacyPage() {
           </div>
         </FadeInWhenVisible>
 
-        <div className="space-y-8" style={{ fontSize: 16, lineHeight: 1.7, color: '#444444' }}>
+        <div className="space-y-8 text-[#94A3B8]">
           <Section title="1. Introduction">
             <p>
               FoodWise (&ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;) is committed to protecting your
@@ -30,24 +30,24 @@ export default function PrivacyPage() {
           <Section title="2. Information We Collect">
             <ul className="list-disc list-inside mt-2 space-y-2 ml-2">
               <li>
-                <strong className="text-[#1A1A1A]">Account information:</strong>{' '}
+                <strong className="text-white">Account information:</strong>{' '}
                 email address, hashed password (never stored in plain text)
               </li>
               <li>
-                <strong className="text-[#1A1A1A]">Health and medication data:</strong>{' '}
+                <strong className="text-white">Health and medication data:</strong>{' '}
                 GLP-1 medication type, dose, injection day, side effect logs, food aversions,
                 protein goals, weight logs (manual or Apple Health sync)
               </li>
               <li>
-                <strong className="text-[#1A1A1A]">Usage data:</strong>{' '}
+                <strong className="text-white">Usage data:</strong>{' '}
                 meal plans generated, grocery lists, symptom logs, streak activity, screens visited
               </li>
               <li>
-                <strong className="text-[#1A1A1A]">Device data:</strong>{' '}
+                <strong className="text-white">Device data:</strong>{' '}
                 device type, OS version, push notification token
               </li>
               <li>
-                <strong className="text-[#1A1A1A]">Apple Health data (iOS only, if permission granted):</strong>{' '}
+                <strong className="text-white">Apple Health data (iOS only, if permission granted):</strong>{' '}
                 body weight, step count. FoodWise also writes dietary protein back to Apple Health.
               </li>
             </ul>
@@ -68,22 +68,22 @@ export default function PrivacyPage() {
 
           <Section title="4. Data Sharing">
             <p>
-              We do <strong className="text-[#1A1A1A]">not</strong> sell your data. We share
+              We do <strong className="text-white">not</strong> sell your data. We share
               data only with:
             </p>
             <ul className="list-disc list-inside mt-3 space-y-2 ml-2">
               <li>
-                <strong className="text-[#1A1A1A]">Supabase</strong> — database, US-based
+                <strong className="text-white">Supabase</strong> — database, US-based
               </li>
               <li>
-                <strong className="text-[#1A1A1A]">Anthropic</strong> — AI generation; prompts
+                <strong className="text-white">Anthropic</strong> — AI generation; prompts
                 include medication and symptom data but not your name or email
               </li>
               <li>
-                <strong className="text-[#1A1A1A]">RevenueCat</strong> — subscription management
+                <strong className="text-white">RevenueCat</strong> — subscription management
               </li>
               <li>
-                <strong className="text-[#1A1A1A]">Expo Push</strong> — push notification delivery
+                <strong className="text-white">Expo Push</strong> — push notification delivery
               </li>
             </ul>
             <p className="mt-3">All partners are bound by data processing agreements.</p>

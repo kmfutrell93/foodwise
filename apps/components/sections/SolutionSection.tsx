@@ -5,36 +5,65 @@ import { motion } from 'framer-motion'
 const features = [
   {
     title: 'Injection-Day Aware Plans',
-    body: 'On dose day and the day after, FoodWise automatically adjusts your plan — soft textures, easy to digest, gentle on your stomach.',
-    icon: '💉',
+    body: 'Soft textures automatically on dose day and the day after.',
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="2" y1="22" x2="8" y2="16"/>
+        <path d="M7 19l-5-5 9-9 5 5z"/>
+        <path d="M11 13l2-2"/>
+        <path d="M15 9l2-2"/>
+        <line x1="18" y1="2" x2="22" y2="6"/>
+      </svg>
+    ),
     large: true,
     glow: true,
   },
   {
     title: 'Protein-First, Every Day',
-    body: 'Every plan hits 100–120g of protein to protect your muscle while you lose weight. GLP-1 weight loss should come from fat — not muscle.',
-    icon: '💪',
+    body: 'Every plan hits 100–120g of protein to protect muscle.',
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <circle cx="12" cy="12" r="6"/>
+        <circle cx="12" cy="12" r="2"/>
+      </svg>
+    ),
     large: true,
     glow: false,
   },
   {
     title: 'Symptom Tracker + AI Insights',
-    body: 'Log nausea, constipation, fatigue. After 7 days, FoodWise finds correlations and adjusts your plan automatically.',
-    icon: '🧠',
+    body: 'Log symptoms and get AI-driven meal adjustments after 7 days.',
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+      </svg>
+    ),
     large: false,
     glow: false,
   },
   {
     title: 'Streak Accountability',
-    body: 'Protein streak. Symptom streak. Meal plan streak. All on your home screen, building toward milestone celebrations.',
-    icon: '🔥',
+    body: 'Protein, symptom, and meal plan streaks on your home screen.',
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2c0 6-6 8-6 14a6 6 0 0012 0c0-6-6-8-6-14z"/>
+        <path d="M12 12c0 3-2 4-2 6a2 2 0 004 0c0-2-2-3-2-6z"/>
+      </svg>
+    ),
     large: false,
     glow: false,
   },
   {
     title: 'Smart Grocery List',
-    body: 'Ready-to-shop lists with NOVA scores to flag ultra-processed items. Budget tiers: $50, $75, or $100 per week.',
-    icon: '🛒',
+    body: 'NOVA-scored lists in $50, $75, or $100 budget tiers.',
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 01-8 0"/>
+      </svg>
+    ),
     large: false,
     glow: false,
   },
@@ -42,7 +71,7 @@ const features = [
 
 export default function SolutionSection() {
   return (
-    <section className="py-20 px-4 bg-[#060E1A]">
+    <section className="py-14 px-4 bg-[#060E1A]">
       <div className="max-w-6xl mx-auto">
 
         <motion.p
@@ -82,7 +111,7 @@ export default function SolutionSection() {
                 ${f.large ? 'md:col-span-2 lg:col-span-1' : ''}
               `}
             >
-              <div className="text-3xl mb-4">{f.icon}</div>
+              <div className="mb-4">{f.icon}</div>
               <h3 className="text-white font-bold text-lg mb-2">{f.title}</h3>
               <p className="text-[#94A3B8] text-sm leading-relaxed">{f.body}</p>
             </motion.div>

@@ -24,12 +24,9 @@ const proFeatures = [
 
 function Check() {
   return (
-    <svg className="w-5 h-5 text-[#1D9E75] flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
-      <path
-        fillRule="evenodd"
-        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-        clipRule="evenodd"
-      />
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" className="flex-shrink-0 mt-0.5">
+      <circle cx="9" cy="9" r="8" fill="rgba(29,158,117,0.15)" stroke="#1D9E75" strokeWidth="1"/>
+      <polyline points="5,9 8,12 13,6" stroke="#1D9E75" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   )
 }
@@ -58,7 +55,7 @@ export default function PricingSection() {
           Start free. Upgrade when you&apos;re ready.
         </motion.h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
 
           {/* Free card */}
           <motion.div
@@ -66,7 +63,7 @@ export default function PricingSection() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="glass-card p-8"
+            className="glass-card p-8 h-full flex flex-col"
           >
             <h3 className="text-white font-bold text-2xl mb-2">Free</h3>
             <div className="flex items-baseline gap-1 mb-6">
@@ -81,7 +78,9 @@ export default function PricingSection() {
                 </li>
               ))}
             </ul>
-            <AppStoreButton size="default" fullWidth />
+            <div className="mt-auto">
+              <AppStoreButton size="default" fullWidth />
+            </div>
           </motion.div>
 
           {/* Pro card */}
@@ -90,7 +89,7 @@ export default function PricingSection() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="glass-card p-8 relative border border-[#1D9E75]/60 shadow-[0_0_50px_rgba(29,158,117,0.15)]"
+            className="glass-card p-8 relative border border-[#1D9E75]/60 shadow-[0_0_50px_rgba(29,158,117,0.15)] h-full flex flex-col"
           >
             <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#1D9E75] text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-[0_4px_12px_rgba(29,158,117,0.4)]">
               Most Popular
@@ -123,7 +122,9 @@ export default function PricingSection() {
                 </li>
               ))}
             </ul>
-            <AppStoreButton size="large" fullWidth />
+            <div className="mt-auto">
+              <AppStoreButton size="large" fullWidth />
+            </div>
           </motion.div>
         </div>
       </div>
