@@ -168,7 +168,7 @@ export default function SmartFridgeScreen() {
   const isDisabled = selected.length < 2 || loading;
 
   return (
-    <SafeAreaView style={s.safe}>
+    <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={s.scroll}
@@ -440,7 +440,7 @@ function makeSheetStyles(c: ThemeColors) {
 function makeStyles(c: ThemeColors) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: c.background },
-    scroll: { paddingBottom: 100 },
+    scroll: { paddingBottom: 120 },
     header: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingHorizontal: Spacing.xl, paddingTop: Spacing.xl, marginBottom: Spacing['2xl'] },
     backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: c.card, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: c.border },
     headerText: { flex: 1 },

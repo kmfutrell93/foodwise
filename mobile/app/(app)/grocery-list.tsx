@@ -249,7 +249,7 @@ export default function GroceryListScreen() {
   const budgetRemaining = Math.max(0, weeklyBudget - budgetTotal);
 
   return (
-    <SafeAreaView style={s.safe}>
+    <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={s.scroll}
@@ -412,7 +412,7 @@ export default function GroceryListScreen() {
 function makeStyles(c: ThemeColors) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: c.background },
-    scroll: { paddingBottom: 100 },
+    scroll: { paddingBottom: 120 },
     header: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', paddingHorizontal: Spacing.xl, paddingTop: Spacing.xl, marginBottom: Spacing.sm },
     screenTitle: { fontSize: FontSize['2xl'], fontFamily: 'PlusJakartaSans-ExtraBold', marginBottom: 2 },
     subTitle: { fontSize: FontSize.sm },

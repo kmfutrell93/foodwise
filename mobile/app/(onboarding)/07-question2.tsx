@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { OnboardingShell } from '@/components/ui/OnboardingShell';
 import { Button } from '@/components/ui/Button';
@@ -39,7 +39,7 @@ export default function Question2() {
       centerLabel="Question 2 of 2"
       skipRoute="/(onboarding)/10-restrictions"
     >
-      <View style={s.container}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
 
         {/* Nori speech bubble */}
         <View style={s.noriRow}>
@@ -83,7 +83,8 @@ export default function Question2() {
             Most GLP-1 users hit <Text style={s.infoStrong}>less than 50%</Text> of their protein goal — and don't even know it.
           </Text>
         </View>
-
+      </ScrollView>
+      <View style={s.footer}>
         <Button label="Be honest with me" onPress={handleNext} disabled={!selected} />
       </View>
     </OnboardingShell>
@@ -92,7 +93,8 @@ export default function Question2() {
 
 function makeStyles(c: ThemeColors) {
   return StyleSheet.create({
-    container: { flex: 1, paddingTop: Spacing.md, paddingBottom: Spacing.xl },
+    content: { paddingTop: Spacing.md, paddingBottom: Spacing.md },
+    footer: { paddingTop: Spacing.md, paddingBottom: Spacing.xl },
 
     noriRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, marginBottom: Spacing['2xl'] },
     noriImg: { width: 48, height: 48 },

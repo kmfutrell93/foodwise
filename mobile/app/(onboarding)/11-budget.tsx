@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import Slider from '@react-native-community/slider';
 import { OnboardingShell } from '@/components/ui/OnboardingShell';
@@ -29,7 +29,7 @@ export default function Budget() {
 
   return (
     <OnboardingShell step={11}>
-      <View style={s.container}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <Text style={s.label}>Step 2 of 3</Text>
         <Text style={s.title}>What's your{'\n'}<Text style={s.titleHighlight}>weekly grocery budget?</Text></Text>
         <Text style={s.sub}>We'll build meals that maximize nutrition within your budget.</Text>
@@ -64,7 +64,8 @@ export default function Budget() {
             </TouchableOpacity>
           ))}
         </View>
-        <View style={s.spacer} />
+      </ScrollView>
+      <View style={s.footer}>
         <Button label="Next: My appetite level" onPress={handleNext} />
       </View>
     </OnboardingShell>
@@ -73,7 +74,8 @@ export default function Budget() {
 
 function makeStyles(c: ThemeColors) {
   return StyleSheet.create({
-  container: { flex: 1, paddingTop: Spacing.lg, paddingBottom: Spacing.xl },
+  content: { paddingTop: Spacing.lg, paddingBottom: Spacing.md },
+  footer: { paddingTop: Spacing.md, paddingBottom: Spacing.xl },
   label: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: c.primary, letterSpacing: 2, textTransform: 'uppercase', marginBottom: Spacing.md },
   title: { fontSize: FontSize['2xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground, lineHeight: 32, marginBottom: Spacing.sm },
   titleHighlight: { color: c.primary },
@@ -90,6 +92,6 @@ function makeStyles(c: ThemeColors) {
   presetSelected: { borderColor: c.primary, backgroundColor: 'rgba(29,158,117,0.1)' },
   presetLabel: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: c.foreground },
   presetSub: { fontSize: FontSize.xs, color: c.mutedForeground },
-  spacer: { flex: 1 },
 });
+
 }

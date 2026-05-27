@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, Platform } from 'react-native';
+import { View, Text, Image, StyleSheet, Platform, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { OnboardingShell } from '@/components/ui/OnboardingShell';
 import { Button } from '@/components/ui/Button';
@@ -54,7 +54,7 @@ export default function NotificationScreen() {
 
   return (
     <OnboardingShell step={21}>
-      <View style={s.container}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <View style={s.noriWrap}>
           <Image source={require('@/assets/images/nori_character.png')} style={s.noriImg} resizeMode="contain" />
           <View style={s.bellBadge}>
@@ -73,9 +73,8 @@ export default function NotificationScreen() {
             </View>
           ))}
         </View>
-
-        <View style={s.spacer} />
-
+      </ScrollView>
+      <View style={s.footer}>
         <Button label="Turn on notifications" onPress={requestPermission} loading={loading} style={s.primaryBtn} />
         <Button label="Maybe later" variant="ghost" onPress={skip} style={s.skipBtn} />
       </View>
@@ -85,7 +84,8 @@ export default function NotificationScreen() {
 
 function makeStyles(c: ThemeColors) {
   return StyleSheet.create({
-  container: { flex: 1, paddingTop: Spacing.md, paddingBottom: Spacing.xl },
+  content: { paddingTop: Spacing.md, paddingBottom: Spacing.md },
+  footer: { paddingTop: Spacing.md, paddingBottom: Spacing.xl },
   noriWrap: { position: 'relative', alignSelf: 'flex-start', marginBottom: Spacing.xl },
   noriImg: { width: 112, height: 112 },
   bellBadge: {
@@ -109,7 +109,6 @@ function makeStyles(c: ThemeColors) {
   nudgeRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
   nudgeIcon: { fontSize: 22, width: 32, textAlign: 'center' },
   nudgeText: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-SemiBold', color: c.foreground },
-  spacer: { flex: 1 },
   primaryBtn: { marginBottom: Spacing.sm },
   skipBtn: {},
 });

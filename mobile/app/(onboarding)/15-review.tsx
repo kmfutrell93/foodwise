@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Image, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { OnboardingShell } from '@/components/ui/OnboardingShell';
 import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
@@ -21,7 +21,7 @@ export default function Review() {
 
   return (
     <OnboardingShell step={15}>
-      <View style={s.center}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.center} keyboardShouldPersistTaps="handled">
         <Animated.View style={{ transform: [{ scale }], marginBottom: Spacing.sm }}>
           <Image
             source={require('@/assets/images/nori_character.png')}
@@ -58,7 +58,7 @@ export default function Review() {
             ))}
           </View>
         </View>
-      </View>
+      </ScrollView>
 
       <View style={s.bottom}>
         <TouchableOpacity
@@ -82,7 +82,7 @@ export default function Review() {
 
 function makeStyles(c: ThemeColors) {
   return StyleSheet.create({
-    center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: Spacing.lg },
+    center: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md },
     nori: { width: 96, height: 96 },
     confettiRow: { flexDirection: 'row', gap: Spacing.md, marginBottom: Spacing.md },
     confetti: { fontSize: 24 },

@@ -126,7 +126,7 @@ export default function RecipeDetail() {
 
   if (isAiMeal) {
     return (
-      <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
+      <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
           <TouchableOpacity style={s.backBtn} onPress={() => router.back()} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
             <Ionicons name="chevron-back" size={24} color={colors.foreground} />
@@ -186,7 +186,7 @@ export default function RecipeDetail() {
   }
 
   return (
-    <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
+    <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll} onScroll={handleScroll} scrollEventThrottle={100}>
         {/* Back */}
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
@@ -365,7 +365,7 @@ export default function RecipeDetail() {
 function makeStyles(c: ThemeColors) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: c.background },
-    scroll: { paddingHorizontal: Spacing.xl, paddingBottom: Spacing['3xl'] },
+    scroll: { paddingHorizontal: Spacing.xl, paddingBottom: 120 },
     loadingCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
     emptyText: { fontSize: FontSize.base, color: c.mutedForeground },
 

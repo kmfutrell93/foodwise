@@ -35,7 +35,7 @@ export default function PricingIntro() {
   const router = useRouter();
   return (
     <OnboardingShell step={19}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.content}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <View style={s.crownWrap}>
           <Text style={s.crown}>👑</Text>
         </View>
@@ -58,16 +58,18 @@ export default function PricingIntro() {
           <Text style={s.badgeTitle}>Used by 47,000+ GLP-1 members</Text>
           <Text style={s.badgeSub}>Average member logs 6.4 days/week and reports 89% protein goal adherence by week 3.</Text>
         </View>
-
-        <Button label="See pricing" onPress={() => router.push('/(onboarding)/20-comparison')} />
       </ScrollView>
+      <View style={s.footer}>
+        <Button label="See pricing" onPress={() => router.push('/(onboarding)/20-comparison')} />
+      </View>
     </OnboardingShell>
   );
 }
 
 function makeStyles(c: ThemeColors) {
   return StyleSheet.create({
-  content: { paddingTop: Spacing.md, paddingBottom: Spacing['3xl'] },
+  content: { paddingTop: Spacing.md, paddingBottom: Spacing.md },
+  footer: { paddingTop: Spacing.md, paddingBottom: Spacing.xl },
   crownWrap: { width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(29,158,117,0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.xl, alignSelf: 'center' },
   crown: { fontSize: 36 },
   label: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: c.primary, letterSpacing: 2, textTransform: 'uppercase', marginBottom: Spacing.md },

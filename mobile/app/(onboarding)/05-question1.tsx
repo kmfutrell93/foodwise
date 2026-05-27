@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { OnboardingShell } from '@/components/ui/OnboardingShell';
 import { Button } from '@/components/ui/Button';
@@ -79,7 +79,7 @@ export default function Question1() {
       centerLabel="Question 1 of 2"
       skipRoute="/(onboarding)/10-restrictions"
     >
-      <View style={s.container}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
 
         {/* Nori speech bubble */}
         <View style={s.noriRow}>
@@ -122,7 +122,8 @@ export default function Question1() {
             );
           })}
         </View>
-
+      </ScrollView>
+      <View style={s.footer}>
         <Button label="Continue" onPress={handleNext} disabled={!selected} />
       </View>
     </OnboardingShell>
@@ -131,7 +132,8 @@ export default function Question1() {
 
 function makeStyles(c: ThemeColors) {
   return StyleSheet.create({
-    container: { flex: 1, paddingTop: Spacing.md, paddingBottom: Spacing.xl },
+    content: { paddingTop: Spacing.md, paddingBottom: Spacing.md },
+    footer: { paddingTop: Spacing.md, paddingBottom: Spacing.xl },
 
     noriRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, marginBottom: Spacing['2xl'] },
     noriImg: { width: 48, height: 48 },
@@ -156,7 +158,7 @@ function makeStyles(c: ThemeColors) {
     titleHighlight: { color: c.primary },
     hint: { fontSize: FontSize.sm, color: c.mutedForeground, marginBottom: Spacing['2xl'] },
 
-    options: { flex: 1, gap: Spacing.sm },
+    options: { gap: Spacing.sm },
     card: {
       flexDirection: 'row',
       alignItems: 'center',

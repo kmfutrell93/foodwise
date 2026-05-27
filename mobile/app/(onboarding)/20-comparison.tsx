@@ -26,7 +26,7 @@ export default function Comparison() {
   const router = useRouter();
   return (
     <OnboardingShell step={20}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.content}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <Text style={s.label}>Free vs Pro</Text>
         <Text style={s.title}>GLP-1 support{'\n'}isn't optional.</Text>
 
@@ -48,22 +48,24 @@ export default function Comparison() {
         <View style={s.cta}>
           <Text style={s.ctaText}>Pro members save an average of <Text style={s.ctaHighlight}>$34/month</Text> on groceries vs. guessing alone.</Text>
         </View>
-
-        <Button label="Choose my plan" onPress={() => router.push('/(onboarding)/21-notification')} />
       </ScrollView>
+      <View style={s.footer}>
+        <Button label="Choose my plan" onPress={() => router.push('/(onboarding)/21-notification')} />
+      </View>
     </OnboardingShell>
   );
 }
 
 function makeStyles(c: ThemeColors) {
   return StyleSheet.create({
-  content: { paddingTop: Spacing.lg, paddingBottom: Spacing['3xl'] },
+  content: { paddingTop: Spacing.lg, paddingBottom: Spacing.md },
+  footer: { paddingTop: Spacing.md, paddingBottom: Spacing.xl },
   label: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: c.primary, letterSpacing: 2, textTransform: 'uppercase', marginBottom: Spacing.md },
   title: { fontSize: FontSize['3xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground, lineHeight: 38, marginBottom: Spacing['2xl'] },
   table: { borderRadius: Radius.lg, borderWidth: 1, borderColor: c.border, overflow: 'hidden', marginBottom: Spacing['2xl'] },
   tableHeader: { flexDirection: 'row', backgroundColor: c.muted, paddingVertical: Spacing.md, paddingHorizontal: Spacing.lg },
   tableRow: { flexDirection: 'row', paddingVertical: 11, paddingHorizontal: Spacing.lg },
-  tableRowAlt: { backgroundColor: 'rgba(30,29,26,0.6)' },
+  tableRowAlt: { backgroundColor: 'rgba(15,32,64,0.6)' },
   colLabel: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-Bold', color: c.mutedForeground, textTransform: 'uppercase', letterSpacing: 1 },
   featureCol: { flex: 1 },
   tierCol: { width: 48, textAlign: 'center' },

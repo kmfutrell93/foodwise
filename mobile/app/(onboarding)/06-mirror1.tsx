@@ -51,7 +51,7 @@ export default function Mirror1() {
 
   return (
     <OnboardingShell step={6} skipRoute="/(onboarding)/10-restrictions">
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.content}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
 
         {/* Nori + empathy header */}
         <View style={s.header}>
@@ -94,16 +94,18 @@ export default function Mirror1() {
             {copy.reassurance}
           </Text>
         </View>
-
-        <Button label="Good to know" onPress={() => router.push('/(onboarding)/07-question2')} />
       </ScrollView>
+      <View style={s.footer}>
+        <Button label="Good to know" onPress={() => router.push('/(onboarding)/07-question2')} />
+      </View>
     </OnboardingShell>
   );
 }
 
 function makeStyles(c: ThemeColors) {
   return StyleSheet.create({
-    content: { paddingTop: Spacing.md, paddingBottom: Spacing['2xl'] },
+    content: { paddingTop: Spacing.md, paddingBottom: Spacing.md },
+    footer: { paddingTop: Spacing.md, paddingBottom: Spacing.xl },
 
     header: { alignItems: 'center', textAlign: 'center', marginBottom: Spacing['2xl'] },
     nori: { width: 56, height: 56, marginBottom: Spacing.md },

@@ -39,7 +39,7 @@ export default function Problem() {
 
   return (
     <OnboardingShell step={2} skipRoute="/(onboarding)/10-restrictions">
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.content}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
 
         {/* Nori says card */}
         <View style={s.noriCard}>
@@ -81,16 +81,18 @@ export default function Problem() {
             </View>
           ))}
         </View>
-
-        <Button label="I want to know more" onPress={() => router.push('/(onboarding)/03-solution')} />
       </ScrollView>
+      <View style={s.footer}>
+        <Button label="I want to know more" onPress={() => router.push('/(onboarding)/03-solution')} />
+      </View>
     </OnboardingShell>
   );
 }
 
 function makeStyles(c: ThemeColors) {
   return StyleSheet.create({
-    content: { paddingTop: Spacing.md, paddingBottom: Spacing['2xl'] },
+    content: { paddingTop: Spacing.md, paddingBottom: Spacing.md },
+    footer: { paddingTop: Spacing.md, paddingBottom: Spacing.xl },
 
     noriCard: {
       flexDirection: 'row',

@@ -235,7 +235,7 @@ export default function Recipes() {
   }
 
   return (
-    <SafeAreaView style={s.safe} edges={['top']}>
+    <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
       <View style={s.header}>
         <Text style={s.title}>Recipes</Text>
       </View>
@@ -303,7 +303,7 @@ function makeStyles(c: ThemeColors) {
     filterRow: { paddingHorizontal: Spacing.xl, paddingBottom: Spacing.lg, gap: Spacing.sm, flexDirection: 'row', alignItems: 'center' },
     chipDivider: { width: 1, height: 20, backgroundColor: c.border, marginHorizontal: Spacing.xs },
     grid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: Spacing.xl, gap: Spacing.md },
-    listContent: { paddingHorizontal: Spacing.xl, paddingBottom: Spacing['3xl'] },
+    listContent: { paddingHorizontal: Spacing.xl, paddingBottom: 120 },
     row: { gap: Spacing.md, marginBottom: Spacing.md },
     emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingBottom: 80 },
     emptyIcon: { fontSize: 48 },

@@ -53,7 +53,7 @@ export default function Restrictions() {
 
   return (
     <OnboardingShell step={10}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.content}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <Text style={s.label}>Step 1 of 3</Text>
         <Text style={s.title}>Any dietary{'\n'}<Text style={s.titleHighlight}>needs or restrictions?</Text></Text>
         <Text style={s.sub}>Select all that apply. Your plan will be built around these.</Text>
@@ -91,16 +91,18 @@ export default function Restrictions() {
             All meals are automatically optimized for GLP-1 users — small portions, high nutrient density, injection-day aware.
           </Text>
         </View>
-
-        <Button label="Next: Set my budget" onPress={handleNext} />
       </ScrollView>
+      <View style={s.footer}>
+        <Button label="Next: Set my budget" onPress={handleNext} />
+      </View>
     </OnboardingShell>
   );
 }
 
 function makeStyles(c: ThemeColors) {
   return StyleSheet.create({
-  content: { paddingTop: Spacing.lg, paddingBottom: Spacing['3xl'] },
+  content: { paddingTop: Spacing.lg, paddingBottom: Spacing.md },
+  footer: { paddingTop: Spacing.md, paddingBottom: Spacing.xl },
   label: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: c.primary, letterSpacing: 2, textTransform: 'uppercase', marginBottom: Spacing.md },
   title: { fontSize: FontSize['2xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground, lineHeight: 32, marginBottom: Spacing.sm },
   titleHighlight: { color: c.primary },

@@ -158,7 +158,7 @@ export default function Settings() {
     : null;
 
   return (
-    <SafeAreaView style={s.safe}>
+    <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
       {deletingAccount && (
         <View style={s.deletingOverlay}>
           <ActivityIndicator color={colors.primaryForeground} size="large" />
@@ -510,7 +510,7 @@ export default function Settings() {
 function makeStyles(c: ThemeColors) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: c.background },
-    scroll: { paddingHorizontal: Spacing.xl, paddingTop: Spacing.xl, paddingBottom: Spacing['3xl'] },
+    scroll: { paddingHorizontal: Spacing.xl, paddingTop: Spacing.xl, paddingBottom: 120 },
     screenTitle: { fontSize: FontSize['2xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground, marginBottom: Spacing.xl },
     // User card
     userCard: { flexDirection: 'row', alignItems: 'center', gap: Spacing.lg, backgroundColor: c.card, borderRadius: Radius.lg, borderWidth: 1, borderColor: c.border, padding: Spacing.xl, marginBottom: Spacing['2xl'] },

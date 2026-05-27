@@ -16,7 +16,7 @@ export default function Solution() {
 
   return (
     <OnboardingShell step={3} skipRoute="/(onboarding)/10-restrictions">
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.content}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
 
         <Text style={s.label}>The Right Way</Text>
         <Text style={s.title}>
@@ -63,16 +63,18 @@ export default function Solution() {
             <Text style={s.noriHighlight}>harder for you.</Text>"
           </Text>
         </View>
-
-        <Button label="Show me the right way" onPress={() => router.push('/(onboarding)/04-aha')} />
       </ScrollView>
+      <View style={s.footer}>
+        <Button label="Show me the right way" onPress={() => router.push('/(onboarding)/04-aha')} />
+      </View>
     </OnboardingShell>
   );
 }
 
 function makeStyles(c: ThemeColors) {
   return StyleSheet.create({
-    content: { paddingTop: Spacing.md, paddingBottom: Spacing['2xl'] },
+    content: { paddingTop: Spacing.md, paddingBottom: Spacing.md },
+    footer: { paddingTop: Spacing.md, paddingBottom: Spacing.xl },
 
     label: {
       fontSize: FontSize.sm,

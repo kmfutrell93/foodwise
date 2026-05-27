@@ -67,7 +67,7 @@ export default function MealReveal() {
 
   return (
     <OnboardingShell step={14}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.content}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
 
         {/* Nori header */}
         <Animated.View entering={FadeIn.duration(500)} style={s.header}>
@@ -135,17 +135,18 @@ export default function MealReveal() {
             </Animated.View>
           ))}
         </View>
-
-        <View style={{ height: Spacing['2xl'] }} />
-        <Button label="Love it! Keep going" onPress={() => router.push('/(onboarding)/15-review')} />
       </ScrollView>
+      <View style={s.footer}>
+        <Button label="Love it! Keep going" onPress={() => router.push('/(onboarding)/15-review')} />
+      </View>
     </OnboardingShell>
   );
 }
 
 function makeStyles(c: ThemeColors) {
   return StyleSheet.create({
-    content: { paddingTop: Spacing.md, paddingBottom: Spacing['3xl'] },
+    content: { paddingTop: Spacing.md, paddingBottom: Spacing.md },
+    footer: { paddingTop: Spacing.md, paddingBottom: Spacing.xl },
 
     header: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, marginBottom: Spacing.lg },
     noriImg: { width: 40, height: 40 },

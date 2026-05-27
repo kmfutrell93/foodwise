@@ -41,7 +41,7 @@ export default function Summary() {
 
   return (
     <OnboardingShell step={16}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.content}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <View style={s.noriHeader}>
           <Image source={require('@/assets/images/nori_character.png')} style={s.noriImg} resizeMode="contain" />
         </View>
@@ -62,16 +62,18 @@ export default function Summary() {
           <Text style={s.noteIcon}>💡</Text>
           <Text style={s.noteText}>Two more quick questions and you're in — your medication schedule is the key to the whole plan.</Text>
         </View>
-
-        <Button label="Almost done" onPress={() => router.push('/(onboarding)/17-habit')} />
       </ScrollView>
+      <View style={s.footer}>
+        <Button label="Almost done" onPress={() => router.push('/(onboarding)/17-habit')} />
+      </View>
     </OnboardingShell>
   );
 }
 
 function makeStyles(c: ThemeColors) {
   return StyleSheet.create({
-  content: { paddingTop: Spacing.md, paddingBottom: Spacing['3xl'] },
+  content: { paddingTop: Spacing.md, paddingBottom: Spacing.md },
+  footer: { paddingTop: Spacing.md, paddingBottom: Spacing.xl },
   noriHeader: { alignItems: 'center', marginBottom: Spacing['2xl'] },
   noriImg: { width: 64, height: 64 },
   titleHighlight: { color: c.primary },

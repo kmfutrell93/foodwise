@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { View, Text, Image, StyleSheet, Animated } from 'react-native';
+import { View, Text, Image, StyleSheet, Animated, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { OnboardingShell } from '@/components/ui/OnboardingShell';
 import { Button } from '@/components/ui/Button';
@@ -32,7 +32,7 @@ export default function Commitment() {
 
   return (
     <OnboardingShell step={18}>
-      <View style={s.container}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <View style={s.noriWrap}>
           <Image source={require('@/assets/images/nori_character.png')} style={s.noriImg} resizeMode="contain" />
         </View>
@@ -55,8 +55,8 @@ export default function Commitment() {
             "I'll show up for myself — not perfectly, but consistently. I'll use food as a tool to protect my health while on GLP-1 medication."
           </Text>
         </View>
-
-        <View style={s.spacer} />
+      </ScrollView>
+      <View style={s.footer}>
         <Animated.View style={{ transform: [{ scale }] }}>
           <Button label="I'm in — let's go" onPress={handleCommit} />
         </Animated.View>
@@ -67,7 +67,8 @@ export default function Commitment() {
 
 function makeStyles(c: ThemeColors) {
   return StyleSheet.create({
-  container: { flex: 1, paddingTop: Spacing.md, paddingBottom: Spacing.xl },
+  content: { paddingTop: Spacing.md, paddingBottom: Spacing.md },
+  footer: { paddingTop: Spacing.md, paddingBottom: Spacing.xl },
   noriWrap: { alignItems: 'center', marginBottom: Spacing['2xl'] },
   noriImg: { width: 144, height: 144 },
   label: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: c.primary, letterSpacing: 2, textTransform: 'uppercase', marginBottom: Spacing.md },
@@ -80,6 +81,6 @@ function makeStyles(c: ThemeColors) {
   pledge: { backgroundColor: c.card, borderRadius: Radius.lg, borderWidth: 1, borderColor: 'rgba(29,158,117,0.3)', padding: Spacing.xl },
   pledgeTitle: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: c.primary, marginBottom: Spacing.sm, textAlign: 'center', textTransform: 'uppercase', letterSpacing: 1 },
   pledgeText: { fontSize: FontSize.base, color: c.foreground, fontFamily: 'PlusJakartaSans-SemiBold', lineHeight: 26, textAlign: 'center', fontStyle: 'italic' },
-  spacer: { flex: 1 },
 });
+
 }

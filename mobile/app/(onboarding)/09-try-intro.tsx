@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { OnboardingShell } from '@/components/ui/OnboardingShell';
 import { Button } from '@/components/ui/Button';
@@ -19,7 +19,7 @@ export default function TryIntro() {
 
   return (
     <OnboardingShell step={9}>
-      <View style={s.container}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
 
         {/* Big Nori centered */}
         <View style={s.noriWrap}>
@@ -52,9 +52,8 @@ export default function TryIntro() {
             </React.Fragment>
           ))}
         </View>
-
-        <View style={s.spacer} />
-
+      </ScrollView>
+      <View style={s.footer}>
         <Button label="Let's go!" onPress={() => router.push('/(onboarding)/10-restrictions')} />
         <Text style={s.note}>You can always update your preferences later</Text>
       </View>
@@ -64,7 +63,8 @@ export default function TryIntro() {
 
 function makeStyles(c: ThemeColors) {
   return StyleSheet.create({
-    container: { flex: 1, paddingTop: Spacing.md, paddingBottom: Spacing.xl },
+    content: { paddingTop: Spacing.md, paddingBottom: Spacing.md },
+    footer: { paddingTop: Spacing.md, paddingBottom: Spacing.xl },
 
     noriWrap: { alignItems: 'center', marginBottom: Spacing['2xl'] },
     nori: { width: 160, height: 160 },
@@ -132,7 +132,6 @@ function makeStyles(c: ThemeColors) {
       marginHorizontal: 4,
     },
 
-    spacer: { flex: 1 },
     note: {
       fontSize: FontSize.xs,
       color: c.mutedForeground,

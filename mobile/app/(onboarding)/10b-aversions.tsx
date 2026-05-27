@@ -44,7 +44,7 @@ export default function Aversions() {
 
   return (
     <OnboardingShell step={10}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.content}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <Text style={s.label}>Food aversions</Text>
         <Text style={s.title}>Anything that makes{'\n'}your stomach turn?</Text>
         <Text style={s.sub}>GLP-1 medications can intensify food reactions. We'll avoid these in your plan.</Text>
@@ -68,16 +68,18 @@ export default function Aversions() {
             <Text style={[s.tagText, noneSelected && s.tagTextSelected]}>✓ Nothing bothers me</Text>
           </TouchableOpacity>
         </View>
-
-        <Button label="Continue" onPress={handleNext} />
       </ScrollView>
+      <View style={s.footer}>
+        <Button label="Continue" onPress={handleNext} />
+      </View>
     </OnboardingShell>
   );
 }
 
 function makeStyles(c: ThemeColors) {
   return StyleSheet.create({
-    content: { paddingTop: Spacing.lg, paddingBottom: Spacing['3xl'] },
+    content: { paddingTop: Spacing.lg, paddingBottom: Spacing.md },
+    footer: { paddingTop: Spacing.md, paddingBottom: Spacing.xl },
     label: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: c.primary, letterSpacing: 2, textTransform: 'uppercase', marginBottom: Spacing.md },
     title: { fontSize: FontSize['3xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground, lineHeight: 38, marginBottom: Spacing.sm },
     sub: { fontSize: FontSize.sm, color: c.mutedForeground, marginBottom: Spacing['2xl'], lineHeight: 20 },

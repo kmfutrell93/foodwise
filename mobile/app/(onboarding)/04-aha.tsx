@@ -19,7 +19,7 @@ export default function AhaStat() {
 
   return (
     <OnboardingShell step={4} skipRoute="/(onboarding)/10-restrictions">
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.content}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
 
         {/* Stat block */}
         <View style={s.statSection}>
@@ -55,17 +55,19 @@ export default function AhaStat() {
           </Text>
         </View>
 
-        <Button label="This can't happen to me" onPress={() => router.push('/(onboarding)/05-question1')} />
-
         <Text style={s.citation}>Source: NEJM GLP-1 muscle preservation study, 2024</Text>
       </ScrollView>
+      <View style={s.footer}>
+        <Button label="This can't happen to me" onPress={() => router.push('/(onboarding)/05-question1')} />
+      </View>
     </OnboardingShell>
   );
 }
 
 function makeStyles(c: ThemeColors) {
   return StyleSheet.create({
-    content: { paddingTop: Spacing.md, paddingBottom: Spacing['2xl'], alignItems: 'center' },
+    content: { paddingTop: Spacing.md, paddingBottom: Spacing.md, alignItems: 'center' },
+    footer: { paddingTop: Spacing.md, paddingBottom: Spacing.xl },
 
     statSection: { alignItems: 'center', marginBottom: Spacing['2xl'], width: '100%' },
     label: {

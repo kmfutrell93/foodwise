@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Image, Platform, ActivityIndicator, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { OnboardingShell } from '@/components/ui/OnboardingShell';
 import { Button } from '@/components/ui/Button';
@@ -46,7 +46,7 @@ export default function AppleHealth() {
 
   return (
     <OnboardingShell step={8} skipRoute="/(onboarding)/09-try-intro" onSkip={handleSkip}>
-      <View style={s.content}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         {/* Header */}
         <View style={s.header}>
           <Image
@@ -77,7 +77,8 @@ export default function AppleHealth() {
           <Text style={s.privacyIcon}>🔒</Text>
           <Text style={s.privacyText}>Your health data never leaves your device and is never sold.</Text>
         </View>
-
+      </ScrollView>
+      <View style={s.footer}>
         {/* CTA */}
         {connecting ? (
           <View style={s.loadingRow}>
@@ -99,7 +100,8 @@ export default function AppleHealth() {
 
 function makeStyles(c: ThemeColors) {
   return StyleSheet.create({
-    content: { paddingTop: Spacing.md, paddingBottom: Spacing['2xl'] },
+    content: { paddingTop: Spacing.md, paddingBottom: Spacing.md },
+    footer: { paddingTop: Spacing.md, paddingBottom: Spacing.xl },
 
     header: { alignItems: 'center', marginBottom: Spacing['2xl'] },
     nori: { width: 56, height: 56, marginBottom: Spacing.lg },

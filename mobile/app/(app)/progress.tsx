@@ -340,7 +340,7 @@ export default function Progress() {
   const milestoneEntries = Object.entries(MILESTONE_LABELS);
 
   return (
-    <SafeAreaView style={s.safe}>
+    <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={s.scroll}
@@ -651,7 +651,7 @@ export default function Progress() {
 function makeStyles(c: ThemeColors) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: c.background },
-    scroll: { paddingHorizontal: Spacing.xl, paddingTop: Spacing.xl, paddingBottom: Spacing['3xl'] },
+    scroll: { paddingHorizontal: Spacing.xl, paddingTop: Spacing.xl, paddingBottom: 120 },
     screenTitle: { fontSize: FontSize['2xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground, marginBottom: Spacing.xl },
     ringCard: { backgroundColor: c.card, borderRadius: Radius.xl, borderWidth: 1, borderColor: c.border, padding: Spacing.xl, flexDirection: 'row', alignItems: 'center', gap: Spacing['2xl'], marginBottom: Spacing['2xl'] },
     ringCenter: { position: 'relative', width: 140, height: 140, alignItems: 'center', justifyContent: 'center' },

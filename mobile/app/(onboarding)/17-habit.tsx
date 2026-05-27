@@ -92,7 +92,7 @@ export default function Habit() {
 
   return (
     <OnboardingShell step={17}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.content}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <Text style={s.label}>Medication</Text>
         <Text style={s.title}>Your GLP-1{'\n'}details.</Text>
         <Text style={s.sub}>This powers injection-day meal adjustments — the most important part of your plan.</Text>
@@ -189,16 +189,18 @@ export default function Habit() {
           ))}
         </View>
 
-        <View style={s.spacer} />
-        <Button label="Continue" onPress={handleNext} disabled={!canProceed} />
       </ScrollView>
+      <View style={s.footer}>
+        <Button label="Continue" onPress={handleNext} disabled={!canProceed} />
+      </View>
     </OnboardingShell>
   );
 }
 
 function makeStyles(c: ThemeColors) {
   return StyleSheet.create({
-    content: { paddingTop: Spacing.lg, paddingBottom: Spacing['3xl'] },
+    content: { paddingTop: Spacing.lg, paddingBottom: Spacing.md },
+    footer: { paddingTop: Spacing.md, paddingBottom: Spacing.xl },
     label: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: c.primary, letterSpacing: 2, textTransform: 'uppercase', marginBottom: Spacing.md },
     title: { fontSize: FontSize['3xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground, lineHeight: 38, marginBottom: Spacing.sm },
     sub: { fontSize: FontSize.sm, color: c.mutedForeground, lineHeight: 20, marginBottom: Spacing['2xl'] },
@@ -232,6 +234,5 @@ function makeStyles(c: ThemeColors) {
     timeIcon: { fontSize: 22 },
     timeLabel: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-SemiBold', color: c.mutedForeground },
     timeLabelSelected: { color: c.primary },
-    spacer: { height: Spacing.xl },
   });
 }

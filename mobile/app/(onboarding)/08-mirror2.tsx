@@ -60,7 +60,7 @@ export default function Mirror2() {
 
   return (
     <OnboardingShell step={8} skipRoute="/(onboarding)/10-restrictions">
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.content}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
 
         {/* Empathy header */}
         <View style={s.header}>
@@ -102,16 +102,18 @@ export default function Mirror2() {
           </View>
           <Text style={[s.barNote, { color: colors.secondary }]}>114g / 120g daily goal (95%)</Text>
         </View>
-
-        <Button label={copy.cta} onPress={() => router.push('/(onboarding)/08b-apple-health' as any)} />
       </ScrollView>
+      <View style={s.footer}>
+        <Button label={copy.cta} onPress={() => router.push('/(onboarding)/08b-apple-health' as any)} />
+      </View>
     </OnboardingShell>
   );
 }
 
 function makeStyles(c: ThemeColors) {
   return StyleSheet.create({
-    content: { paddingTop: Spacing.md, paddingBottom: Spacing['2xl'] },
+    content: { paddingTop: Spacing.md, paddingBottom: Spacing.md },
+    footer: { paddingTop: Spacing.md, paddingBottom: Spacing.xl },
 
     header: { alignItems: 'center', marginBottom: Spacing['2xl'] },
     nori: { width: 48, height: 48, marginBottom: Spacing.md },
