@@ -128,7 +128,7 @@ function makeStyles(c: ThemeColors) {
       alignItems: 'center',
       gap: 2,
     },
-    pillSelected: { borderColor: c.primary, backgroundColor: 'rgba(232,157,53,0.10)' },
+    pillSelected: { borderColor: c.primary, backgroundColor: 'rgba(29,158,117,0.10)' },
     pct: {
       fontSize: FontSize.lg,
       fontFamily: 'PlusJakartaSans-ExtraBold',

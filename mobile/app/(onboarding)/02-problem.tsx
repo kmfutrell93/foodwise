@@ -9,21 +9,21 @@ import { useThemeColors } from '@/context/ThemeContext';
 const PROBLEMS = [
   {
     icon: '⚡',
-    iconBg: 'rgba(232,157,53,0.15)',
+    iconBg: 'rgba(29,158,117,0.15)',
     iconColor: 'primary' as const,
     title: 'Appetite is suppressed',
     sub: 'You eat less food than your body needs',
   },
   {
     icon: '🛡️',
-    iconBg: 'rgba(216,127,99,0.15)',
+    iconBg: 'rgba(29,158,117,0.15)',
     iconColor: 'accent' as const,
     title: 'Nutrients go missing',
     sub: 'Protein, fiber & micronutrients fall short',
   },
   {
     icon: '💪',
-    iconBg: 'rgba(138,154,124,0.15)',
+    iconBg: 'rgba(29,158,117,0.15)',
     iconColor: 'secondary' as const,
     title: 'Muscle starts to fade',
     sub: 'Your body breaks down lean mass for energy',

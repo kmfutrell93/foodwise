@@ -175,7 +175,7 @@ export default function SymptomTracker() {
         </View>
 
         {(insight || loadingInsight) && (
-          <View style={[s.insightCard, { backgroundColor: 'rgba(138,154,124,0.1)', borderColor: 'rgba(138,154,124,0.2)' }]}>
+          <View style={[s.insightCard, { backgroundColor: 'rgba(29,158,117,0.1)', borderColor: 'rgba(29,158,117,0.2)' }]}>
             <Text style={[s.insightTitle, { color: colors.secondary }]}>🌿 Nori's insight</Text>
             {loadingInsight ? (
               <ActivityIndicator color={colors.secondary} />

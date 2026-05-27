@@ -11,7 +11,7 @@ const SAMPLE_MEALS = [
   {
     label: 'Breakfast',
     labelColor: 'primary' as const,
-    labelBg: 'rgba(232,157,53,0.10)',
+    labelBg: 'rgba(29,158,117,0.10)',
     time: '7:00 AM',
     name: 'Greek Yogurt Protein Parfait',
     desc: '2% Greek yogurt, mixed berries, hemp seeds, honey drizzle',
@@ -22,7 +22,7 @@ const SAMPLE_MEALS = [
   {
     label: 'Lunch',
     labelColor: 'secondary' as const,
-    labelBg: 'rgba(138,154,124,0.10)',
+    labelBg: 'rgba(29,158,117,0.10)',
     time: '12:30 PM',
     name: 'Turkey & Edamame Egg Roll Bowl',
     desc: 'Ground turkey, shredded cabbage, edamame, soy-ginger sauce, sesame',
@@ -33,7 +33,7 @@ const SAMPLE_MEALS = [
   {
     label: 'Snack',
     labelColor: 'accent' as const,
-    labelBg: 'rgba(216,127,99,0.10)',
+    labelBg: 'rgba(29,158,117,0.10)',
     time: '3:00 PM',
     name: 'Cottage Cheese & Cucumber Bites',
     desc: 'Low-fat cottage cheese, sliced cucumbers, everything bagel seasoning',
@@ -44,7 +44,7 @@ const SAMPLE_MEALS = [
   {
     label: 'Dinner',
     labelColor: 'secondary' as const,
-    labelBg: 'rgba(138,154,124,0.08)',
+    labelBg: 'rgba(29,158,117,0.08)',
     time: '6:30 PM',
     name: 'Lemon Herb Salmon & Broccoli',
     desc: 'Pan-seared salmon fillet, steamed broccoli, lemon-dill sauce',
@@ -184,7 +184,7 @@ function makeStyles(c: ThemeColors) {
     mealDesc: { fontSize: FontSize.xs, color: c.mutedForeground, lineHeight: 16, marginBottom: Spacing.md },
     chips: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
     chip: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.full, backgroundColor: c.muted },
-    chipProtein: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.full, backgroundColor: 'rgba(138,154,124,0.15)' },
+    chipProtein: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.full, backgroundColor: 'rgba(29,158,117,0.15)' },
     chipText: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-Bold' },
   });
 }

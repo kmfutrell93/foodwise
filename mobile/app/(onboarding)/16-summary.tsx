@@ -83,7 +83,7 @@ function makeStyles(c: ThemeColors) {
   rowBorder: { borderBottomWidth: 1, borderBottomColor: c.border },
   rowLabel: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-SemiBold', color: c.mutedForeground, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 },
   rowValue: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-SemiBold', color: c.foreground },
-  noteBox: { flexDirection: 'row', gap: Spacing.md, backgroundColor: 'rgba(232,157,53,0.08)', borderRadius: Radius.lg, borderWidth: 1, borderColor: 'rgba(232,157,53,0.2)', padding: Spacing.lg, marginBottom: Spacing['2xl'] },
+  noteBox: { flexDirection: 'row', gap: Spacing.md, backgroundColor: 'rgba(29,158,117,0.08)', borderRadius: Radius.lg, borderWidth: 1, borderColor: 'rgba(29,158,117,0.2)', padding: Spacing.lg, marginBottom: Spacing['2xl'] },
   noteIcon: { fontSize: 20 },
   noteText: { flex: 1, fontSize: FontSize.sm, color: c.foreground, lineHeight: 20 },
 });

@@ -108,12 +108,12 @@ function makeStyles(c: ThemeColors) {
       gap: Spacing.sm,
     },
     colBad: {
-      backgroundColor: 'rgba(224,101,85,0.10)',
-      borderColor: 'rgba(224,101,85,0.20)',
+      backgroundColor: 'rgba(29,158,117,0.10)',
+      borderColor: 'rgba(29,158,117,0.20)',
     },
     colGood: {
-      backgroundColor: 'rgba(138,154,124,0.10)',
-      borderColor: 'rgba(138,154,124,0.25)',
+      backgroundColor: 'rgba(29,158,117,0.10)',
+      borderColor: 'rgba(29,158,117,0.25)',
     },
     colHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
     colHeaderIcon: { fontSize: 14, fontFamily: 'PlusJakartaSans-Bold' },

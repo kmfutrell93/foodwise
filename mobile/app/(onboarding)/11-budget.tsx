@@ -87,7 +87,7 @@ function makeStyles(c: ThemeColors) {
   sliderMax: { fontSize: FontSize.xs, color: c.mutedForeground },
   presets: { flexDirection: 'row', gap: Spacing.sm },
   preset: { flex: 1, padding: Spacing.md, borderRadius: Radius.lg, backgroundColor: c.card, borderWidth: 1, borderColor: c.border, alignItems: 'center', gap: 2 },
-  presetSelected: { borderColor: c.primary, backgroundColor: 'rgba(232,157,53,0.1)' },
+  presetSelected: { borderColor: c.primary, backgroundColor: 'rgba(29,158,117,0.1)' },
   presetLabel: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: c.foreground },
   presetSub: { fontSize: FontSize.xs, color: c.mutedForeground },
   spacer: { flex: 1 },

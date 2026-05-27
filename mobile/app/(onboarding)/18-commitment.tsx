@@ -77,7 +77,7 @@ function makeStyles(c: ThemeColors) {
   row: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md },
   icon: { fontSize: 22, lineHeight: 28 },
   text: { flex: 1, fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-SemiBold', color: c.foreground, lineHeight: 24 },
-  pledge: { backgroundColor: c.card, borderRadius: Radius.lg, borderWidth: 1, borderColor: 'rgba(232,157,53,0.3)', padding: Spacing.xl },
+  pledge: { backgroundColor: c.card, borderRadius: Radius.lg, borderWidth: 1, borderColor: 'rgba(29,158,117,0.3)', padding: Spacing.xl },
   pledgeTitle: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: c.primary, marginBottom: Spacing.sm, textAlign: 'center', textTransform: 'uppercase', letterSpacing: 1 },
   pledgeText: { fontSize: FontSize.base, color: c.foreground, fontFamily: 'PlusJakartaSans-SemiBold', lineHeight: 26, textAlign: 'center', fontStyle: 'italic' },
   spacer: { flex: 1 },

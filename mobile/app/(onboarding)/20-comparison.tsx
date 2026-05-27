@@ -71,7 +71,7 @@ function makeStyles(c: ThemeColors) {
   featureText: { fontSize: FontSize.sm, color: c.foreground },
   checkCol: { width: 48, textAlign: 'center', fontSize: FontSize.sm, color: c.mutedForeground },
   proCheck: { color: c.primary, fontFamily: 'PlusJakartaSans-Bold' },
-  cta: { backgroundColor: 'rgba(232,157,53,0.08)', borderRadius: Radius.lg, borderWidth: 1, borderColor: 'rgba(232,157,53,0.2)', padding: Spacing.xl, marginBottom: Spacing['2xl'] },
+  cta: { backgroundColor: 'rgba(29,158,117,0.08)', borderRadius: Radius.lg, borderWidth: 1, borderColor: 'rgba(29,158,117,0.2)', padding: Spacing.xl, marginBottom: Spacing['2xl'] },
   ctaText: { fontSize: FontSize.sm, color: c.mutedForeground, textAlign: 'center', lineHeight: 22 },
   ctaHighlight: { color: c.primary, fontFamily: 'PlusJakartaSans-Bold' },
 });

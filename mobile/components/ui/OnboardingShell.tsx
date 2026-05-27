@@ -3,34 +3,30 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Spacing, ThemeColors } from '@/constants/theme';
-import { useThemeColors } from '@/context/ThemeContext';
+import { Colors, Spacing, Radius } from '@/constants/theme';
 
 type Props = {
   step: number;
   children: React.ReactNode;
   showBack?: boolean;
   onBack?: () => void;
-  // Show "Skip" in top-right that navigates to this route (screens 1–7)
   skipRoute?: string;
-  // Optional callback invoked before skip navigation (for analytics)
   onSkip?: () => void;
-  // Optional text badge shown in nav center (e.g. "Question 1 of 2")
   centerLabel?: string;
 };
 
 const BOTTOM_DOT_COUNT = 7;
-const STEP_NAV_START = 10;
-const STEP_NAV_END = 12;
+const STEP_NAV_START   = 10;
+const STEP_NAV_END     = 12;
 
-export function OnboardingShell({ step, children, showBack = true, onBack, skipRoute, onSkip, centerLabel }: Props) {
+export function OnboardingShell({
+  step, children, showBack = true, onBack, skipRoute, onSkip, centerLabel,
+}: Props) {
   const router = useRouter();
-  const colors = useThemeColors();
-  const s = makeStyles(colors);
 
   const showBottomDots = step >= 1 && step <= BOTTOM_DOT_COUNT;
-  const showStepNav = step >= STEP_NAV_START && step <= STEP_NAV_END;
-  const questionStep = showStepNav ? step - STEP_NAV_START + 1 : 0;
+  const showStepNav    = step >= STEP_NAV_START && step <= STEP_NAV_END;
+  const questionStep   = showStepNav ? step - STEP_NAV_START + 1 : 0;
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
@@ -42,7 +38,7 @@ export function OnboardingShell({ step, children, showBack = true, onBack, skipR
             style={s.backBtn}
             activeOpacity={0.7}
           >
-            <Ionicons name="chevron-back" size={22} color={colors.foreground} />
+            <Ionicons name="chevron-back" size={22} color={Colors.textPrimary} />
           </TouchableOpacity>
         ) : (
           <View style={s.backBtn} />
@@ -96,64 +92,60 @@ export function OnboardingShell({ step, children, showBack = true, onBack, skipR
   );
 }
 
-function makeStyles(c: ThemeColors) {
-  return StyleSheet.create({
-    safe: { flex: 1, backgroundColor: c.background },
+const s = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: Colors.background },
 
-    nav: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: Spacing.lg,
-      paddingTop: Spacing.md,
-      paddingBottom: Spacing.sm,
-    },
-    backBtn: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: c.muted,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
+  nav: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.sm,
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.backgroundMid,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 
-    // Step nav (screens 10–12)
-    stepDots: {
-      flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 8,
-    },
+  stepDots: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
 
-    // Text badge in nav center (e.g. "Question 1 of 2")
-    centerBadgeWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-    centerBadge: {
-      fontSize: 11,
-      fontFamily: 'PlusJakartaSans-Bold',
-      color: c.mutedForeground,
-      backgroundColor: c.muted,
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 999,
-      overflow: 'hidden',
-    },
+  centerBadgeWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  centerBadge: {
+    fontSize: 11,
+    fontFamily: 'PlusJakartaSans-Bold',
+    color: Colors.textSecondary,
+    backgroundColor: Colors.backgroundMid,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: Radius.full,
+    overflow: 'hidden',
+  },
 
-    // Skip link (screens 1–7)
-    skipBtn: { width: 52, alignItems: 'flex-end', justifyContent: 'center', height: 40 },
-    skipText: { fontSize: 14, color: c.mutedForeground },
+  skipBtn: { width: 52, alignItems: 'flex-end', justifyContent: 'center', height: 40 },
+  skipText: { fontSize: 14, color: Colors.textSecondary },
 
-    content: { flex: 1, paddingHorizontal: Spacing.xl },
+  content: { flex: 1, paddingHorizontal: Spacing.xl },
 
-    // Shared dot + bottom dots bar
-    dotsBar: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: 8,
-      paddingVertical: 16,
-    },
-    dot: { height: 8, borderRadius: 999 },
-    dotActive: { width: 24, backgroundColor: c.primary },
-    dotInactive: { width: 8, backgroundColor: c.muted },
-  });
-}
+  dotsBar: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 16,
+  },
+  dot: { height: 8, borderRadius: Radius.full },
+  dotActive:   { width: 24, backgroundColor: Colors.teal },
+  dotInactive: { width: 8,  backgroundColor: Colors.borderStrong },
+});

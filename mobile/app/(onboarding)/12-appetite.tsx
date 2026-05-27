@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { OnboardingShell } from '@/components/ui/OnboardingShell';
 import { Button } from '@/components/ui/Button';
@@ -58,40 +58,44 @@ export default function Appetite() {
 
   return (
     <OnboardingShell step={12}>
-      <View style={s.container}>
-        <Text style={s.label}>Step 3 of 3</Text>
-        <Text style={s.title}>How's your{'\n'}<Text style={s.titleHighlight}>appetite been lately?</Text></Text>
-        <Text style={s.sub}>This helps Nori size your meals just right — not too much, not too little.</Text>
+      <View style={s.outer}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={s.scroll}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Text style={s.label}>Step 3 of 3</Text>
+          <Text style={s.title}>How's your{'\n'}<Text style={s.titleHighlight}>appetite been lately?</Text></Text>
+          <Text style={s.sub}>This helps Nori size your meals just right — not too much, not too little.</Text>
 
-        <View style={s.options}>
-          {OPTIONS.map(opt => {
-            const isSelected = selected === opt.value;
-            return (
-              <TouchableOpacity
-                key={opt.value}
-                style={[s.card, isSelected && s.cardSelected]}
-                onPress={() => { setSelected(opt.value); Haptics.selectionAsync(); }}
-                activeOpacity={0.75}
-              >
-                <Text style={s.icon}>{opt.icon}</Text>
-                <View style={s.labelRow}>
-                  <Text style={[s.cardLabel, isSelected && s.cardLabelSelected]}>{opt.label}</Text>
-                  {opt.badge && (
-                    <View style={s.badge}>
-                      <Text style={s.badgeText}>{opt.badge}</Text>
-                    </View>
-                  )}
-                </View>
-                <Text style={s.cardSub}>{opt.sub}</Text>
-                <View style={s.planBox}>
-                  <Text style={s.planText}>{opt.plan}</Text>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        <View style={s.spacer} />
+          <View style={s.options}>
+            {OPTIONS.map(opt => {
+              const isSelected = selected === opt.value;
+              return (
+                <TouchableOpacity
+                  key={opt.value}
+                  style={[s.card, isSelected && s.cardSelected]}
+                  onPress={() => { setSelected(opt.value); Haptics.selectionAsync(); }}
+                  activeOpacity={0.75}
+                >
+                  <Text style={s.icon}>{opt.icon}</Text>
+                  <View style={s.labelRow}>
+                    <Text style={[s.cardLabel, isSelected && s.cardLabelSelected]}>{opt.label}</Text>
+                    {opt.badge && (
+                      <View style={s.badge}>
+                        <Text style={s.badgeText}>{opt.badge}</Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={s.cardSub}>{opt.sub}</Text>
+                  <View style={s.planBox}>
+                    <Text style={s.planText}>{opt.plan}</Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </ScrollView>
         <Button label="Generate my meal plan!" onPress={handleNext} disabled={!selected} />
       </View>
     </OnboardingShell>
@@ -100,7 +104,8 @@ export default function Appetite() {
 
 function makeStyles(c: ThemeColors) {
   return StyleSheet.create({
-    container: { flex: 1, paddingTop: Spacing.md, paddingBottom: Spacing.xl },
+    outer: { flex: 1, paddingTop: Spacing.md, paddingBottom: Spacing.xl },
+    scroll: { paddingBottom: Spacing.xl },
     label: {
       fontSize: FontSize.sm,
       fontFamily: 'PlusJakartaSans-Bold',
@@ -128,7 +133,7 @@ function makeStyles(c: ThemeColors) {
       backgroundColor: c.card,
       gap: Spacing.sm,
     },
-    cardSelected: { borderColor: c.primary, backgroundColor: 'rgba(232,157,53,0.08)' },
+    cardSelected: { borderColor: c.primary, backgroundColor: 'rgba(29,158,117,0.08)' },
     icon: { fontSize: 36 },
     labelRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
     cardLabel: {
@@ -138,7 +143,7 @@ function makeStyles(c: ThemeColors) {
     },
     cardLabelSelected: { color: c.primary },
     badge: {
-      backgroundColor: 'rgba(232,157,53,0.10)',
+      backgroundColor: 'rgba(29,158,117,0.10)',
       borderRadius: Radius.full,
       paddingHorizontal: 8,
       paddingVertical: 3,
@@ -160,6 +165,5 @@ function makeStyles(c: ThemeColors) {
       fontFamily: 'PlusJakartaSans-SemiBold',
       color: c.foreground,
     },
-    spacer: { flex: 1 },
   });
 }

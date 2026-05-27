@@ -31,7 +31,8 @@ const MED_DISPLAY: Record<string,string> = {
 };
 
 const SLOT_COLORS: Record<string,string> = {
-  breakfast: '#E89D35', lunch: '#8A9A7C', dinner: '#D87F63', snack: '#9B968C',
+  breakfast: '#1D9E75', lunch: '#A8F0D8', dinner: '#1D9E75',
+  snack: '#64748B', 'morning snack': '#A8F0D8', 'afternoon snack': '#64748B',
 };
 const MEAL_EMOJIS: Record<string,string> = {
   breakfast: '🥣', lunch: '🥗', dinner: '🐟', snack: '🍎', 'morning snack': '🥒',
@@ -40,7 +41,7 @@ const MEAL_TIMES: Record<string,string> = {
   breakfast: '7am', 'morning snack': '10am', lunch: '12:30pm',
   'afternoon snack': '3pm', snack: '3pm', dinner: '6:30pm',
 };
-const DESTRUCTIVE = '#E06555';
+const DESTRUCTIVE = '#EF4444';
 
 type EmergencyItem = { name: string; reason: string; prep_mins: number };
 type EmergencyResult = { items: EmergencyItem[]; mode: string; nausea_score: number; medication: string };
@@ -136,9 +137,9 @@ const ring = StyleSheet.create({
 });
 
 const MODE_CONFIG: Record<string, { icon: string; title: string; color: string }> = {
-  nausea: { icon: '🤢', title: 'Nausea mode — gentle foods only', color: '#8A9A7C' },
-  constipation: { icon: '🌿', title: 'High-fibre foods to get things moving', color: '#E89D35' },
-  gentle: { icon: '🥣', title: 'Easy, nourishing options right now', color: '#8A9A7C' },
+  nausea: { icon: '🤢', title: 'Nausea mode — gentle foods only', color: '#1D9E75' },
+  constipation: { icon: '🌿', title: 'High-fibre foods to get things moving', color: '#1D9E75' },
+  gentle: { icon: '🥣', title: 'Easy, nourishing options right now', color: '#1D9E75' },
 };
 
 export default function Home() {
@@ -605,7 +606,7 @@ export default function Home() {
             onPress={() => router.push('/(app)/meal-plan' as any)}
             activeOpacity={0.8}
           >
-            <View style={[s.actionIcon, { backgroundColor: 'rgba(232,157,53,0.12)' }]}>
+            <View style={[s.actionIcon, { backgroundColor: 'rgba(29,158,117,0.12)' }]}>
               <Ionicons name="restaurant-outline" size={20} color={colors.primary} />
             </View>
             <Text style={[s.actionLabel, { color: colors.foreground }]}>Meal Plan</Text>
@@ -616,18 +617,18 @@ export default function Home() {
             onPress={() => router.push('/(app)/grocery-list' as any)}
             activeOpacity={0.8}
           >
-            <View style={[s.actionIcon, { backgroundColor: 'rgba(216,127,99,0.12)' }]}>
+            <View style={[s.actionIcon, { backgroundColor: 'rgba(29,158,117,0.12)' }]}>
               <Ionicons name="cart-outline" size={20} color={colors.accent} />
             </View>
             <Text style={[s.actionLabel, { color: colors.foreground }]}>Grocery List</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[s.actionCard, { backgroundColor: 'rgba(138,154,124,0.1)', borderColor: 'rgba(138,154,124,0.2)' }]}
+            style={[s.actionCard, { backgroundColor: 'rgba(29,158,117,0.1)', borderColor: 'rgba(29,158,117,0.2)' }]}
             onPress={() => router.push('/(app)/symptom-tracker' as any)}
             activeOpacity={0.8}
           >
-            <View style={[s.actionIcon, { backgroundColor: 'rgba(138,154,124,0.15)' }]}>
+            <View style={[s.actionIcon, { backgroundColor: 'rgba(29,158,117,0.15)' }]}>
               <Ionicons name="clipboard-outline" size={20} color={colors.secondary} />
             </View>
             <Text style={[s.actionLabel, { color: colors.foreground }]}>Log Symptoms</Text>
@@ -638,7 +639,7 @@ export default function Home() {
             onPress={() => router.push('/(app)/progress' as any)}
             activeOpacity={0.8}
           >
-            <View style={[s.actionIcon, { backgroundColor: 'rgba(232,157,53,0.12)' }]}>
+            <View style={[s.actionIcon, { backgroundColor: 'rgba(29,158,117,0.12)' }]}>
               <Ionicons name="trending-up-outline" size={20} color={colors.primary} />
             </View>
             <Text style={[s.actionLabel, { color: colors.foreground }]}>View Trends</Text>
@@ -741,7 +742,7 @@ function makeSheetStyles(c: ThemeColors) {
     loadingText: { fontSize: FontSize.sm, textAlign: 'center', lineHeight: 20 },
     sheetScroll: { paddingHorizontal: Spacing.xl, paddingBottom: Spacing['3xl'], gap: Spacing.md },
     foodItem: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md, padding: 16, borderRadius: Radius.xl, borderWidth: 1 },
-    foodNum: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#E06555', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 },
+    foodNum: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#EF4444', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 },
     foodNumText: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-ExtraBold' },
     foodBody: { flex: 1, gap: 4 },
     foodName: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-ExtraBold' },
@@ -764,30 +765,30 @@ function makeStyles(c: ThemeColors) {
     header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.xl, paddingTop: Spacing.xl, marginBottom: Spacing['2xl'] },
     headerLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
     noriAvatar: { width: 56, height: 56 },
-    onlineDot: { position: 'absolute', bottom: 0, right: 0, width: 16, height: 16, borderRadius: 8, backgroundColor: '#4ade80', borderWidth: 2 },
+    onlineDot: { position: 'absolute', bottom: 0, right: 0, width: 16, height: 16, borderRadius: 8, backgroundColor: '#1D9E75', borderWidth: 2 },
     greeting: { fontSize: FontSize.sm, color: c.mutedForeground, fontFamily: 'PlusJakartaSans-Medium' },
     name: { fontSize: FontSize['2xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground },
     bellBtn: { width: 48, height: 48, borderRadius: 24, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
     bellDot: { position: 'absolute', top: 10, right: 10, width: 10, height: 10, borderRadius: 5, borderWidth: 2, zIndex: 1 },
-    medCard: { marginHorizontal: Spacing.xl, marginBottom: Spacing.lg, padding: 16, borderRadius: Radius.xl, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(232,157,53,0.08)', borderWidth: 1, borderColor: 'rgba(232,157,53,0.2)', overflow: 'hidden' },
+    medCard: { marginHorizontal: Spacing.xl, marginBottom: Spacing.lg, padding: 16, borderRadius: Radius.xl, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(29,158,117,0.08)', borderWidth: 1, borderColor: 'rgba(29,158,117,0.2)', overflow: 'hidden' },
     medCardGlowBorder: { borderRadius: Radius.xl, borderWidth: 2, borderColor: '#1D9E75' },
     medLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, flex: 1 },
-    medIconCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(232,157,53,0.15)', alignItems: 'center', justifyContent: 'center' },
+    medIconCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(29,158,117,0.15)', alignItems: 'center', justifyContent: 'center' },
     medName: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: c.foreground },
     medDay: { color: c.mutedForeground, fontFamily: 'PlusJakartaSans-Regular' },
     dotBars: { flexDirection: 'row', gap: 4, marginTop: 6 },
     dotBar: { width: 20, height: 6, borderRadius: 3 },
-    nextBadge: { backgroundColor: 'rgba(232,157,53,0.15)', borderRadius: Radius.full, paddingHorizontal: 10, paddingVertical: 6 },
+    nextBadge: { backgroundColor: 'rgba(29,158,117,0.15)', borderRadius: Radius.full, paddingHorizontal: 10, paddingVertical: 6 },
     nextBadgeText: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-Bold' },
     hydrationBanner: { marginHorizontal: Spacing.xl, marginBottom: Spacing.lg, flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: 14, borderRadius: Radius.xl, backgroundColor: 'rgba(100,180,255,0.1)', borderWidth: 1, borderColor: 'rgba(100,180,255,0.25)' },
     hydrationIcon: { fontSize: 26 },
     hydrationBody: { flex: 1 },
     hydrationTitle: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground },
     hydrationSub: { fontSize: FontSize.xs, color: c.mutedForeground, marginTop: 2, lineHeight: 16 },
-    escalationCard: { marginHorizontal: Spacing.xl, marginBottom: Spacing.lg, flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md, padding: 14, borderRadius: Radius.xl, backgroundColor: 'rgba(232,157,53,0.08)', borderWidth: 1, borderColor: 'rgba(232,157,53,0.3)' },
+    escalationCard: { marginHorizontal: Spacing.xl, marginBottom: Spacing.lg, flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md, padding: 14, borderRadius: Radius.xl, backgroundColor: 'rgba(29,158,117,0.08)', borderWidth: 1, borderColor: 'rgba(29,158,117,0.3)' },
     escalationTitle: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground, marginBottom: 4 },
     escalationSub: { fontSize: FontSize.xs, color: c.mutedForeground, lineHeight: 16 },
-    insightCard: { marginHorizontal: Spacing.xl, marginBottom: Spacing['2xl'], borderRadius: Radius.xl, borderWidth: 1, padding: 16, flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md, backgroundColor: 'rgba(138,154,124,0.1)', borderColor: 'rgba(138,154,124,0.2)' },
+    insightCard: { marginHorizontal: Spacing.xl, marginBottom: Spacing['2xl'], borderRadius: Radius.xl, borderWidth: 1, padding: 16, flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md, backgroundColor: 'rgba(29,158,117,0.1)', borderColor: 'rgba(29,158,117,0.2)' },
     noriSmall: { width: 36, height: 36, flexShrink: 0, marginTop: 2 },
     insightBody: { flex: 1 },
     insightLabel: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-ExtraBold', marginBottom: 4 },
@@ -809,11 +810,11 @@ function makeStyles(c: ThemeColors) {
     ringsScroll: { marginBottom: Spacing['2xl'] },
     ringsContent: { paddingHorizontal: Spacing.xl, gap: Spacing.md },
     streakCard: { marginHorizontal: Spacing.xl, marginBottom: Spacing['2xl'], borderRadius: 24, borderWidth: 1, padding: 16, flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
-    streakIconWrap: { width: 56, height: 56, borderRadius: 14, backgroundColor: 'rgba(232,157,53,0.12)', borderWidth: 1, borderColor: 'rgba(232,157,53,0.2)', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+    streakIconWrap: { width: 56, height: 56, borderRadius: 14, backgroundColor: 'rgba(29,158,117,0.12)', borderWidth: 1, borderColor: 'rgba(29,158,117,0.2)', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
     streakBody: { flex: 1 },
     streakTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
     streakTitle: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-ExtraBold' },
-    xpBadge: { backgroundColor: 'rgba(232,157,53,0.1)', borderRadius: Radius.full, paddingHorizontal: 8, paddingVertical: 2 },
+    xpBadge: { backgroundColor: 'rgba(29,158,117,0.1)', borderRadius: Radius.full, paddingHorizontal: 8, paddingVertical: 2 },
     xpText: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-ExtraBold' },
     streakSub: { fontSize: FontSize.xs, lineHeight: 16, marginBottom: 8 },
     weekDots: { flexDirection: 'row', gap: 6, marginTop: 4 },

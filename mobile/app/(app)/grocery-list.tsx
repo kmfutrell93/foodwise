@@ -22,7 +22,7 @@ const SECTION_EMOJIS: Record<string, string> = {
 };
 
 const NOVA_COLORS: Record<number, string> = {
-  1: '#8A9A7C', 2: '#E8C135', 3: '#E89D35', 4: '#E85353',
+  1: '#1D9E75', 2: '#A8F0D8', 3: '#F59E0B', 4: '#EF4444',
 };
 
 function relativeTime(isoStr: string): string {
@@ -283,7 +283,7 @@ export default function GroceryListScreen() {
         {/* Staleness banner */}
         {isStale && (
           <View style={s.staleBanner}>
-            <Ionicons name="warning-outline" size={16} color="#92400E" />
+            <Ionicons name="warning-outline" size={16} color="#F59E0B" />
             <Text style={s.staleBannerText}>Your meal plan has changed — tap Refresh to update your list.</Text>
             <TouchableOpacity onPress={handleRefresh} disabled={refreshingList} style={s.staleRefreshBtn}>
               <Text style={s.staleRefreshText}>Refresh</Text>
@@ -318,7 +318,7 @@ export default function GroceryListScreen() {
 
         {/* Pantry toggle */}
         <View style={[s.pantryRow, { backgroundColor: colors.muted }]}>
-          <View style={[s.pantryIcon, { backgroundColor: 'rgba(232,157,53,0.12)' }]}>
+          <View style={[s.pantryIcon, { backgroundColor: 'rgba(29,158,117,0.12)' }]}>
             <Ionicons name="pricetag-outline" size={18} color={colors.primary} />
           </View>
           <View style={s.pantryText}>
@@ -366,7 +366,7 @@ export default function GroceryListScreen() {
                   <Text style={s.sectionEmoji}>{emoji}</Text>
                   <Text style={[s.sectionTitle, { color: colors.foreground }]}>{section.category}</Text>
                   {isPantry && (
-                    <View style={[s.stapleBadge, { backgroundColor: 'rgba(232,157,53,0.1)' }]}>
+                    <View style={[s.stapleBadge, { backgroundColor: 'rgba(29,158,117,0.1)' }]}>
                       <Text style={[s.stapleBadgeText, { color: colors.primary }]}>Staples</Text>
                     </View>
                   )}
@@ -418,8 +418,8 @@ function makeStyles(c: ThemeColors) {
     subTitle: { fontSize: FontSize.sm },
     iconBtn: { width: 48, height: 48, borderRadius: 24, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
     staleBanner: { marginHorizontal: Spacing.xl, marginBottom: Spacing.sm, flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderRadius: Radius.lg, backgroundColor: '#FAEEDA', borderLeftWidth: 3, borderLeftColor: '#D97706', borderWidth: 1, borderColor: '#FCD34D' },
-    staleBannerText: { flex: 1, fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-SemiBold', color: '#92400E' },
-    staleRefreshBtn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.full, backgroundColor: '#D97706' },
+    staleBannerText: { flex: 1, fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-SemiBold', color: '#F59E0B' },
+    staleRefreshBtn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.full, backgroundColor: 'rgba(245,158,11,0.20)' },
     staleRefreshText: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-ExtraBold', color: '#fff' },
     lastUpdated: { fontSize: FontSize.xs, paddingHorizontal: Spacing.xl, marginBottom: Spacing.md },
     budgetCard: { marginHorizontal: Spacing.xl, borderRadius: Radius.xl, borderWidth: 1, padding: 16, marginBottom: Spacing.lg },

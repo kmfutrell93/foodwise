@@ -18,8 +18,8 @@ const DAY_SHORT: Record<string, string> = {
 };
 
 const SLOT_COLORS: Record<string, string> = {
-  breakfast: '#E89D35', 'morning snack': '#D87F63',
-  lunch: '#8A9A7C', snack: '#9B968C', dinner: '#8A9A7C',
+  breakfast: '#1D9E75', 'morning snack': '#A8F0D8',
+  lunch: '#A8F0D8', snack: '#64748B', dinner: '#1D9E75', 'afternoon snack': '#64748B',
 };
 
 const MEAL_EMOJIS: Record<string, string> = {
@@ -139,7 +139,7 @@ export default function MealPlanScreen() {
         </View>
 
         {error && (
-          <View style={[s.errorBox, { backgroundColor: '#E0655522', borderColor: '#E0655544' }]}>
+          <View style={[s.errorBox, { backgroundColor: 'rgba(29,158,117,0.13)', borderColor: 'rgba(29,158,117,0.27)' }]}>
             <Text style={s.errorText}>{error}</Text>
           </View>
         )}
@@ -187,7 +187,7 @@ export default function MealPlanScreen() {
                     key={d.day}
                     style={[
                       s.dayPill,
-                      { backgroundColor: isActive ? colors.primary : colors.card, borderColor: isActive ? colors.primary : isInjection ? 'rgba(216,127,99,0.5)' : colors.border },
+                      { backgroundColor: isActive ? colors.primary : colors.card, borderColor: isActive ? colors.primary : isInjection ? 'rgba(29,158,117,0.5)' : colors.border },
                     ]}
                     onPress={() => setSelectedDay(i)}
                     activeOpacity={0.75}
@@ -282,7 +282,7 @@ export default function MealPlanScreen() {
                           </View>
                         </View>
                         <View style={s.macroTags}>
-                          <View style={[s.macroTag, { backgroundColor: 'rgba(138,154,124,0.12)' }]}>
+                          <View style={[s.macroTag, { backgroundColor: 'rgba(29,158,117,0.12)' }]}>
                             <Text style={[s.macroTagText, { color: colors.secondary }]}>{meal.protein_g}g protein</Text>
                           </View>
                           <View style={[s.macroTag, { backgroundColor: colors.muted }]}>
@@ -355,7 +355,7 @@ function makeStyles(c: ThemeColors) {
     weekSub: { fontSize: FontSize.sm },
     headerBtn: { width: 48, height: 48, borderRadius: 24, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
     errorBox: { marginHorizontal: Spacing.xl, borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.lg, marginBottom: Spacing.lg },
-    errorText: { color: '#E06555', fontSize: FontSize.sm },
+    errorText: { color: '#EF4444', fontSize: FontSize.sm },
     emptyState: { alignItems: 'center', paddingTop: Spacing['3xl'], paddingHorizontal: Spacing.xl },
     emptyIcon: { fontSize: 64, marginBottom: Spacing.xl },
     emptyTitle: { fontSize: FontSize.xl, fontFamily: 'PlusJakartaSans-ExtraBold', marginBottom: Spacing.sm },
@@ -364,7 +364,7 @@ function makeStyles(c: ThemeColors) {
     generateBtnText: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-ExtraBold' },
     loadingState: { alignItems: 'center', paddingTop: Spacing['3xl'], gap: Spacing.xl },
     loadingText: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-SemiBold' },
-    injBanner: { marginHorizontal: Spacing.xl, marginBottom: Spacing.lg, padding: 12, borderRadius: Radius.xl, flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm, backgroundColor: 'rgba(216,127,99,0.08)', borderWidth: 1, borderColor: 'rgba(216,127,99,0.2)' },
+    injBanner: { marginHorizontal: Spacing.xl, marginBottom: Spacing.lg, padding: 12, borderRadius: Radius.xl, flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm, backgroundColor: 'rgba(29,158,117,0.08)', borderWidth: 1, borderColor: 'rgba(29,158,117,0.2)' },
     injBannerText: { fontSize: FontSize.xs, flex: 1, lineHeight: 18 },
     dayScroll: { marginBottom: Spacing['2xl'] },
     dayScrollContent: { paddingHorizontal: Spacing.xl, gap: Spacing.md },

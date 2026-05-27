@@ -68,7 +68,7 @@ export default function PricingIntro() {
 function makeStyles(c: ThemeColors) {
   return StyleSheet.create({
   content: { paddingTop: Spacing.md, paddingBottom: Spacing['3xl'] },
-  crownWrap: { width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(232,157,53,0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.xl, alignSelf: 'center' },
+  crownWrap: { width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(29,158,117,0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.xl, alignSelf: 'center' },
   crown: { fontSize: 36 },
   label: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: c.primary, letterSpacing: 2, textTransform: 'uppercase', marginBottom: Spacing.md },
   title: { fontSize: FontSize['3xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground, lineHeight: 38, marginBottom: Spacing['2xl'] },
@@ -78,7 +78,7 @@ function makeStyles(c: ThemeColors) {
   cardBody: { flex: 1 },
   cardTitle: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-Bold', color: c.foreground, marginBottom: 4 },
   cardBody2: { fontSize: FontSize.sm, color: c.mutedForeground, lineHeight: 20 },
-  badge: { backgroundColor: 'rgba(138,154,124,0.12)', borderRadius: Radius.lg, borderWidth: 1, borderColor: 'rgba(138,154,124,0.3)', padding: Spacing.xl, marginBottom: Spacing['2xl'], alignItems: 'center' },
+  badge: { backgroundColor: 'rgba(29,158,117,0.12)', borderRadius: Radius.lg, borderWidth: 1, borderColor: 'rgba(29,158,117,0.25)', padding: Spacing.xl, marginBottom: Spacing['2xl'], alignItems: 'center' },
   badgeTitle: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-Bold', color: c.secondary, marginBottom: Spacing.sm, textAlign: 'center' },
   badgeSub: { fontSize: FontSize.sm, color: c.mutedForeground, textAlign: 'center', lineHeight: 20 },
 });

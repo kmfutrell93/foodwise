@@ -109,7 +109,7 @@ function makeStyles(c: ThemeColors) {
   tag: { paddingHorizontal: Spacing.lg, paddingVertical: 12, borderRadius: Radius.full, borderWidth: 1.5, borderColor: c.border, backgroundColor: c.card },
   tagWithDesc: { borderRadius: Radius.lg, paddingVertical: 8 },
   tagNone: { borderStyle: 'dashed' },
-  tagSelected: { borderColor: c.primary, backgroundColor: 'rgba(232,157,53,0.12)' },
+  tagSelected: { borderColor: c.primary, backgroundColor: 'rgba(29,158,117,0.12)' },
   tagText: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-SemiBold', color: c.foreground },
   tagTextSelected: { color: c.primary },
   tagDesc: { fontSize: 10, color: c.mutedForeground, marginTop: 1 },

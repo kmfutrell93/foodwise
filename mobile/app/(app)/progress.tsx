@@ -122,7 +122,7 @@ function WeightChart({ logs, colors, onTrend }: { logs: WeightLog[]; colors: The
         <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
           {guideYs.map((y, i) => (
             <Line key={i} x1={C_PAD.left} y1={y} x2={CHART_WIDTH - C_PAD.right} y2={y}
-              stroke="#EEEEEE" strokeWidth={1} />
+              stroke="rgba(255,255,255,0.08)" strokeWidth={1} />
           ))}
           <Polyline points={points as string} fill="none" stroke={TEAL} strokeWidth={2}
             strokeLinecap="round" strokeLinejoin="round" />
@@ -606,7 +606,7 @@ export default function Progress() {
                 <View style={s.modalBody}>
                   <Text style={[s.modalLabel, { color: colors.mutedForeground }]}>Weight (lbs)</Text>
                   <TextInput
-                    style={[s.modalInput, { backgroundColor: colors.card, borderColor: weightError ? '#E06555' : colors.border, color: colors.foreground }]}
+                    style={[s.modalInput, { backgroundColor: colors.card, borderColor: weightError ? '#EF4444' : colors.border, color: colors.foreground }]}
                     placeholder="e.g. 185.5"
                     placeholderTextColor={colors.mutedForeground}
                     keyboardType="decimal-pad"
@@ -717,7 +717,7 @@ function makeStyles(c: ThemeColors) {
     modalLabel: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-Bold', textTransform: 'uppercase', letterSpacing: 1, marginBottom: Spacing.sm },
     modalInput: { borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.lg, fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-Regular' },
     modalInputMultiline: { height: 80, textAlignVertical: 'top' },
-    weightErrorText: { fontSize: FontSize.xs, color: '#E06555', marginTop: 6, fontFamily: 'PlusJakartaSans-SemiBold' },
+    weightErrorText: { fontSize: FontSize.xs, color: '#EF4444', marginTop: 6, fontFamily: 'PlusJakartaSans-SemiBold' },
     saveBtn: { borderRadius: Radius.lg, paddingVertical: 15, alignItems: 'center', marginTop: Spacing.xl, marginBottom: Spacing.md },
     saveBtnText: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-ExtraBold', color: '#fff' },
     cancelBtn: { alignItems: 'center', paddingVertical: Spacing.md },

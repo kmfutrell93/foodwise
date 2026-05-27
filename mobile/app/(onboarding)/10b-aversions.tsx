@@ -84,7 +84,7 @@ function makeStyles(c: ThemeColors) {
     tags: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginBottom: Spacing['2xl'] },
     tag: { paddingHorizontal: Spacing.lg, paddingVertical: 12, borderRadius: Radius.full, borderWidth: 1.5, borderColor: c.border, backgroundColor: c.card },
     tagNone: { borderStyle: 'dashed' },
-    tagSelected: { borderColor: c.primary, backgroundColor: 'rgba(232,157,53,0.12)' },
+    tagSelected: { borderColor: c.primary, backgroundColor: 'rgba(29,158,117,0.12)' },
     tagText: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-SemiBold', color: c.foreground },
     tagTextSelected: { color: c.primary },
   });

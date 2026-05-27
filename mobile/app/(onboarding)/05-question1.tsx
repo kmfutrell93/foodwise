@@ -21,7 +21,7 @@ const OPTIONS: {
   {
     value: 'protein',
     icon: '🥩',
-    iconBg: 'rgba(232,157,53,0.15)',
+    iconBg: 'rgba(29,158,117,0.15)',
     iconColor: 'primary',
     label: 'Not eating enough protein',
     sub: 'Appetite is too low to hit my goals',
@@ -29,7 +29,7 @@ const OPTIONS: {
   {
     value: 'nausea',
     icon: '🤢',
-    iconBg: 'rgba(216,127,99,0.15)',
+    iconBg: 'rgba(29,158,117,0.15)',
     iconColor: 'accent',
     label: 'Nausea & food aversions',
     sub: 'Many foods make me feel sick',
@@ -37,7 +37,7 @@ const OPTIONS: {
   {
     value: 'confusion',
     icon: '🤷',
-    iconBg: 'rgba(138,154,124,0.15)',
+    iconBg: 'rgba(29,158,117,0.15)',
     iconColor: 'secondary',
     label: 'Not knowing what to eat',
     sub: 'No guidance for GLP-1 specific meals',
@@ -45,7 +45,7 @@ const OPTIONS: {
   {
     value: 'muscle',
     icon: '💪',
-    iconBg: 'rgba(224,101,85,0.15)',
+    iconBg: 'rgba(29,158,117,0.15)',
     iconColor: 'destructive',
     label: 'Losing energy & strength',
     sub: 'I feel weaker than before',
@@ -167,7 +167,7 @@ function makeStyles(c: ThemeColors) {
       borderColor: c.border,
       backgroundColor: c.card,
     },
-    cardSelected: { borderColor: c.primary, backgroundColor: 'rgba(232,157,53,0.08)' },
+    cardSelected: { borderColor: c.primary, backgroundColor: 'rgba(29,158,117,0.08)' },
     iconCircle: {
       width: 44,
       height: 44,

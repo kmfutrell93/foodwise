@@ -135,8 +135,8 @@ function makeStyles(c: ThemeColors) {
       marginBottom: Spacing.lg,
     },
     cardGood: {
-      backgroundColor: 'rgba(138,154,124,0.10)',
-      borderColor: 'rgba(138,154,124,0.25)',
+      backgroundColor: 'rgba(29,158,117,0.10)',
+      borderColor: 'rgba(29,158,117,0.25)',
     },
     cardLabel: {
       fontSize: FontSize.xs,

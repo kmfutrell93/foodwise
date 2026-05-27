@@ -518,7 +518,7 @@ function makeStyles(c: ThemeColors) {
     userInfo: { flex: 1 },
     userName: { fontSize: FontSize.lg, fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground },
     userEmail: { fontSize: FontSize.sm, color: c.mutedForeground, marginTop: 2 },
-    premiumBadge: { alignSelf: 'flex-start', marginTop: Spacing.xs, backgroundColor: 'rgba(232,157,53,0.1)', borderRadius: Radius.full, paddingHorizontal: 8, paddingVertical: 3 },
+    premiumBadge: { alignSelf: 'flex-start', marginTop: Spacing.xs, backgroundColor: 'rgba(29,158,117,0.1)', borderRadius: Radius.full, paddingHorizontal: 8, paddingVertical: 3 },
     premiumBadgeText: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-Bold', color: c.primary },
     editPen: { fontSize: 18, opacity: 0.5 },
     // Section label
@@ -529,9 +529,9 @@ function makeStyles(c: ThemeColors) {
     // Icon rows (GLP-1, Nutrition)
     iconRow: { flexDirection: 'row', alignItems: 'center', padding: Spacing.lg, gap: Spacing.md },
     iconCircle: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-    circleAmber: { backgroundColor: 'rgba(232,157,53,0.12)' },
-    circleSalmon: { backgroundColor: 'rgba(216,127,99,0.12)' },
-    circleGreen: { backgroundColor: 'rgba(138,154,124,0.12)' },
+    circleAmber: { backgroundColor: 'rgba(29,158,117,0.12)' },
+    circleSalmon: { backgroundColor: 'rgba(29,158,117,0.12)' },
+    circleGreen: { backgroundColor: 'rgba(29,158,117,0.12)' },
     iconEmoji: { fontSize: 16 },
     rowContent: { flex: 1 },
     rowTitle: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-SemiBold', color: c.foreground },
@@ -541,10 +541,10 @@ function makeStyles(c: ThemeColors) {
     notifRow: { flexDirection: 'row', alignItems: 'center', padding: Spacing.lg, gap: Spacing.md },
     // Link rows (App & Legal)
     linkRow: { flexDirection: 'row', alignItems: 'center', padding: Spacing.lg, gap: Spacing.sm },
-    activeBadge: { backgroundColor: 'rgba(138,154,124,0.1)', borderRadius: Radius.full, paddingHorizontal: 8, paddingVertical: 3, marginRight: 4 },
+    activeBadge: { backgroundColor: 'rgba(29,158,117,0.1)', borderRadius: Radius.full, paddingHorizontal: 8, paddingVertical: 3, marginRight: 4 },
     activeBadgeText: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-Bold', color: c.secondary },
     // Danger zone
-    dangerCard: { backgroundColor: c.card, borderRadius: Radius.lg, borderWidth: 1, borderColor: 'rgba(224,101,85,0.2)', marginBottom: Spacing.xl, overflow: 'hidden' },
+    dangerCard: { backgroundColor: c.card, borderRadius: Radius.lg, borderWidth: 1, borderColor: 'rgba(29,158,117,0.2)', marginBottom: Spacing.xl, overflow: 'hidden' },
     dangerRow: { flexDirection: 'row', alignItems: 'center', padding: Spacing.lg, gap: Spacing.md },
     dangerEmoji: { fontSize: 18 },
     dangerText: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-SemiBold', color: c.destructive },
