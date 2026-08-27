@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
 import { useThemeColors } from '@/context/ThemeContext';
+import { formatProteinRange } from '@/lib/utils';
 
 const STRUGGLE_LABELS: Record<string, string> = {
   protein: 'Getting enough protein',
@@ -24,11 +25,17 @@ export default function Summary() {
   const colors = useThemeColors();
   const s = makeStyles(colors);
   const router = useRouter();
-  const { data } = useOnboarding();
+  const { data, saveStep } = useOnboarding();
 
   const rows = [
     { label: 'Main struggle', value: STRUGGLE_LABELS[data.primary_struggle ?? ''] ?? '—' },
-    { label: 'Protein target', value: data.protein_goal_range ? `${data.protein_goal_range}g / day` : '—' },
+    { label: 'Protein target', value: formatProteinRange(data.protein_goal_range) },
+    {
+      label: 'Medication',
+      value: data.medication
+        ? `${data.medication}${data.injection_day ? ` · injects ${data.injection_day}` : ''}`
+        : '—',
+    },
     {
       label: 'Dietary restrictions',
       value: (data.dietary_restrictions ?? []).length > 0
@@ -39,15 +46,20 @@ export default function Summary() {
     { label: 'Appetite level', value: APPETITE_LABELS[data.appetite_level ?? ''] ?? '—' },
   ];
 
+  async function handleNext() {
+    await saveStep(20); // → 18-commitment
+    router.push('/(onboarding)/18-commitment');
+  }
+
   return (
-    <OnboardingShell step={16}>
+    <OnboardingShell step={16} screenKey="16-summary">
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <View style={s.noriHeader}>
           <Image source={require('@/assets/images/nori_character.png')} style={s.noriImg} resizeMode="contain" />
         </View>
         <Text style={s.label}>Your profile</Text>
-        <Text style={s.title}>Here's what FoodWise{'\n'}knows about you <Text style={s.titleHighlight}>so far.</Text></Text>
-        <Text style={s.sub}>We'll use this to keep every recommendation precise — you can edit anytime in settings.</Text>
+        <Text style={s.title}>Here&apos;s what FoodWise{'\n'}knows about you <Text style={s.titleHighlight}>so far.</Text></Text>
+        <Text style={s.sub}>We&apos;ll use this to keep every recommendation precise — you can edit anytime in settings.</Text>
 
         <View style={s.card}>
           {rows.map((row, i) => (
@@ -60,11 +72,11 @@ export default function Summary() {
 
         <View style={s.noteBox}>
           <Text style={s.noteIcon}>💡</Text>
-          <Text style={s.noteText}>Two more quick questions and you're in — your medication schedule is the key to the whole plan.</Text>
+          <Text style={s.noteText}>You can edit any of this anytime in Settings — your plan stays in sync.</Text>
         </View>
       </ScrollView>
       <View style={s.footer}>
-        <Button label="Almost done" onPress={() => router.push('/(onboarding)/17-habit')} />
+        <Button label="Almost done" onPress={handleNext} />
       </View>
     </OnboardingShell>
   );

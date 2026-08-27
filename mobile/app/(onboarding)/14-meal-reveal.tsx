@@ -1,63 +1,51 @@
-import React from 'react';
-import { View, Text, Image, StyleSheet, ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Image, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import Animated, { BounceIn, FadeIn } from 'react-native-reanimated';
 import { OnboardingShell } from '@/components/ui/OnboardingShell';
 import { Button } from '@/components/ui/Button';
+import { supabase, MealDay } from '@/lib/supabase';
+import { useOnboarding } from '@/context/OnboardingContext';
 import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
 import { useThemeColors } from '@/context/ThemeContext';
 
-const SAMPLE_MEALS = [
-  {
-    label: 'Breakfast',
-    labelColor: 'primary' as const,
-    labelBg: 'rgba(29,158,117,0.10)',
-    time: '7:00 AM',
-    name: 'Greek Yogurt Protein Parfait',
-    desc: '2% Greek yogurt, mixed berries, hemp seeds, honey drizzle',
-    protein: '26g protein',
-    cals: '280 cal',
-    cost: '$2.10',
-  },
-  {
-    label: 'Lunch',
-    labelColor: 'secondary' as const,
-    labelBg: 'rgba(29,158,117,0.10)',
-    time: '12:30 PM',
-    name: 'Turkey & Edamame Egg Roll Bowl',
-    desc: 'Ground turkey, shredded cabbage, edamame, soy-ginger sauce, sesame',
-    protein: '42g protein',
-    cals: '420 cal',
-    cost: '$4.20',
-  },
-  {
-    label: 'Snack',
-    labelColor: 'accent' as const,
-    labelBg: 'rgba(29,158,117,0.10)',
-    time: '3:00 PM',
-    name: 'Cottage Cheese & Cucumber Bites',
-    desc: 'Low-fat cottage cheese, sliced cucumbers, everything bagel seasoning',
-    protein: '18g protein',
-    cals: '150 cal',
-    cost: '$1.50',
-  },
-  {
-    label: 'Dinner',
-    labelColor: 'secondary' as const,
-    labelBg: 'rgba(29,158,117,0.08)',
-    time: '6:30 PM',
-    name: 'Lemon Herb Salmon & Broccoli',
-    desc: 'Pan-seared salmon fillet, steamed broccoli, lemon-dill sauce',
-    protein: '32g protein',
-    cals: '530 cal',
-    cost: '$2.70',
-  },
-];
+const SLOT_LABEL_COLOR: Record<string, 'primary' | 'secondary' | 'accent'> = {
+  breakfast: 'primary', lunch: 'secondary', dinner: 'secondary', snack: 'accent',
+  'morning snack': 'accent', 'afternoon snack': 'accent',
+};
+const SLOT_TIME: Record<string, string> = {
+  breakfast: '7:00 AM', 'morning snack': '10:00 AM', lunch: '12:30 PM',
+  'afternoon snack': '3:00 PM', snack: '3:00 PM', dinner: '6:30 PM',
+};
+const APPETITE_LABELS: Record<string, string> = {
+  low: 'Low appetite', moderate: 'Moderate appetite', normal: 'Normal appetite',
+};
 
 export default function MealReveal() {
   const colors = useThemeColors();
   const s = makeStyles(colors);
   const router = useRouter();
+  const { data: onboardingData } = useOnboarding();
+  const [day, setDay] = useState<MealDay | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setLoading(false); return; }
+      const { data: plan } = await supabase
+        .from('meal_plans')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('week_start', { ascending: false })
+        .limit(1)
+        .single();
+      if (plan?.plan_json?.days?.length > 0) {
+        setDay(plan.plan_json.days[0]);
+      }
+      setLoading(false);
+    })();
+  }, []);
 
   const labelColors = {
     primary: colors.primary,
@@ -65,8 +53,12 @@ export default function MealReveal() {
     accent: colors.accent,
   };
 
+  const budgetLabel = onboardingData.weekly_budget ? `$${onboardingData.weekly_budget} budget` : '';
+  const appetiteLabel = onboardingData.appetite_level ? APPETITE_LABELS[onboardingData.appetite_level] : '';
+  const headerSub = ['Optimized for GLP-1', budgetLabel, appetiteLabel].filter(Boolean).join(' · ');
+
   return (
-    <OnboardingShell step={14}>
+    <OnboardingShell step={14} screenKey="14-meal-reveal">
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
 
         {/* Nori header */}
@@ -78,63 +70,96 @@ export default function MealReveal() {
           />
           <View style={s.headerText}>
             <Text style={s.headerLabel}>Nori built this just for you</Text>
-            <Text style={s.headerSub}>Optimized for GLP-1 · $75 budget · Low appetite</Text>
+            <Text style={s.headerSub}>{headerSub}</Text>
           </View>
         </Animated.View>
 
         <Text style={s.title}>🎉 Your plan is ready!</Text>
 
-        {/* Macro strip */}
-        <Animated.View entering={FadeIn.delay(150).duration(400)} style={s.macroStrip}>
-          <View style={s.macroItem}>
-            <Text style={[s.macroVal, { color: colors.primary }]}>118g</Text>
-            <Text style={s.macroLabel}>Protein</Text>
+        {loading && (
+          <View style={s.loadingBox}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={s.loadingText}>Loading your plan…</Text>
           </View>
-          <View style={s.macroDivider} />
-          <View style={s.macroItem}>
-            <Text style={[s.macroVal, { color: colors.secondary }]}>24g</Text>
-            <Text style={s.macroLabel}>Fiber</Text>
-          </View>
-          <View style={s.macroDivider} />
-          <View style={s.macroItem}>
-            <Text style={[s.macroVal, { color: colors.accent }]}>1,380</Text>
-            <Text style={s.macroLabel}>Calories</Text>
-          </View>
-          <View style={s.macroDivider} />
-          <View style={s.macroItem}>
-            <Text style={[s.macroVal, { color: colors.foreground }]}>$10.50</Text>
-            <Text style={s.macroLabel}>Today</Text>
-          </View>
-        </Animated.View>
+        )}
 
-        {/* Meal cards — staggered BounceIn */}
-        <View style={{ gap: Spacing.lg }}>
-          {SAMPLE_MEALS.map((meal, idx) => (
-            <Animated.View key={meal.name} entering={BounceIn.delay(idx * 120).duration(500)}>
-            <View style={s.mealCard}>
-              <View style={s.mealCardHeader}>
-                <View style={[s.mealLabel, { backgroundColor: meal.labelBg }]}>
-                  <Text style={[s.mealLabelText, { color: labelColors[meal.labelColor] }]}>{meal.label}</Text>
-                </View>
-                <Text style={s.mealTime}>{meal.time}</Text>
+        {!loading && !day && (
+          <View style={s.loadingBox}>
+            <Text style={s.emptyText}>
+              We&apos;re still finalizing your plan — tap below to continue, you&apos;ll find it in the Meal Plan tab.
+            </Text>
+          </View>
+        )}
+
+        {!loading && day && (
+          <>
+            {/* Macro strip */}
+            <Animated.View entering={FadeIn.delay(150).duration(400)} style={s.macroStrip}>
+              <View style={s.macroItem}>
+                <Text style={[s.macroVal, { color: colors.primary }]}>{day.total_protein_g}g</Text>
+                <Text style={s.macroLabel}>Protein</Text>
               </View>
-              <Text style={s.mealName}>{meal.name}</Text>
-              <Text style={s.mealDesc}>{meal.desc}</Text>
-              <View style={s.chips}>
-                <View style={s.chipProtein}>
-                  <Text style={[s.chipText, { color: colors.secondary }]}>{meal.protein}</Text>
-                </View>
-                <View style={s.chip}>
-                  <Text style={[s.chipText, { color: colors.mutedForeground }]}>{meal.cals}</Text>
-                </View>
-                <View style={s.chip}>
-                  <Text style={[s.chipText, { color: colors.mutedForeground }]}>{meal.cost}</Text>
-                </View>
+              <View style={s.macroDivider} />
+              <View style={s.macroItem}>
+                <Text style={[s.macroVal, { color: colors.secondary }]}>—</Text>
+                <Text style={s.macroLabel}>Fiber</Text>
               </View>
-            </View>
+              <View style={s.macroDivider} />
+              <View style={s.macroItem}>
+                <Text style={[s.macroVal, { color: colors.accent }]}>{day.total_calories.toLocaleString()}</Text>
+                <Text style={s.macroLabel}>Calories</Text>
+              </View>
+              <View style={s.macroDivider} />
+              <View style={s.macroItem}>
+                <Text style={[s.macroVal, { color: colors.foreground }]}>
+                  {day.estimated_cost != null ? `$${day.estimated_cost.toFixed(2)}` : '—'}
+                </Text>
+                <Text style={s.macroLabel}>Today</Text>
+              </View>
             </Animated.View>
-          ))}
-        </View>
+
+            {day.day_note ? (
+              <Text style={{ fontSize: FontSize.sm, color: colors.mutedForeground, marginBottom: Spacing.md, lineHeight: 20 }}>
+                {day.day_note}
+              </Text>
+            ) : null}
+
+            {/* Meal cards — staggered BounceIn */}
+            <View style={{ gap: Spacing.lg }}>
+              {day.meals.map((meal, idx) => {
+                const slotKey = meal.slot?.toLowerCase() ?? '';
+                const labelColor = SLOT_LABEL_COLOR[slotKey] ?? 'primary';
+                const time = SLOT_TIME[slotKey] ?? '';
+                return (
+                  <Animated.View key={`${meal.slot}-${idx}`} entering={BounceIn.delay(idx * 120).duration(500)}>
+                    <View style={s.mealCard}>
+                      <View style={s.mealCardHeader}>
+                        <View style={[s.mealLabel, { backgroundColor: labelColors[labelColor] + '1A' }]}>
+                          <Text style={[s.mealLabelText, { color: labelColors[labelColor] }]}>{meal.slot}</Text>
+                        </View>
+                        {time ? <Text style={s.mealTime}>{time}</Text> : null}
+                      </View>
+                      <Text style={s.mealName}>{meal.name}</Text>
+                      <View style={s.chips}>
+                        <View style={s.chipProtein}>
+                          <Text style={[s.chipText, { color: colors.secondary }]}>{meal.protein_g}g protein</Text>
+                        </View>
+                        <View style={s.chip}>
+                          <Text style={[s.chipText, { color: colors.mutedForeground }]}>{meal.calories} cal</Text>
+                        </View>
+                        {meal.cost != null && (
+                          <View style={s.chip}>
+                            <Text style={[s.chipText, { color: colors.mutedForeground }]}>${meal.cost.toFixed(2)}</Text>
+                          </View>
+                        )}
+                      </View>
+                    </View>
+                  </Animated.View>
+                );
+              })}
+            </View>
+          </>
+        )}
       </ScrollView>
       <View style={s.footer}>
         <Button label="Love it! Keep going" onPress={() => router.push('/(onboarding)/15-review')} />
@@ -155,6 +180,10 @@ function makeStyles(c: ThemeColors) {
     headerSub: { fontSize: FontSize.xs, color: c.mutedForeground },
 
     title: { fontSize: FontSize['2xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground, marginBottom: Spacing.lg },
+
+    loadingBox: { alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing['3xl'], gap: Spacing.lg },
+    loadingText: { fontSize: FontSize.sm, color: c.mutedForeground },
+    emptyText: { fontSize: FontSize.sm, color: c.mutedForeground, textAlign: 'center', lineHeight: 20, paddingHorizontal: Spacing.lg },
 
     macroStrip: {
       flexDirection: 'row',

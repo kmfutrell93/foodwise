@@ -22,6 +22,7 @@ import {
   trackProgressScreenViewed, trackWeeklyReportOpened, trackInsightViewed,
   trackWeightLogged, trackWeightChartViewed,
 } from '@/lib/analytics';
+import { logError } from '@/lib/utils';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -89,7 +90,23 @@ function ProteinRing({ pct, size = 140, colors }: { pct: number; size?: number; 
 }
 
 function WeightChart({ logs, colors, onTrend }: { logs: WeightLog[]; colors: ThemeColors; onTrend?: (hasBadge: boolean) => void }) {
+  // Compute trend before any early return so the hook below is always called.
+  let trend: 'down' | 'up' | 'stable' | null = null;
+  if (logs.length >= 6) {
+    const last3 = logs.slice(-3).map(l => Number(l.weight_lbs));
+    const prev3 = logs.slice(-6, -3).map(l => Number(l.weight_lbs));
+    const avgLast = last3.reduce((s, v) => s + v, 0) / 3;
+    const avgPrev = prev3.reduce((s, v) => s + v, 0) / 3;
+    const diff = avgLast - avgPrev;
+    if (diff < -0.5) trend = 'down';
+    else if (diff > 0.5) trend = 'up';
+    else trend = 'stable';
+  }
+
+  React.useEffect(() => { onTrend?.(trend !== null); }, [trend, onTrend]);
+
   if (logs.length < 2) return null;
+
   const cw = CHART_WIDTH - C_PAD.left - C_PAD.right;
   const ch = CHART_HEIGHT - C_PAD.top - C_PAD.bottom;
   const weights = logs.map(l => Number(l.weight_lbs));
@@ -103,19 +120,6 @@ function WeightChart({ logs, colors, onTrend }: { logs: WeightLog[]; colors: The
   const points = logs.map((l, i) => `${toX(i)},${toY(Number(l.weight_lbs))}`).join(' ');
   const guideYs = [0.25, 0.5, 0.75].map(frac => toY(minW + range * frac));
 
-  let trend: 'down' | 'stable' | null = null;
-  if (logs.length >= 6) {
-    const last3 = logs.slice(-3).map(l => Number(l.weight_lbs));
-    const prev3 = logs.slice(-6, -3).map(l => Number(l.weight_lbs));
-    const avgLast = last3.reduce((s, v) => s + v, 0) / 3;
-    const avgPrev = prev3.reduce((s, v) => s + v, 0) / 3;
-    const diff = avgLast - avgPrev;
-    if (diff < -0.5) trend = 'down';
-    else if (diff > 0.5) trend = 'stable';
-  }
-
-  React.useEffect(() => { onTrend?.(trend !== null); }, [trend]);
-
   return (
     <View>
       <View style={{ position: 'relative' }}>
@@ -128,8 +132,13 @@ function WeightChart({ logs, colors, onTrend }: { logs: WeightLog[]; colors: The
             strokeLinecap="round" strokeLinejoin="round" />
         </Svg>
         {trend && (
-          <View style={[chartS.trendBadge, trend === 'down' ? chartS.trendDown : chartS.trendUp]}>
-            <Text style={chartS.trendText}>{trend === 'down' ? '↓ trending' : '— stable'}</Text>
+          <View style={[
+            chartS.trendBadge,
+            trend === 'down' ? chartS.trendDown : trend === 'up' ? chartS.trendUp : chartS.trendStable,
+          ]}>
+            <Text style={chartS.trendText}>
+              {trend === 'down' ? '↓ trending' : trend === 'up' ? '↑' : '— stable'}
+            </Text>
           </View>
         )}
       </View>
@@ -149,6 +158,7 @@ const chartS = StyleSheet.create({
   trendBadge: { position: 'absolute', top: 8, right: 8, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 4 },
   trendDown: { backgroundColor: 'rgba(29,158,117,0.15)' },
   trendUp: { backgroundColor: 'rgba(155,150,140,0.15)' },
+  trendStable: { backgroundColor: 'rgba(155,150,140,0.15)' },
   trendText: { fontSize: 13, fontFamily: 'PlusJakartaSans-ExtraBold' },
   dateRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: C_PAD.left, marginTop: 4 },
   dateLabel: { fontSize: 11 },
@@ -314,7 +324,8 @@ export default function Progress() {
         withTiming(1, { duration: 200 }),
         withDelay(2000, withTiming(0, { duration: 300 })),
       );
-    } catch {
+    } catch (e: unknown) {
+      logError('progress:saveWeight', e);
       setWeightError('Could not save. Please try again.');
     } finally { setWeightSaving(false); }
   }
@@ -389,8 +400,8 @@ export default function Progress() {
               {generatingReport ? <ActivityIndicator color={colors.primary} /> : (
                 <>
                   <Text style={s.insightEmptyIcon}>💡</Text>
-                  <Text style={s.insightEmptyText}>Tap to generate your weekly AI insight</Text>
-                  <Text style={s.insightEmptySub}>Needs at least 2 symptom logs this week</Text>
+                  <Text style={s.insightEmptyText}>Your first weekly report will appear here</Text>
+                  <Text style={s.insightEmptySub}>Log at least 2 symptoms this week, then tap to generate your AI insight</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -452,7 +463,7 @@ export default function Progress() {
               </View>
             )}
             {recentLogs.length === 0 && (
-              <Text style={s.activityEmpty}>No logs this week yet — tap "Log Symptoms" to start!</Text>
+              <Text style={s.activityEmpty}>No logs this week yet — tap &quot;Log Symptoms&quot; to start!</Text>
             )}
           </View>
         </View>
@@ -482,7 +493,7 @@ export default function Progress() {
                 </Svg>
                 <Text style={[s.weightEmptyTitle, { color: colors.foreground }]}>Your weight journey</Text>
                 <Text style={[s.weightEmptySub, { color: colors.mutedForeground }]}>
-                  Log your first weight when you're ready. No pressure — it's here when it feels right.
+                  Log your first weight when you&apos;re ready. No pressure — it&apos;s here when it feels right.
                 </Text>
               </View>
             )}
@@ -512,7 +523,7 @@ export default function Progress() {
                 onPress={() => { setWeightInput(''); setWeightNote(''); setWeightError(null); setWeightModalOpen(true); }}
                 activeOpacity={0.8}
               >
-                <Text style={[s.logWeightBtnText, { color: TEAL }]}>Log today's weight</Text>
+                <Text style={[s.logWeightBtnText, { color: TEAL }]}>Log today&apos;s weight</Text>
               </TouchableOpacity>
             )}
 
@@ -567,7 +578,7 @@ export default function Progress() {
               {['🎉', '🎊', '🎉'].map((e, i) => <Text key={i} style={s.confettiEmoji}>{e}</Text>)}
             </View>
             <Text style={[s.celebSub, { color: colors.mutedForeground }]}>
-              You logged every day this week. That's a real habit forming.
+              You logged every day this week. That&apos;s a real habit forming.
             </Text>
             {showReviewBtn && (
               <TouchableOpacity onPress={handleReviewPress} style={s.reviewBtn} activeOpacity={0.7}>
@@ -598,7 +609,7 @@ export default function Progress() {
               <SafeAreaView style={[s.modalSafe, { backgroundColor: colors.background }]} edges={['bottom']}>
                 <View style={s.modalHandle} />
                 <View style={s.modalHeader}>
-                  <Text style={[s.modalTitle, { color: colors.foreground }]}>Log today's weight</Text>
+                  <Text style={[s.modalTitle, { color: colors.foreground }]}>Log today&apos;s weight</Text>
                   <TouchableOpacity onPress={closeWeightModal} style={s.modalCloseBtn}>
                     <Ionicons name="close" size={22} color={colors.mutedForeground} />
                   </TouchableOpacity>

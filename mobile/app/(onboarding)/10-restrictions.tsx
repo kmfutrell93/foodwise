@@ -47,12 +47,12 @@ export default function Restrictions() {
 
   async function handleNext() {
     setField('dietary_restrictions', selected);
-    await saveStep(10);
+    await saveStep(11, { dietary_restrictions: selected }); // → 10b-aversions
     router.push('/(onboarding)/10b-aversions');
   }
 
   return (
-    <OnboardingShell step={10}>
+    <OnboardingShell step={10} screenKey="10-restrictions">
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <Text style={s.label}>Step 1 of 3</Text>
         <Text style={s.title}>Any dietary{'\n'}<Text style={s.titleHighlight}>needs or restrictions?</Text></Text>

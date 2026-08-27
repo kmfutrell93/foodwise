@@ -9,8 +9,7 @@ import Purchases, {
 import { supabase } from '@/lib/supabase';
 import { trackTrialStarted, trackSubscriptionCancelled } from '@/lib/analytics';
 
-// Test key — swap for production key (appl_...) before App Store submission
-const RC_API_KEY = 'test_mRBkjBmrncOWclxaxbsAYTEgZyJ';
+const RC_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_API_KEY!;
 
 export const ENTITLEMENT_ID = 'FoodWise Pro';
 
@@ -31,6 +30,7 @@ export function RevenueCatProvider({ children }: { children: React.ReactNode }) 
   const [currentOffering, setCurrentOffering] = useState<PurchasesOffering | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const initialized = useRef(false);
+  const identifiedUserId = useRef<string | null>(null);
 
   const isPro = !!customerInfo?.entitlements.active[ENTITLEMENT_ID];
 
@@ -40,13 +40,39 @@ export function RevenueCatProvider({ children }: { children: React.ReactNode }) 
     initialized.current = true;
     setup();
 
+    // Re-identify RevenueCat whenever the Supabase session changes to a
+    // different user (sign-out then sign-in as someone else, within the
+    // same running app instance) — otherwise RC keeps tracking purchases
+    // under whichever user.id was active when setup() first ran.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+        handleAuthChange(session?.user.id ?? null);
+      }
+    });
+
     return () => {
       Purchases.removeCustomerInfoUpdateListener(handleCustomerInfoUpdate);
+      subscription.unsubscribe();
     };
   }, []);
 
   function handleCustomerInfoUpdate(info: CustomerInfo) {
     setCustomerInfo(info);
+  }
+
+  async function handleAuthChange(userId: string | null) {
+    if (userId === identifiedUserId.current) return;
+    identifiedUserId.current = userId;
+    try {
+      if (userId) {
+        await Purchases.logIn(userId);
+      } else {
+        await Purchases.logOut();
+      }
+      await Promise.all([refreshCustomerInfo(), loadOfferings()]);
+    } catch (e) {
+      if (__DEV__) console.error('[RevenueCat] re-identify failed:', e);
+    }
   }
 
   async function setup() {
@@ -60,12 +86,13 @@ export function RevenueCatProvider({ children }: { children: React.ReactNode }) 
       // is tied to the account, not the device.
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
+        identifiedUserId.current = user.id;
         await Purchases.logIn(user.id);
       }
 
       await Promise.all([refreshCustomerInfo(), loadOfferings()]);
     } catch (e) {
-      console.error('[RevenueCat] setup failed:', e);
+      if (__DEV__) console.error('[RevenueCat] setup failed:', e);
     } finally {
       setIsLoading(false);
     }
@@ -76,7 +103,7 @@ export function RevenueCatProvider({ children }: { children: React.ReactNode }) 
       const info = await Purchases.getCustomerInfo();
       setCustomerInfo(info);
     } catch (e) {
-      console.error('[RevenueCat] getCustomerInfo failed:', e);
+      if (__DEV__) console.error('[RevenueCat] getCustomerInfo failed:', e);
     }
   }
 
@@ -85,7 +112,7 @@ export function RevenueCatProvider({ children }: { children: React.ReactNode }) 
       const offerings = await Purchases.getOfferings();
       setCurrentOffering(offerings.current ?? null);
     } catch (e) {
-      console.error('[RevenueCat] getOfferings failed:', e);
+      if (__DEV__) console.error('[RevenueCat] getOfferings failed:', e);
     }
   }
 

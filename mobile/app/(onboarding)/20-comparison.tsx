@@ -25,10 +25,10 @@ export default function Comparison() {
   const s = makeStyles(colors);
   const router = useRouter();
   return (
-    <OnboardingShell step={20}>
+    <OnboardingShell step={20} screenKey="20-comparison">
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <Text style={s.label}>Free vs Pro</Text>
-        <Text style={s.title}>GLP-1 support{'\n'}isn't optional.</Text>
+        <Text style={s.title}>GLP-1 support{'\n'}isn&apos;t optional.</Text>
 
         <View style={s.table}>
           <View style={s.tableHeader}>

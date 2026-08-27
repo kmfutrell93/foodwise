@@ -1,12 +1,22 @@
 import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet, Platform, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
+import Constants from 'expo-constants';
 import { OnboardingShell } from '@/components/ui/OnboardingShell';
 import { Button } from '@/components/ui/Button';
 import { useOnboarding } from '@/context/OnboardingContext';
-import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
+import { FontSize, Spacing, ThemeColors } from '@/constants/theme';
 import { useThemeColors } from '@/context/ThemeContext';
 import * as Notifications from 'expo-notifications';
+import { logError } from '@/lib/utils';
+
+function resolveEasProjectId(): string | undefined {
+  return (
+    Constants.expoConfig?.extra?.eas?.projectId ??
+    Constants.easConfig?.projectId ??
+    undefined
+  );
+}
 
 const NUDGES = [
   { icon: '🌅', text: 'Morning protein reminder' },
@@ -26,16 +36,38 @@ export default function NotificationScreen() {
     setLoading(true);
     try {
       if (Platform.OS !== 'ios' && Platform.OS !== 'android') {
+        console.log('[push] unsupported platform — skipping token');
         await proceed(false, null);
         return;
       }
       const { status } = await Notifications.requestPermissionsAsync();
-      if (status === 'granted') {
-        const tokenData = await Notifications.getExpoPushTokenAsync().catch(() => null);
-        await proceed(true, tokenData?.data ?? null);
-      } else {
+      console.log('[push] permission:', status);
+      if (status !== 'granted') {
         await proceed(false, null);
+        return;
       }
+
+      const projectId = resolveEasProjectId();
+      console.log('[push] projectId available:', Boolean(projectId));
+      if (!projectId) {
+        console.error('[push] missing EAS projectId — cannot request Expo push token');
+        await proceed(true, null);
+        return;
+      }
+
+      let token: string | null = null;
+      try {
+        const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
+        token = tokenData?.data ?? null;
+        console.log('[push] token received:', Boolean(token), token ? token.slice(0, 20) : '');
+      } catch (tokenErr) {
+        logError('push:getExpoPushTokenAsync', tokenErr);
+        console.error('[push] token request failed');
+      }
+
+      // Only mark notifications_enabled when permission was granted.
+      // Token may still be null (simulator / APNs failure) — do not invent success.
+      await proceed(true, token);
     } finally {
       setLoading(false);
     }
@@ -47,13 +79,17 @@ export default function NotificationScreen() {
 
   async function proceed(enabled: boolean, token: string | null) {
     setField('notifications_enabled', enabled);
-    if (token) setField('push_token', token);
-    await saveStep(21);
+    if (token) {
+      setField('push_token', token);
+    }
+    // Pass overrides explicitly — push_token is the field email/push targeting
+    // depends on, so it can't be left to catch up on a later render.
+    await saveStep(24, { notifications_enabled: enabled, ...(token ? { push_token: token } : {}) }); // screens[24] = '21b-disclosure'
     router.push('/(onboarding)/21b-disclosure');
   }
 
   return (
-    <OnboardingShell step={21}>
+    <OnboardingShell step={21} screenKey="21-notification">
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <View style={s.noriWrap}>
           <Image source={require('@/assets/images/nori_character.png')} style={s.noriImg} resizeMode="contain" />
@@ -62,7 +98,7 @@ export default function NotificationScreen() {
           </View>
         </View>
         <Text style={s.label}>Stay on track</Text>
-        <Text style={s.title}>Don't let a missed{'\n'}meal break your{'\n'}streak.</Text>
+        <Text style={s.title}>Don&apos;t let a missed{'\n'}meal break your{'\n'}streak.</Text>
         <Text style={s.sub}>Turn on notifications so we can remind you at the right moment — especially on injection day.</Text>
 
         <View style={s.nudges}>

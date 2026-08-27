@@ -8,10 +8,10 @@ import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
 import { useThemeColors } from '@/context/ThemeContext';
 import * as Haptics from 'expo-haptics';
 
-type Appetite = 'low' | 'moderate' | 'normal';
+type AppetiteValue = 'low' | 'moderate' | 'normal';
 
 const OPTIONS: {
-  value: Appetite;
+  value: AppetiteValue;
   icon: string;
   label: string;
   sub: string;
@@ -47,17 +47,17 @@ export default function Appetite() {
   const s = makeStyles(colors);
   const router = useRouter();
   const { setField, saveStep } = useOnboarding();
-  const [selected, setSelected] = useState<Appetite | null>(null);
+  const [selected, setSelected] = useState<AppetiteValue | null>(null);
 
   async function handleNext() {
     if (!selected) return;
     setField('appetite_level', selected);
-    await saveStep(12);
-    router.push('/(onboarding)/13-generating');
+    await saveStep(14, { appetite_level: selected }); // → 17-habit (med/injection before generate)
+    router.push('/(onboarding)/17-habit');
   }
 
   return (
-    <OnboardingShell step={12}>
+    <OnboardingShell step={12} screenKey="12-appetite">
       <View style={s.outer}>
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -65,7 +65,7 @@ export default function Appetite() {
           keyboardShouldPersistTaps="handled"
         >
           <Text style={s.label}>Step 3 of 3</Text>
-          <Text style={s.title}>How's your{'\n'}<Text style={s.titleHighlight}>appetite been lately?</Text></Text>
+          <Text style={s.title}>How&apos;s your{'\n'}<Text style={s.titleHighlight}>appetite been lately?</Text></Text>
           <Text style={s.sub}>This helps Nori size your meals just right — not too much, not too little.</Text>
 
           <View style={s.options}>

@@ -34,7 +34,7 @@ export default function PricingIntro() {
   const s = makeStyles(colors);
   const router = useRouter();
   return (
-    <OnboardingShell step={19}>
+    <OnboardingShell step={19} screenKey="19-pricing-intro">
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <View style={s.crownWrap}>
           <Text style={s.crown}>👑</Text>

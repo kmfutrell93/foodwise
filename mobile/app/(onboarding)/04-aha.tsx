@@ -18,7 +18,7 @@ export default function AhaStat() {
   const router = useRouter();
 
   return (
-    <OnboardingShell step={4} skipRoute="/(onboarding)/10-restrictions">
+    <OnboardingShell step={4} screenKey="04-aha" skipRoute="/(onboarding)/10-restrictions">
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
 
         {/* Stat block */}
@@ -31,7 +31,7 @@ export default function AhaStat() {
 
         {/* What you lose card */}
         <View style={s.lossCard}>
-          <Text style={s.lossTitle}>That means you're losing...</Text>
+          <Text style={s.lossTitle}>That means you&apos;re losing...</Text>
           {LOSSES.map(item => (
             <View key={item.label} style={s.lossRow}>
               <View style={s.lossCircle}>
@@ -50,8 +50,8 @@ export default function AhaStat() {
             resizeMode="contain"
           />
           <Text style={s.noriQuote}>
-            "But with the right food plan? You can preserve{' '}
-            <Text style={s.noriHighlight}>100% of that muscle</Text> while still losing fat."
+            &quot;But with the right food plan? You can preserve{' '}
+            <Text style={s.noriHighlight}>100% of that muscle</Text> while still losing fat.&quot;
           </Text>
         </View>
 

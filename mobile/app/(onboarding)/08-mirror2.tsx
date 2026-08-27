@@ -59,7 +59,7 @@ export default function Mirror2() {
   const copy = COPY[data.protein_goal_range ?? 'unsure'];
 
   return (
-    <OnboardingShell step={8} skipRoute="/(onboarding)/10-restrictions">
+    <OnboardingShell step={8} screenKey="08-mirror2" skipRoute="/(onboarding)/10-restrictions">
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
 
         {/* Empathy header */}

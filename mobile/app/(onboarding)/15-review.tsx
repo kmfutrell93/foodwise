@@ -1,6 +1,7 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Image, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
+import * as StoreReview from 'expo-store-review';
 import { OnboardingShell } from '@/components/ui/OnboardingShell';
 import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
 import { useThemeColors } from '@/context/ThemeContext';
@@ -9,7 +10,6 @@ export default function Review() {
   const colors = useThemeColors();
   const s = makeStyles(colors);
   const router = useRouter();
-  const [rating, setRating] = useState(0);
   const scale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -19,8 +19,13 @@ export default function Review() {
     ]).start();
   }, []);
 
+  async function handleReview() {
+    await StoreReview.requestReview();
+    router.push('/(onboarding)/16-summary');
+  }
+
   return (
-    <OnboardingShell step={15}>
+    <OnboardingShell step={15} screenKey="15-review">
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.center} keyboardShouldPersistTaps="handled">
         <Animated.View style={{ transform: [{ scale }], marginBottom: Spacing.sm }}>
           <Image
@@ -42,31 +47,25 @@ export default function Review() {
         </Text>
 
         <Text style={s.sub}>
-          That meal plan? It's real. That's exactly what FoodWise generates for you{' '}
+          That meal plan? It&apos;s real. That&apos;s exactly what FoodWise generates for you{' '}
           <Text style={{ color: colors.foreground, fontFamily: 'PlusJakartaSans-Bold' }}>every week</Text>
           , personalized to your preferences and budget.
         </Text>
 
         <View style={[s.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={s.cardTitle}>How are you feeling about FoodWise?</Text>
-          <Text style={s.cardSub}>Tap a star to rate your experience so far</Text>
-          <View style={s.starsRow}>
-            {[1, 2, 3, 4, 5].map(n => (
-              <TouchableOpacity key={n} onPress={() => setRating(n)} activeOpacity={0.7}>
-                <Text style={[s.star, { opacity: n <= rating ? 1 : 0.3 }]}>⭐</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <Text style={s.cardEmoji}>🌟</Text>
+          <Text style={s.cardTitle}>Loving FoodWise so far?</Text>
+          <Text style={s.cardSub}>Tell the App Store — it takes 10 seconds and helps other people find Nori.</Text>
         </View>
       </ScrollView>
 
       <View style={s.bottom}>
         <TouchableOpacity
           style={[s.reviewBtn, { backgroundColor: colors.primary }]}
-          onPress={() => router.push('/(onboarding)/16-summary')}
+          onPress={handleReview}
           activeOpacity={0.85}
         >
-          <Text style={[s.reviewBtnText, { color: colors.primaryForeground }]}>Leave a quick review  ★</Text>
+          <Text style={[s.reviewBtnText, { color: colors.primaryForeground }]}>Rate FoodWise</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => router.push('/(onboarding)/16-summary')}
@@ -89,10 +88,9 @@ function makeStyles(c: ThemeColors) {
     title: { fontSize: FontSize['2xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground, textAlign: 'center', lineHeight: 32, marginBottom: Spacing.md },
     sub: { fontSize: FontSize.sm, color: c.mutedForeground, textAlign: 'center', lineHeight: 22, marginBottom: Spacing['2xl'] },
     card: { width: '100%', borderRadius: 24, borderWidth: 1, padding: Spacing.xl, alignItems: 'center' },
+    cardEmoji: { fontSize: 36, marginBottom: Spacing.sm },
     cardTitle: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-Bold', color: c.foreground, textAlign: 'center', marginBottom: 4 },
-    cardSub: { fontSize: FontSize.sm, color: c.mutedForeground, textAlign: 'center', marginBottom: Spacing.xl },
-    starsRow: { flexDirection: 'row', gap: Spacing.lg },
-    star: { fontSize: 36 },
+    cardSub: { fontSize: FontSize.sm, color: c.mutedForeground, textAlign: 'center' },
     bottom: { paddingBottom: Spacing['3xl'], gap: Spacing.sm },
     reviewBtn: { borderRadius: Radius.full, paddingVertical: 18, alignItems: 'center' },
     reviewBtnText: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-ExtraBold' },

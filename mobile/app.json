@@ -13,9 +13,6 @@
       "bundleIdentifier": "app.foodwise.ios",
       "buildNumber": "1",
       "infoPlist": {
-        "NSUserTrackingUsageDescription": "FoodWise uses analytics to improve the app experience.",
-        "NSHealthShareUsageDescription": "FoodWise uses health data to personalize your GLP-1 meal plans.",
-        "NSHealthUpdateUsageDescription": "FoodWise may write nutrition data to Apple Health.",
         "ITSAppUsesNonExemptEncryption": false
       },
       "config": {
@@ -56,7 +53,8 @@
           "icon": "./assets/images/nori_icon.png",
           "color": "#E89D35"
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true

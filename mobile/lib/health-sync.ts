@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 // HealthKit integration — iOS only. No-ops on Android.
 // Library: @kingstinct/react-native-healthkit (add to dependencies when enabling)
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 let Healthkit: any = null;
 
 if (Platform.OS === 'ios') {

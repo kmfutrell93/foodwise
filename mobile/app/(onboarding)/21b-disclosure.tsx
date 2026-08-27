@@ -20,7 +20,7 @@ export default function AiDisclosure() {
   const router = useRouter();
 
   return (
-    <OnboardingShell step={21}>
+    <OnboardingShell step={21} screenKey="21b-disclosure">
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <Text style={s.label}>AI & Privacy</Text>
         <Text style={s.title}>How Nori{'\n'}works</Text>
@@ -52,7 +52,7 @@ export default function AiDisclosure() {
           <Text style={s.disclaimerText}>
             ⚠️ <Text style={s.disclaimerBold}>Medical disclaimer:</Text> FoodWise is a nutrition support
             tool, not a medical device. Meal suggestions are not a substitute for advice from your
-            doctor, dietitian, or prescribing provider. Always follow your healthcare team's guidance
+            doctor, dietitian, or prescribing provider. Always follow your healthcare team&apos;s guidance
             regarding your GLP-1 medication.
           </Text>
         </View>

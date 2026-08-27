@@ -18,15 +18,11 @@ Deno.serve(async (req) => {
     return new Response('Unauthorized', { status: 401 });
   }
 
+  try {
   const admin = createClient(
     Deno.env.get('SUPABASE_URL')!,
     serviceRoleKey
   );
-
-  // Get all users with push tokens, notifications enabled, and a weekly report this week
-  const weekStart = new Date();
-  weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // Sunday
-  weekStart.setHours(0, 0, 0, 0);
 
   const { data: profiles } = await admin
     .from('profiles')
@@ -36,23 +32,45 @@ Deno.serve(async (req) => {
 
   if (!profiles?.length) return new Response('No recipients', { status: 200 });
 
-  // Only notify users who have a report generated this week
+  // weekly_reports.week_start is always a Monday (see weekly-report/index.ts),
+  // not the calendar week-start used here previously — querying by a computed
+  // Sunday boundary never matched any row. Instead, look up each user's most
+  // recent report directly and just check it's fresh (generated in the last
+  // 7 days), which is robust regardless of how week_start is anchored.
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const userIds = profiles.map(p => p.id);
   const { data: reports } = await admin
     .from('weekly_reports')
-    .select('user_id')
-    .gte('week_start', weekStart.toISOString());
+    .select('user_id, week_start, insight_text')
+    .in('user_id', userIds)
+    .gte('week_start', sevenDaysAgo)
+    .order('week_start', { ascending: false });
 
-  const reportUserIds = new Set((reports ?? []).map((r: { user_id: string }) => r.user_id));
+  // Keep only the most recent report per user.
+  const latestReportByUser = new Map<string, { insight_text: string }>();
+  for (const r of reports ?? []) {
+    if (!latestReportByUser.has(r.user_id)) latestReportByUser.set(r.user_id, r);
+  }
+
+  function firstSentence(text: string | null): string | null {
+    if (!text) return null;
+    const match = text.match(/^[^.!?]*[.!?]/);
+    return (match ? match[0] : text).trim();
+  }
 
   const messages = profiles
-    .filter(p => reportUserIds.has(p.id))
-    .map(p => ({
-      to: p.push_token,
-      title: 'Your weekly FoodWise report is ready 📊',
-      body: `See how your nutrition stacked up this week, ${p.full_name?.split(' ')[0] ?? 'friend'}.`,
-      data: { screen: 'progress' },
-      sound: 'default',
-    }));
+    .filter(p => latestReportByUser.has(p.id))
+    .map(p => {
+      const report = latestReportByUser.get(p.id)!;
+      const highlight = firstSentence(report.insight_text);
+      return {
+        to: p.push_token,
+        title: 'Your weekly FoodWise report is ready 📊',
+        body: highlight ?? `See how your nutrition stacked up this week, ${p.full_name?.split(' ')[0] ?? 'friend'}.`,
+        data: { screen: 'progress' },
+        sound: 'default',
+      };
+    });
 
   if (!messages.length) return new Response('No reports to notify', { status: 200 });
 
@@ -63,4 +81,8 @@ Deno.serve(async (req) => {
   });
 
   return new Response(JSON.stringify({ sent: messages.length }), { status: 200 });
+  } catch (err) {
+    console.error('push-weekly-report error:', err);
+    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : 'Internal error' }), { status: 500 });
+  }
 });

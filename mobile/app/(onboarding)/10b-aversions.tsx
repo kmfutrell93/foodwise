@@ -27,7 +27,7 @@ export default function Aversions() {
   const colors = useThemeColors();
   const s = makeStyles(colors);
   const router = useRouter();
-  const { setField } = useOnboarding();
+  const { setField, saveStep } = useOnboarding();
   const [selected, setSelected] = useState<string[]>([]);
   const [noneSelected, setNoneSelected] = useState(false);
 
@@ -37,17 +37,18 @@ export default function Aversions() {
     setSelected(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
   }
 
-  function handleNext() {
+  async function handleNext() {
     setField('food_aversions', selected);
+    await saveStep(12, { food_aversions: selected }); // → 11-budget
     router.push('/(onboarding)/11-budget');
   }
 
   return (
-    <OnboardingShell step={10}>
+    <OnboardingShell step={10} screenKey="10b-aversions">
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <Text style={s.label}>Food aversions</Text>
         <Text style={s.title}>Anything that makes{'\n'}your stomach turn?</Text>
-        <Text style={s.sub}>GLP-1 medications can intensify food reactions. We'll avoid these in your plan.</Text>
+        <Text style={s.sub}>GLP-1 medications can intensify food reactions. We&apos;ll avoid these in your plan.</Text>
 
         <View style={s.tags}>
           {AVERSIONS.map(a => (

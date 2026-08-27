@@ -1,7 +1,10 @@
 import { Mixpanel } from 'mixpanel-react-native';
 
-const TOKEN = 'df078b22c885c0e329c6f5ba3e9e2d83';
+const TOKEN = process.env.EXPO_PUBLIC_MIXPANEL_TOKEN!;
 
+// First-party analytics only. Do not request ATT / IDFA — NSUserTrackingUsageDescription
+// is intentionally absent from app.json. Mixpanel RN does not collect advertising ID unless
+// the host app integrates App Tracking Transparency separately (we do not).
 const mixpanel = new Mixpanel(TOKEN, /* trackAutomaticEvents */ true);
 
 export async function initAnalytics(userId: string) {
@@ -117,8 +120,16 @@ export function trackCheckInCompleted(props: { energy_level: number; severity: n
 
 // ─── Monetization ────────────────────────────────────────────────────────────
 
+export type PaywallTrigger =
+  | 'onboarding'
+  | 'meal_generation'
+  | 'symptom_insights'
+  | 'grocery_list'
+  | 'in_app'
+  | 'recipe_upsell';
+
 export function trackPaywallShown(
-  trigger: 'onboarding' | 'meal_generation' | 'symptom_insights' | 'grocery_list',
+  trigger: PaywallTrigger,
   extra?: { testimonials_visible?: boolean; testimonial_count?: number },
 ) {
   mixpanel.track('paywall_shown', { trigger, ...extra });
@@ -175,6 +186,18 @@ export function trackRecipeAddedToPlan(props: { recipe_id: string; day: string; 
 
 export function trackRecipeRated(props: { recipe_id: string; rating: number }) {
   mixpanel.track('recipe_rated', props);
+}
+
+export function trackRecipeGenerated(props: { meal_name: string; meal_slot: string }) {
+  mixpanel.track('recipe_generated', props);
+}
+
+export function trackRecipeSaved(props: { meal_name: string; meal_slot: string; is_pro: boolean }) {
+  mixpanel.track('recipe_saved', props);
+}
+
+export function trackRecipeUpsellShown(props: { trigger: string }) {
+  mixpanel.track('recipe_upsell_shown', props);
 }
 
 // ─── Apple Health ─────────────────────────────────────────────────────────────

@@ -65,24 +65,36 @@ export default function Habit() {
 
   async function handleNext() {
     if (!canProceed) return;
+
+    const overrides: Record<string, unknown> = {
+      medication: medication!,
+      injection_day: injectionDay!,
+      check_in_time: checkInTime!,
+    };
+
     setField('medication', medication!);
     setField('injection_day', injectionDay!);
     setField('check_in_time', checkInTime!);
 
     if (doseMg !== null) {
       setField('dose_mg' as any, doseMg);
+      overrides.dose_mg = doseMg;
     }
     if (timeOnMed) {
       setField('time_on_medication' as any, timeOnMed);
+      overrides.time_on_medication = timeOnMed;
       // Derive an approximate dose_start_date from the time bucket
       const daysAgo = TIME_ON_MED_DAYS[timeOnMed] ?? 14;
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - daysAgo);
-      setField('dose_start_date' as any, startDate.toISOString().split('T')[0]);
+      const doseStart = startDate.toISOString().split('T')[0];
+      setField('dose_start_date' as any, doseStart);
+      overrides.dose_start_date = doseStart;
     }
 
-    await saveStep(17);
-    router.push('/(onboarding)/18-commitment');
+    // Next: 13-generating (index 15) — medication is now on the profile before Claude runs
+    await saveStep(15, overrides as any);
+    router.push('/(onboarding)/13-generating');
   }
 
   function select<T>(setter: (v: T) => void, value: T) {
@@ -91,7 +103,7 @@ export default function Habit() {
   }
 
   return (
-    <OnboardingShell step={17}>
+    <OnboardingShell step={17} screenKey="17-habit">
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <Text style={s.label}>Medication</Text>
         <Text style={s.title}>Your GLP-1{'\n'}details.</Text>

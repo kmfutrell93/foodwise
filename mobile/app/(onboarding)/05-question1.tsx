@@ -62,7 +62,7 @@ export default function Question1() {
   async function handleNext() {
     if (!selected) return;
     setField('primary_struggle', selected);
-    await saveStep(5);
+    await saveStep(5, { primary_struggle: selected });
     router.push('/(onboarding)/06-mirror1');
   }
 
@@ -76,6 +76,7 @@ export default function Question1() {
   return (
     <OnboardingShell
       step={5}
+      screenKey="05-question1"
       centerLabel="Question 1 of 2"
       skipRoute="/(onboarding)/10-restrictions"
     >
@@ -94,7 +95,7 @@ export default function Question1() {
         </View>
 
         <Text style={s.title}>
-          What's your biggest{'\n'}struggle since starting{'\n'}<Text style={s.titleHighlight}>GLP-1 medication?</Text>
+          What&apos;s your biggest{'\n'}struggle since starting{'\n'}<Text style={s.titleHighlight}>GLP-1 medication?</Text>
         </Text>
         <Text style={s.hint}>Select the one that resonates most.</Text>
 

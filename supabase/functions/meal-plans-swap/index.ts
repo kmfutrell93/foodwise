@@ -2,6 +2,12 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
 import Anthropic from 'https://esm.sh/@anthropic-ai/sdk@0.39.0';
 
+function errorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (err && typeof err === 'object' && 'message' in err) return String((err as { message: unknown }).message);
+  return 'Internal error';
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -71,9 +77,10 @@ Deno.serve(async (req) => {
 
     const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
 
+    const t0 = Date.now();
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 512,
+      model: 'claude-sonnet-4-6',
+      max_tokens: 300,
       system: `You are a GLP-1 dietitian. You MUST honor all dietary restrictions with zero exceptions — if a food violates any restriction, it must not appear in the suggestion.
 
 DIETARY RESTRICTION RULES — follow every applicable rule exactly:
@@ -88,20 +95,43 @@ Active restrictions: ${restrictionLabels}
 Food aversions (also exclude): ${aversions}
 Is injection day: ${dayData.is_injection_day ? 'yes — use soft textures only (yogurt, eggs, smoothies, soups)' : 'no'}
 
-Return ONLY valid JSON with no markdown:
-{"name": "...", "protein_g": 28, "calories": 340, "cost": 2.10, "note": "..."}`
+Return exactly one meal. Name only, protein_g, calories, slot. No notes, no explanation.`
       }],
+      tools: [{
+        name: 'output',
+        description: 'Structured output for this function',
+        input_schema: {
+          type: 'object',
+          properties: {
+            slot: { type: 'string' },
+            name: { type: 'string' },
+            protein_g: { type: 'number' },
+            calories: { type: 'number' },
+            cost: { type: 'number' },
+            note: { type: 'string' },
+          },
+          required: ['slot', 'name', 'protein_g', 'calories'],
+        },
+      }],
+      tool_choice: { type: 'tool', name: 'output' },
     });
+    console.log(`Claude generation took ${Date.now() - t0}ms`);
+    console.log(`Claude stop_reason: ${message.stop_reason}, tokens used: ${message.usage?.output_tokens}`);
 
-    const rawText = message.content[0].type === 'text' ? message.content[0].text : '{}';
-    const newMeal = JSON.parse(rawText);
+    const toolBlock = message.content.find(b => b.type === 'tool_use');
+    if (!toolBlock || toolBlock.type !== 'tool_use') {
+      throw new Error('No tool_use block in Claude response');
+    }
+    const newMeal = toolBlock.input as { slot: string; name: string; protein_g: number; calories: number; cost: number; note: string };
 
-    // Patch the plan in-place
+    // Patch the plan in-place — keep the original slot identity regardless of
+    // what the tool call returned for it, so a malformed/mismatched slot
+    // string from Claude can never silently move a meal to the wrong slot.
     const updatedDays = plan.plan_json.days.map((d: { day: string; meals: { slot: string }[] }) => {
       if (d.day.toLowerCase() !== day.toLowerCase()) return d;
       return {
         ...d,
-        meals: d.meals.map((m: { slot: string }) => m.slot === slot ? { ...m, ...newMeal } : m),
+        meals: d.meals.map((m: { slot: string }) => m.slot === slot ? { ...m, ...newMeal, slot: m.slot } : m),
       };
     });
 
@@ -117,9 +147,9 @@ Return ONLY valid JSON with no markdown:
     });
 
   } catch (err) {
-    console.error('meal-plans/swap-meal error:', err);
+    console.error('meal-plans/swap-meal error:', errorMessage(err), err);
     return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : 'Internal error' }),
+      JSON.stringify({ error: errorMessage(err) }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

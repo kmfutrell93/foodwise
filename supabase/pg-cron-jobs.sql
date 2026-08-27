@@ -3,7 +3,7 @@
 --   1. pg_cron extension enabled: Supabase Dashboard → Database → Extensions → pg_cron
 --   2. pg_net extension enabled: same page → pg_net
 --   3. All three edge functions deployed (push-weekly-report, push-injection-day, push-reengagement)
---   4. Replace eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4eGdraHBwZWV3dWR6YWxld2d5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Nzc0NjU4MCwiZXhwIjoyMDkzMzIyNTgwfQ.RbbTYJac4-3NZ07w_bvWNeJJ-b6FOwR4HW0MqVWuJzs with your actual service role key (found in
+--   4. Replace <SERVICE_ROLE_KEY> with your actual service role key (found in
 --      Supabase Dashboard → Project Settings → API → service_role secret)
 --   5. Replace <PROJECT_REF> with: rxxgkhppeewudzalewgy
 --
@@ -16,6 +16,7 @@
 select cron.unschedule('weekly-report-push')    where exists (select 1 from cron.job where jobname = 'weekly-report-push');
 select cron.unschedule('injection-day-push')    where exists (select 1 from cron.job where jobname = 'injection-day-push');
 select cron.unschedule('reengagement-push')     where exists (select 1 from cron.job where jobname = 'reengagement-push');
+select cron.unschedule('expire-free-recipes')   where exists (select 1 from cron.job where jobname = 'expire-free-recipes');
 
 
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -35,7 +36,7 @@ select cron.schedule(
     url     := 'https://rxxgkhppeewudzalewgy.supabase.co/functions/v1/push-weekly-report',
     headers := jsonb_build_object(
       'Content-Type',  'application/json',
-      'Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4eGdraHBwZWV3dWR6YWxld2d5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Nzc0NjU4MCwiZXhwIjoyMDkzMzIyNTgwfQ.RbbTYJac4-3NZ07w_bvWNeJJ-b6FOwR4HW0MqVWuJzs'
+      'Authorization', 'Bearer <SERVICE_ROLE_KEY>'
     ),
     body    := '{}'::jsonb
   );
@@ -60,7 +61,7 @@ select cron.schedule(
     url     := 'https://rxxgkhppeewudzalewgy.supabase.co/functions/v1/push-injection-day',
     headers := jsonb_build_object(
       'Content-Type',  'application/json',
-      'Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4eGdraHBwZWV3dWR6YWxld2d5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Nzc0NjU4MCwiZXhwIjoyMDkzMzIyNTgwfQ.RbbTYJac4-3NZ07w_bvWNeJJ-b6FOwR4HW0MqVWuJzs'
+      'Authorization', 'Bearer <SERVICE_ROLE_KEY>'
     ),
     body    := '{}'::jsonb
   );
@@ -90,7 +91,7 @@ select cron.schedule(
     url     := 'https://rxxgkhppeewudzalewgy.supabase.co/functions/v1/push-reengagement',
     headers := jsonb_build_object(
       'Content-Type',  'application/json',
-      'Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4eGdraHBwZWV3dWR6YWxld2d5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Nzc0NjU4MCwiZXhwIjoyMDkzMzIyNTgwfQ.RbbTYJac4-3NZ07w_bvWNeJJ-b6FOwR4HW0MqVWuJzs'
+      'Authorization', 'Bearer <SERVICE_ROLE_KEY>'
     ),
     body    := '{}'::jsonb
   );
@@ -99,9 +100,23 @@ select cron.schedule(
 
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- VERIFY: check all three jobs were created
+-- JOB 4: Expire free-tier saved recipes
+-- Runs: Every Sunday at midnight UTC.
+-- What it does: Deletes saved_recipes rows where expires_at is set and past.
+--   Free users get expires_at = next Sunday midnight when they save a recipe.
+--   Pro users get expires_at = null (never expires).
+-- ─────────────────────────────────────────────────────────────────────────────
+select cron.schedule(
+  'expire-free-recipes',
+  '0 0 * * 0',
+  $$delete from public.saved_recipes where expires_at is not null and expires_at < now()$$
+);
+
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- VERIFY: check all four jobs were created
 -- ─────────────────────────────────────────────────────────────────────────────
 select jobname, schedule, active, jobid
 from cron.job
-where jobname in ('weekly-report-push', 'injection-day-push', 'reengagement-push')
+where jobname in ('weekly-report-push', 'injection-day-push', 'reengagement-push', 'expire-free-recipes')
 order by jobname;

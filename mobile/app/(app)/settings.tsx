@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Switch, TextInput, Modal, ActivityIndicator, Linking, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import Constants from 'expo-constants';
 import RevenueCatUI from 'react-native-purchases-ui';
 import { supabase, Profile } from '@/lib/supabase';
 import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
@@ -9,6 +10,7 @@ import { useThemeColors, useTheme } from '@/context/ThemeContext';
 import { useRevenueCat, ENTITLEMENT_ID } from '@/context/RevenueCatContext';
 import { formatBillingAmount } from '@/lib/pricing';
 import { getDoseOptions, computeEscalationStatus } from '@/lib/escalation';
+import { formatProteinRange } from '@/lib/utils';
 
 const MEDICATION_LABELS: Record<string, string> = {
   semaglutide: 'Ozempic / Wegovy (Semaglutide)',
@@ -16,6 +18,31 @@ const MEDICATION_LABELS: Record<string, string> = {
   liraglutide: 'Saxenda / Victoza (Liraglutide)',
   other: 'Other',
 };
+
+const RESTRICTION_OPTIONS = [
+  'gluten-free', 'dairy-free', 'egg-free', 'nut-free', 'shellfish-free', 'soy-free',
+  'vegetarian', 'vegan', 'pescatarian', 'low-fodmap', 'halal', 'kosher',
+];
+const RESTRICTION_LABELS: Record<string, string> = {
+  'gluten-free': 'Gluten-Free', 'dairy-free': 'Dairy-Free', 'egg-free': 'Egg-Free',
+  'nut-free': 'Nut-Free', 'shellfish-free': 'Shellfish-Free', 'soy-free': 'Soy-Free',
+  vegetarian: 'Vegetarian', vegan: 'Vegan', pescatarian: 'Pescatarian',
+  'low-fodmap': 'Low FODMAP', halal: 'Halal', kosher: 'Kosher',
+};
+
+const AVERSION_OPTIONS = [
+  'greasy/fried foods', 'red meat', 'eggs', 'dairy', 'fish/seafood',
+  'cruciferous veggies', 'spicy foods', 'beans/legumes', 'strong smells',
+  'sweet foods', 'carbonated drinks', 'raw foods',
+];
+
+const APPETITE_OPTIONS: { value: 'low' | 'moderate' | 'normal'; label: string }[] = [
+  { value: 'low', label: 'Low' },
+  { value: 'moderate', label: 'Moderate' },
+  { value: 'normal', label: 'Normal' },
+];
+
+const appVersion = Constants.expoConfig?.version ?? '1.0.0';
 
 export default function Settings() {
   const router = useRouter();
@@ -33,6 +60,12 @@ export default function Settings() {
   const [editDoseMg, setEditDoseMg] = useState<number | null>(null);
   const [editDoseStartDate, setEditDoseStartDate] = useState<string>('');
   const [doseSaving, setDoseSaving] = useState(false);
+  const [glp1ProfileEditOpen, setGlp1ProfileEditOpen] = useState(false);
+  const [editAversions, setEditAversions] = useState<string[]>([]);
+  const [editRestrictions, setEditRestrictions] = useState<string[]>([]);
+  const [editAppetite, setEditAppetite] = useState<'low' | 'moderate' | 'normal' | null>(null);
+  const [editBudget, setEditBudget] = useState('');
+  const [glp1ProfileSaving, setGlp1ProfileSaving] = useState(false);
   const { isPro, customerInfo, currentOffering } = useRevenueCat();
 
   const activeProductId = customerInfo?.entitlements.active[ENTITLEMENT_ID]?.productIdentifier;
@@ -98,6 +131,39 @@ export default function Settings() {
     } finally { setDoseSaving(false); }
   }
 
+  function toggleEditChip(list: string[], setList: (v: string[]) => void, value: string) {
+    setList(list.includes(value) ? list.filter(v => v !== value) : [...list, value]);
+  }
+
+  function openGlp1ProfileEdit() {
+    setEditAversions(profile?.food_aversions ?? []);
+    setEditRestrictions(profile?.dietary_restrictions ?? []);
+    setEditAppetite((profile?.appetite_level as 'low' | 'moderate' | 'normal' | null) ?? null);
+    setEditBudget(profile?.weekly_budget ? String(profile.weekly_budget) : '');
+    setGlp1ProfileEditOpen(true);
+  }
+
+  async function saveGlp1Profile() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    setGlp1ProfileSaving(true);
+    try {
+      const parsedBudget = parseFloat(editBudget);
+      const weeklyBudget = !isNaN(parsedBudget) && parsedBudget > 0 ? parsedBudget : (profile?.weekly_budget ?? 75);
+      const updates = {
+        food_aversions: editAversions,
+        dietary_restrictions: editRestrictions,
+        appetite_level: editAppetite,
+        weekly_budget: weeklyBudget,
+      };
+      await supabase.from('profiles').update(updates).eq('id', user.id);
+      setProfile(prev => prev ? { ...prev, ...updates } : prev);
+      setGlp1ProfileEditOpen(false);
+    } finally {
+      setGlp1ProfileSaving(false);
+    }
+  }
+
   async function handleSignOut() {
     Alert.alert('Sign out', 'Are you sure you want to sign out?', [
       { text: 'Cancel', style: 'cancel' },
@@ -106,7 +172,7 @@ export default function Settings() {
         style: 'destructive',
         onPress: async () => {
           await supabase.auth.signOut();
-          router.replace('/(onboarding)/01-welcome');
+          router.replace('/(onboarding)/sign-in');
         },
       },
     ]);
@@ -194,7 +260,6 @@ export default function Settings() {
               <Text style={s.rowTitle}>Medication</Text>
               <Text style={s.rowSub} numberOfLines={1}>{MEDICATION_LABELS[profile?.medication ?? ''] ?? '—'}</Text>
             </View>
-            <Text style={s.chevron}>›</Text>
           </View>
           <View style={[s.iconRow, s.rowBorder]}>
             <View style={[s.iconCircle, s.circleSalmon]}>
@@ -204,7 +269,6 @@ export default function Settings() {
               <Text style={s.rowTitle}>Injection Day</Text>
               <Text style={s.rowSub}>{injectionDayDisplay}</Text>
             </View>
-            <Text style={s.chevron}>›</Text>
           </View>
           <View style={s.iconRow}>
             <View style={[s.iconCircle, s.circleGreen]}>
@@ -214,7 +278,6 @@ export default function Settings() {
               <Text style={s.rowTitle}>Dosage</Text>
               <Text style={s.rowSub}>Not tracked</Text>
             </View>
-            <Text style={s.chevron}>›</Text>
           </View>
         </View>
 
@@ -270,6 +333,51 @@ export default function Settings() {
           </View>
         </View>
 
+        {/* GLP-1 Profile — editable */}
+        <View style={s.sectionLabelRow}>
+          <Text style={s.sectionLabel}>GLP-1 Profile</Text>
+          <TouchableOpacity onPress={openGlp1ProfileEdit} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <Text style={s.editPenSmall}>✏️</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={s.card}>
+          <View style={[s.iconRow, s.rowBorder]}>
+            <View style={[s.iconCircle, s.circleAmber]}>
+              <Text style={s.iconEmoji}>🚫</Text>
+            </View>
+            <View style={s.rowContent}>
+              <Text style={s.rowTitle}>Food Aversions</Text>
+              <Text style={s.rowSub} numberOfLines={2}>
+                {(profile?.food_aversions ?? []).length > 0 ? profile!.food_aversions.join(', ') : 'None set'}
+              </Text>
+            </View>
+          </View>
+          <View style={[s.iconRow, s.rowBorder]}>
+            <View style={[s.iconCircle, s.circleSalmon]}>
+              <Text style={s.iconEmoji}>🌱</Text>
+            </View>
+            <View style={s.rowContent}>
+              <Text style={s.rowTitle}>Dietary Restrictions</Text>
+              <Text style={s.rowSub} numberOfLines={2}>
+                {(profile?.dietary_restrictions ?? []).length > 0
+                  ? profile!.dietary_restrictions.map(r => RESTRICTION_LABELS[r] ?? r).join(', ')
+                  : 'None set'}
+              </Text>
+            </View>
+          </View>
+          <View style={s.iconRow}>
+            <View style={[s.iconCircle, s.circleGreen]}>
+              <Text style={s.iconEmoji}>🍽️</Text>
+            </View>
+            <View style={s.rowContent}>
+              <Text style={s.rowTitle}>Appetite Level</Text>
+              <Text style={s.rowSub}>
+                {APPETITE_OPTIONS.find(o => o.value === profile?.appetite_level)?.label ?? 'Not set'}
+              </Text>
+            </View>
+          </View>
+        </View>
+
         {/* Nutrition Goals */}
         <Text style={s.sectionLabel}>Nutrition Goals</Text>
         <View style={s.card}>
@@ -279,9 +387,8 @@ export default function Settings() {
             </View>
             <View style={s.rowContent}>
               <Text style={s.rowTitle}>Daily Protein Goal</Text>
-              <Text style={s.rowSub}>{profile?.protein_goal_range ? `${profile.protein_goal_range}g / day` : '—'}</Text>
+              <Text style={s.rowSub}>{formatProteinRange(profile?.protein_goal_range)}</Text>
             </View>
-            <Text style={s.chevron}>›</Text>
           </View>
           <View style={[s.iconRow, s.rowBorder]}>
             <View style={[s.iconCircle, s.circleSalmon]}>
@@ -291,7 +398,6 @@ export default function Settings() {
               <Text style={s.rowTitle}>Calorie Target</Text>
               <Text style={s.rowSub}>From your meal plan</Text>
             </View>
-            <Text style={s.chevron}>›</Text>
           </View>
           <View style={s.iconRow}>
             <View style={[s.iconCircle, s.circleAmber]}>
@@ -301,7 +407,9 @@ export default function Settings() {
               <Text style={s.rowTitle}>Weekly Budget</Text>
               <Text style={s.rowSub}>{profile?.weekly_budget ? `$${profile.weekly_budget} / week` : '—'}</Text>
             </View>
-            <Text style={s.chevron}>›</Text>
+            <TouchableOpacity onPress={openGlp1ProfileEdit} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <Text style={s.editPenSmall}>✏️</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -387,9 +495,16 @@ export default function Settings() {
             ) : null}
             <Text style={s.chevron}>›</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[s.linkRow, s.rowBorder]} onPress={() => Linking.openURL('https://kmfutrell93.github.io/foodwise-legal/terms')} activeOpacity={0.75}>
+          <TouchableOpacity style={[s.linkRow, s.rowBorder]} onPress={() => Linking.openURL('https://kmfutrell93.github.io/foodwise-legal/terms#3-medical-disclaimer')} activeOpacity={0.75}>
             <View style={s.rowContent}>
               <Text style={s.rowTitle}>Medical Disclaimer</Text>
+              <Text style={s.rowSub}>Not medical advice</Text>
+            </View>
+            <Text style={s.chevron}>›</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[s.linkRow, s.rowBorder]} onPress={() => Linking.openURL('https://kmfutrell93.github.io/foodwise-legal/terms')} activeOpacity={0.75}>
+            <View style={s.rowContent}>
+              <Text style={s.rowTitle}>Terms of Service</Text>
             </View>
             <Text style={s.chevron}>›</Text>
           </TouchableOpacity>
@@ -413,7 +528,7 @@ export default function Settings() {
           <View style={s.linkRow}>
             <View style={s.rowContent}>
               <Text style={s.rowTitle}>About FoodWise</Text>
-              <Text style={s.rowSub}>v1.0.0</Text>
+              <Text style={s.rowSub}>v{appVersion}</Text>
             </View>
           </View>
         </View>
@@ -430,7 +545,7 @@ export default function Settings() {
           </TouchableOpacity>
         </View>
 
-        <Text style={s.version}>FoodWise v1.0.0 · Made with ❤️ for GLP-1 users</Text>
+        <Text style={s.version}>FoodWise v{appVersion} · Made with ❤️ for GLP-1 users</Text>
       </ScrollView>
 
       <Modal visible={editingName} transparent animationType="slide" onRequestClose={() => setEditingName(false)}>
@@ -503,6 +618,96 @@ export default function Settings() {
           </View>
         </View>
       </Modal>
+
+      <Modal visible={glp1ProfileEditOpen} transparent animationType="slide" onRequestClose={() => setGlp1ProfileEditOpen(false)}>
+        <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setGlp1ProfileEditOpen(false)} />
+        <View style={[s.modalSheet, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <Text style={[s.modalTitle, { color: colors.foreground }]}>Edit GLP-1 Profile</Text>
+
+            <Text style={[s.doseChipLabel, { color: colors.mutedForeground }]}>Food aversions</Text>
+            <View style={s.doseChipGrid}>
+              {AVERSION_OPTIONS.map(opt => {
+                const selected = editAversions.includes(opt);
+                return (
+                  <TouchableOpacity
+                    key={opt}
+                    style={[s.doseChip, { borderColor: selected ? colors.primary : colors.border, backgroundColor: selected ? colors.primary + '15' : colors.input }]}
+                    onPress={() => toggleEditChip(editAversions, setEditAversions, opt)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[s.doseChipText, { color: selected ? colors.primary : colors.foreground }]}>{opt}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <Text style={[s.doseChipLabel, { color: colors.mutedForeground, marginTop: Spacing.lg }]}>Dietary restrictions</Text>
+            <View style={s.doseChipGrid}>
+              {RESTRICTION_OPTIONS.map(opt => {
+                const selected = editRestrictions.includes(opt);
+                return (
+                  <TouchableOpacity
+                    key={opt}
+                    style={[s.doseChip, { borderColor: selected ? colors.primary : colors.border, backgroundColor: selected ? colors.primary + '15' : colors.input }]}
+                    onPress={() => toggleEditChip(editRestrictions, setEditRestrictions, opt)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[s.doseChipText, { color: selected ? colors.primary : colors.foreground }]}>{RESTRICTION_LABELS[opt]}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <Text style={[s.doseChipLabel, { color: colors.mutedForeground, marginTop: Spacing.lg }]}>Appetite level</Text>
+            <View style={s.doseChipGrid}>
+              {APPETITE_OPTIONS.map(opt => {
+                const selected = editAppetite === opt.value;
+                return (
+                  <TouchableOpacity
+                    key={opt.value}
+                    style={[s.doseChip, { borderColor: selected ? colors.primary : colors.border, backgroundColor: selected ? colors.primary + '15' : colors.input }]}
+                    onPress={() => setEditAppetite(opt.value)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[s.doseChipText, { color: selected ? colors.primary : colors.foreground }]}>{opt.label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <Text style={[s.doseChipLabel, { color: colors.mutedForeground, marginTop: Spacing.lg }]}>Weekly budget ($)</Text>
+            <TextInput
+              style={[s.modalInput, { backgroundColor: colors.input, borderColor: colors.border, color: colors.foreground }]}
+              placeholder="e.g. 75"
+              placeholderTextColor={colors.mutedForeground}
+              value={editBudget}
+              onChangeText={setEditBudget}
+              keyboardType="numeric"
+            />
+
+            <View style={s.doseModalBtns}>
+              <TouchableOpacity
+                style={[s.doseModalCancelBtn, { borderColor: colors.border }]}
+                onPress={() => setGlp1ProfileEditOpen(false)}
+                activeOpacity={0.75}
+              >
+                <Text style={[s.doseModalCancelText, { color: colors.mutedForeground }]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[s.doseModalSaveBtn, { backgroundColor: colors.primary }, glp1ProfileSaving && s.ctaDisabled]}
+                onPress={saveGlp1Profile}
+                disabled={glp1ProfileSaving}
+                activeOpacity={0.85}
+              >
+                {glp1ProfileSaving
+                  ? <ActivityIndicator color={colors.primaryForeground} />
+                  : <Text style={[s.modalBtnText, { color: colors.primaryForeground }]}>Save</Text>}
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -523,6 +728,7 @@ function makeStyles(c: ThemeColors) {
     editPen: { fontSize: 18, opacity: 0.5 },
     // Section label
     sectionLabel: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-ExtraBold', color: c.mutedForeground, textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: Spacing.sm },
+    sectionLabelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.sm },
     // Cards
     card: { backgroundColor: c.card, borderRadius: Radius.lg, borderWidth: 1, borderColor: c.border, marginBottom: Spacing['2xl'], overflow: 'hidden' },
     rowBorder: { borderBottomWidth: 1, borderBottomColor: c.border },

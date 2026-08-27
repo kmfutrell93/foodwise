@@ -1,13 +1,14 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl,
-  Alert, ActivityIndicator,
+  Alert, ActivityIndicator, Share,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { fetchWithTimeout } from '@/lib/fetch-with-timeout';
 import * as Haptics from 'expo-haptics';
 import Animated, {
-  useSharedValue, useAnimatedStyle, useAnimatedProps,
+  useSharedValue, useAnimatedStyle,
   withTiming, withSpring, withSequence, withDelay,
   BounceIn,
 } from 'react-native-reanimated';
@@ -15,9 +16,11 @@ import { supabase, MealPlan, GrocerySection, GroceryItem } from '@/lib/supabase'
 import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
 import { useThemeColors } from '@/context/ThemeContext';
 import { trackGroceryListOpened } from '@/lib/analytics';
+import { GROCERY_TIMEOUT_MS } from '@/lib/constants';
+import { logError } from '@/lib/utils';
 
 const SECTION_EMOJIS: Record<string, string> = {
-  produce: '🥦', protein: '🥩', dairy: '🥛', grains: '🌾',
+  produce: '🥦', protein: '🥩', proteins: '🥩', dairy: '🥛', 'dairy & eggs': '🥛', grains: '🌾',
   pantry: '🫙', frozen: '🧊', beverages: '🥤', other: '🛒',
 };
 
@@ -138,6 +141,9 @@ export default function GroceryListScreen() {
   const [refreshingList, setRefreshingList] = useState(false);
   const [isStale, setIsStale] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [weeklyBudget, setWeeklyBudget] = useState(75);
+  const [autoGenFailed, setAutoGenFailed] = useState(false);
+  const autoGenForPlanRef = useRef<string | null>(null);
 
   // Reanimated toast
   const toastOpacity = useSharedValue(0);
@@ -146,14 +152,19 @@ export default function GroceryListScreen() {
   async function load() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const { data } = await supabase
-      .from('meal_plans')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('week_start', { ascending: false })
-      .limit(1)
-      .single();
+    const [{ data }, { data: profileData }] = await Promise.all([
+      supabase
+        .from('meal_plans')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('week_start', { ascending: false })
+        .limit(1)
+        .single(),
+      supabase.from('profiles').select('weekly_budget').eq('id', user.id).single(),
+    ]);
+    setWeeklyBudget(profileData?.weekly_budget ?? 75);
     if (data) {
+      console.log('[grocery-client] load called, plan grocery_list null?', data.grocery_list === null);
       setPlan(data);
       const listGenAt: string | undefined = (data.grocery_list as any)?.generated_at;
       const planUpdatedAt: string = (data as any).updated_at ?? data.created_at;
@@ -169,6 +180,17 @@ export default function GroceryListScreen() {
 
   useEffect(() => { load(); trackGroceryListOpened(); }, []);
 
+  // When the plan exists but grocery_list is still null, explicitly call
+  // grocery-list-generate (ingredients + grocery). No background EdgeRuntime.
+  useEffect(() => {
+    if (!plan || plan.grocery_list !== null) return;
+    if (refreshingList || autoGenFailed) return;
+    if (autoGenForPlanRef.current === plan.id) return;
+    autoGenForPlanRef.current = plan.id;
+    console.log('[grocery-client] grocery_list null — triggering grocery-list-generate');
+    void doRefreshList({ auto: true });
+  }, [plan?.id, plan?.grocery_list]);
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await load();
@@ -179,7 +201,7 @@ export default function GroceryListScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setChecked(prev => {
       const next = new Set(prev);
-      next.has(key) ? next.delete(key) : next.add(key);
+      if (next.has(key)) { next.delete(key); } else { next.add(key); }
       return next;
     });
   }
@@ -191,35 +213,73 @@ export default function GroceryListScreen() {
     );
   }
 
-  async function doRefreshList() {
+  async function doRefreshList(opts?: { auto?: boolean }) {
     if (!plan) return;
     setRefreshingList(true);
+    if (!opts?.auto) setAutoGenFailed(false);
+    console.log('[grocery-client] refresh triggered', opts?.auto ? '(auto)' : '(manual)');
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
-      const res = await fetch(
+      const res = await fetchWithTimeout(
         `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/grocery-list-generate`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
           body: JSON.stringify({ plan_id: plan.id }),
-        }
+        },
+        GROCERY_TIMEOUT_MS
       );
-      if (!res.ok) throw new Error('refresh failed');
+      console.log('[grocery-client] fetch response status:', res.status);
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        console.log('[grocery-client] error body:', errBody);
+        throw new Error(errBody.error ?? 'refresh failed');
+      }
       const { plan: updatedPlan } = await res.json();
       if (updatedPlan) {
         setPlan(updatedPlan);
         setIsStale(false);
         setLastUpdated(new Date().toISOString());
+        setAutoGenFailed(false);
       }
       setChecked(new Set());
-      showToast();
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch {
-      Alert.alert('Couldn\'t refresh', 'Check your connection and try again.');
+      if (!opts?.auto) {
+        showToast();
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+    } catch (e: unknown) {
+      const err = e instanceof Error ? e : new Error(String(e));
+      console.log('[grocery-client] error:', err.message);
+      logError('grocery-list:doRefreshList', e);
+      if (opts?.auto) {
+        setAutoGenFailed(true);
+        autoGenForPlanRef.current = null;
+      } else {
+        Alert.alert('Couldn\'t refresh', 'Check your connection and try again.');
+      }
     } finally {
       setRefreshingList(false);
     }
+  }
+
+  async function handleShare() {
+    const sections = plan?.grocery_list?.sections ?? [];
+    if (sections.length === 0) return;
+    const lines: string[] = ['🛒 Grocery List', ''];
+    for (const section of sections) {
+      lines.push(`${section.category}:`);
+      for (const item of section.items) {
+        const qty = item.quantity ? `${item.quantity}${item.unit ? ` ${item.unit}` : ''} — ` : '';
+        lines.push(`  • ${qty}${item.name}`);
+      }
+      lines.push('');
+    }
+    const total = plan?.grocery_list?.estimated_total;
+    if (total != null) lines.push(`Estimated total: $${total.toFixed(2)}`);
+    try {
+      await Share.share({ message: lines.join('\n') });
+    } catch { /* user cancelled or share failed silently */ }
   }
 
   function handleRefresh() {
@@ -229,7 +289,7 @@ export default function GroceryListScreen() {
         'Refreshing will clear your checked items. Continue?',
         [
           { text: 'Cancel', style: 'cancel' },
-          { text: 'Refresh', onPress: doRefreshList },
+          { text: 'Refresh', onPress: () => doRefreshList() },
         ]
       );
     } else {
@@ -237,6 +297,10 @@ export default function GroceryListScreen() {
     }
   }
 
+  // Saved but incomplete — grocery_list is non-null but has no sections
+  // (a truncated/malformed Claude response that slipped past validation).
+  const groceryListIncomplete = !!plan && plan.grocery_list !== null &&
+    (!plan.grocery_list?.sections || plan.grocery_list.sections.length === 0);
   const sections: GrocerySection[] = plan?.grocery_list?.sections ?? [];
   const visibleSections = hidePantry
     ? sections.filter(sec => sec.category.toLowerCase() !== 'pantry')
@@ -244,9 +308,10 @@ export default function GroceryListScreen() {
   const totalItems = sections.reduce((acc, sec) => acc + sec.items.length, 0);
   const checkedCount = checked.size;
   const budgetTotal = plan?.grocery_list?.estimated_total ?? 0;
-  const weeklyBudget = 75;
-  const budgetPct = Math.min(100, Math.round((budgetTotal / weeklyBudget) * 100));
+  const budgetPctRaw = weeklyBudget > 0 ? (budgetTotal / weeklyBudget) * 100 : 0;
+  const budgetPct = Math.min(100, Math.round(budgetPctRaw));
   const budgetRemaining = Math.max(0, weeklyBudget - budgetTotal);
+  const budgetBarColor = budgetPctRaw > 100 ? '#EF4444' : budgetPctRaw >= 90 ? '#F59E0B' : colors.secondary;
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
@@ -274,7 +339,11 @@ export default function GroceryListScreen() {
                 ? <ActivityIndicator size="small" color={colors.primary} />
                 : <Ionicons name="refresh-outline" size={20} color={colors.primary} />}
             </TouchableOpacity>
-            <TouchableOpacity style={[s.iconBtn, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <TouchableOpacity
+              style={[s.iconBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+              onPress={handleShare}
+              activeOpacity={0.8}
+            >
               <Ionicons name="share-outline" size={20} color={colors.primary} />
             </TouchableOpacity>
           </View>
@@ -302,16 +371,16 @@ export default function GroceryListScreen() {
           <View style={[s.budgetCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <View style={s.budgetTop}>
               <Text style={[s.budgetLabel, { color: colors.foreground }]}>Weekly Budget</Text>
-              <Text style={[s.budgetAmount, { color: colors.secondary }]}>
+              <Text style={[s.budgetAmount, { color: budgetBarColor }]}>
                 ${budgetTotal.toFixed(2)} / ${weeklyBudget.toFixed(2)}
               </Text>
             </View>
             <View style={[s.barTrack, { backgroundColor: colors.muted }]}>
-              <View style={[s.barFill, { width: `${budgetPct}%` as any, backgroundColor: colors.secondary }]} />
+              <View style={[s.barFill, { width: `${budgetPct}%` as any, backgroundColor: budgetBarColor }]} />
             </View>
             <View style={s.budgetBottom}>
               <Text style={[s.budgetRemaining, { color: colors.mutedForeground }]}>${budgetRemaining.toFixed(2)} remaining</Text>
-              <Text style={[s.budgetPct, { color: colors.secondary }]}>{budgetPct}%</Text>
+              <Text style={[s.budgetPct, { color: budgetBarColor }]}>{budgetPct}%</Text>
             </View>
           </View>
         )}
@@ -342,12 +411,45 @@ export default function GroceryListScreen() {
           </View>
         )}
 
-        {/* Empty state */}
-        {sections.length === 0 && (
+        {/* Empty state — no plan at all */}
+        {!plan && (
           <View style={s.emptyState}>
             <Text style={s.emptyIcon}>🛒</Text>
             <Text style={[s.emptyTitle, { color: colors.foreground }]}>No grocery list yet</Text>
             <Text style={[s.emptySub, { color: colors.mutedForeground }]}>Generate a meal plan first, then your grocery list will appear here.</Text>
+          </View>
+        )}
+
+        {/* Plan exists but grocery list is still generating, or was saved incomplete */}
+        {plan && (plan.grocery_list === null || groceryListIncomplete) && (
+          <View style={s.emptyState}>
+            {(refreshingList || (plan.grocery_list === null && !autoGenFailed)) ? (
+              <>
+                <ActivityIndicator size="large" color={colors.primary} />
+                <Text style={[s.emptyTitle, { color: colors.foreground, marginTop: Spacing.lg }]}>Building your grocery list...</Text>
+                <Text style={[s.emptySub, { color: colors.mutedForeground }]}>This can take up to a minute while we list ingredients.</Text>
+              </>
+            ) : (
+              <>
+                <Text style={s.emptyIcon}>🛒</Text>
+                <Text style={[s.emptyTitle, { color: colors.foreground }]}>
+                  {groceryListIncomplete ? "Couldn't finish your list" : 'Still working on it'}
+                </Text>
+                <Text style={[s.emptySub, { color: colors.mutedForeground }]}>
+                  {groceryListIncomplete ? 'Something went wrong generating your items.' : 'Taking longer than expected.'}
+                </Text>
+                <TouchableOpacity
+                  style={[s.iconBtn, { backgroundColor: colors.card, borderColor: colors.border, width: undefined, paddingHorizontal: Spacing.xl, marginTop: Spacing.lg }]}
+                  onPress={() => doRefreshList()}
+                  disabled={refreshingList}
+                  activeOpacity={0.8}
+                >
+                  {refreshingList
+                    ? <ActivityIndicator size="small" color={colors.primary} />
+                    : <Text style={{ color: colors.primary, fontFamily: 'PlusJakartaSans-Bold' }}>{groceryListIncomplete ? 'Regenerate' : 'Generate grocery list'}</Text>}
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         )}
 
@@ -364,7 +466,11 @@ export default function GroceryListScreen() {
               <View key={section.category} style={s.section}>
                 <View style={s.sectionHeader}>
                   <Text style={s.sectionEmoji}>{emoji}</Text>
-                  <Text style={[s.sectionTitle, { color: colors.foreground }]}>{section.category}</Text>
+                  <Text style={[
+                    s.sectionTitle,
+                    { color: allChecked ? colors.mutedForeground : colors.foreground },
+                    allChecked && s.sectionTitleDone,
+                  ]}>{section.category}</Text>
                   {isPantry && (
                     <View style={[s.stapleBadge, { backgroundColor: 'rgba(29,158,117,0.1)' }]}>
                       <Text style={[s.stapleBadgeText, { color: colors.primary }]}>Staples</Text>
@@ -449,6 +555,7 @@ function makeStyles(c: ThemeColors) {
     sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: Spacing.md },
     sectionEmoji: { fontSize: 18 },
     sectionTitle: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-ExtraBold' },
+    sectionTitleDone: { textDecorationLine: 'line-through' },
     stapleBadge: { borderRadius: Radius.full, paddingHorizontal: 8, paddingVertical: 2 },
     stapleBadgeText: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-Bold' },
     allCheckedBadge: { marginLeft: 2 },

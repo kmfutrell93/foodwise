@@ -23,16 +23,16 @@ export default function Budget() {
 
   async function handleNext() {
     setField('weekly_budget', budget);
-    await saveStep(11);
+    await saveStep(13, { weekly_budget: budget }); // → 12-appetite
     router.push('/(onboarding)/12-appetite');
   }
 
   return (
-    <OnboardingShell step={11}>
+    <OnboardingShell step={11} screenKey="11-budget">
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <Text style={s.label}>Step 2 of 3</Text>
-        <Text style={s.title}>What's your{'\n'}<Text style={s.titleHighlight}>weekly grocery budget?</Text></Text>
-        <Text style={s.sub}>We'll build meals that maximize nutrition within your budget.</Text>
+        <Text style={s.title}>What&apos;s your{'\n'}<Text style={s.titleHighlight}>weekly grocery budget?</Text></Text>
+        <Text style={s.sub}>We&apos;ll build meals that maximize nutrition within your budget.</Text>
         <View style={s.display}>
           <Text style={s.amount}>${budget}</Text>
           <Text style={s.perDay}>~${(budget / 7).toFixed(2)}/day · 7 days of meals</Text>

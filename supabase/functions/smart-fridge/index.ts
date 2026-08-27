@@ -2,6 +2,12 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
 import Anthropic from 'https://esm.sh/@anthropic-ai/sdk@0.39.0';
 
+function errorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (err && typeof err === 'object' && 'message' in err) return String((err as { message: unknown }).message);
+  return 'Internal error';
+}
+
 type Meal = {
   name: string;
   protein_g: number;
@@ -96,32 +102,46 @@ Deno.serve(async (req) => {
 
     const systemPrompt = `You are a GLP-1 nutrition expert. Given the user's available ingredients, their medication, injection day, and protein goal, suggest 3 meals they can make right now. Each meal must be GLP-1-appropriate, protein-first, and achievable with ONLY the listed ingredients plus common pantry staples (salt, pepper, olive oil, garlic). If today is injection day or the day after, prioritize soft textures. Return ONLY valid JSON — no markdown, no prose, no code fences.`;
 
-    const userPrompt = `Ingredients: ${clampedIngredients.join(', ')}. Medication: ${medication}. Today relative to injection: ${injection_context}. Protein goal: ${protein_goal}g/day.
-
-Return this exact JSON:
-{
-  "meals": [
-    {
-      "name": "Meal Name",
-      "protein_g": 30,
-      "cook_time_mins": 10,
-      "injection_day_friendly": true,
-      "instructions": ["Step 1", "Step 2", "Step 3"],
-      "ingredients_used": ["Ingredient 1", "Ingredient 2"]
-    }
-  ]
-}`;
+    const userPrompt = `Ingredients: ${clampedIngredients.join(', ')}. Medication: ${medication}. Today relative to injection: ${injection_context}. Protein goal: ${protein_goal}g/day.`;
 
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 1000,
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }],
+      tools: [{
+        name: 'output',
+        description: 'Structured output for this function',
+        input_schema: {
+          type: 'object',
+          properties: {
+            meals: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string' },
+                  protein_g: { type: 'number' },
+                  cook_time_mins: { type: 'number' },
+                  injection_day_friendly: { type: 'boolean' },
+                  instructions: { type: 'array', items: { type: 'string' } },
+                  ingredients_used: { type: 'array', items: { type: 'string' } },
+                },
+                required: ['name', 'protein_g', 'cook_time_mins', 'injection_day_friendly', 'instructions', 'ingredients_used'],
+              },
+            },
+          },
+          required: ['meals'],
+        },
+      }],
+      tool_choice: { type: 'tool', name: 'output' },
     });
 
-    const rawText = message.content[0].type === 'text' ? message.content[0].text : '';
-    const parsed = JSON.parse(rawText) as { meals: Meal[] };
-    const meals = parsed.meals;
+    const toolBlock = message.content.find(b => b.type === 'tool_use');
+    if (!toolBlock || toolBlock.type !== 'tool_use') {
+      throw new Error('No tool_use block in Claude response');
+    }
+    const meals = (toolBlock.input as { meals: Meal[] }).meals;
 
     // Cache for 30 minutes
     cache.set(cacheKey, { meals, expiresAt: now + 30 * 60 * 1000 });
@@ -131,9 +151,9 @@ Return this exact JSON:
     });
 
   } catch (err) {
-    console.error('smart-fridge error:', err);
+    console.error('smart-fridge error:', errorMessage(err), err);
     return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : 'Internal error' }),
+      JSON.stringify({ error: errorMessage(err) }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

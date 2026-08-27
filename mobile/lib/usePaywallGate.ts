@@ -1,9 +1,11 @@
-import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
-import { useRevenueCat, ENTITLEMENT_ID } from '@/context/RevenueCatContext';
-import { trackPaywallShown } from '@/lib/analytics';
+import { useRouter } from 'expo-router';
+import { useRevenueCat } from '@/context/RevenueCatContext';
+import { trackPaywallShown, PaywallTrigger } from '@/lib/analytics';
+import { waitForPaywallResult } from '@/lib/paywall-result';
 
 /**
- * Returns a function that checks entitlement and presents the RC paywall if needed.
+ * Returns a function that checks entitlement and opens the custom in-app
+ * paywall (/(app)/paywall) if needed — never RevenueCat's hosted template.
  * Resolves true if the user is/becomes Pro, false if they cancel or close.
  *
  * Usage:
@@ -13,23 +15,16 @@ import { trackPaywallShown } from '@/lib/analytics';
  */
 export function usePaywallGate() {
   const { isPro, refreshCustomerInfo } = useRevenueCat();
+  const router = useRouter();
 
-  return async (): Promise<boolean> => {
+  return async (trigger: PaywallTrigger = 'meal_generation'): Promise<boolean> => {
     if (isPro) return true;
 
-    trackPaywallShown('meal_generation');
-    const result = await RevenueCatUI.presentPaywallIfNeeded({
-      requiredEntitlementIdentifier: ENTITLEMENT_ID,
-    });
-
-    if (
-      result === PAYWALL_RESULT.PURCHASED ||
-      result === PAYWALL_RESULT.RESTORED
-    ) {
-      await refreshCustomerInfo();
-      return true;
-    }
-
-    return false;
+    trackPaywallShown(trigger);
+    const resultPromise = waitForPaywallResult();
+    router.push('/(app)/paywall' as any);
+    const purchased = await resultPromise;
+    if (purchased) await refreshCustomerInfo();
+    return purchased;
   };
 }

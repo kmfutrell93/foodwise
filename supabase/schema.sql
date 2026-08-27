@@ -66,12 +66,14 @@ create trigger on_auth_user_created
 -- MEAL PLANS
 -- ============================================================
 create table if not exists public.meal_plans (
-  id           uuid primary key default uuid_generate_v4(),
-  user_id      uuid not null references public.profiles(id) on delete cascade,
-  week_start   date not null,
-  plan_json    jsonb not null default '{}',
-  grocery_list jsonb not null default '{}',
-  created_at   timestamptz not null default now(),
+  id                 uuid primary key default uuid_generate_v4(),
+  user_id            uuid not null references public.profiles(id) on delete cascade,
+  week_start         date not null,
+  plan_json          jsonb not null default '{}',
+  grocery_list       jsonb,
+  generation_status  text not null default 'ready',
+  created_at         timestamptz not null default now(),
+  updated_at         timestamptz not null default now(),
   unique (user_id, week_start)
 );
 

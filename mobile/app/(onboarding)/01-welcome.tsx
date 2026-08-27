@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Button } from '@/components/ui/Button';
 import { OnboardingShell } from '@/components/ui/OnboardingShell';
@@ -27,7 +27,7 @@ export default function Welcome() {
   }
 
   return (
-    <OnboardingShell step={1} showBack={false} skipRoute="/(onboarding)/10-restrictions">
+    <OnboardingShell step={1} screenKey="01-welcome" showBack={false} skipRoute="/(onboarding)/10-restrictions">
       {/* Nori + speech bubble */}
       <View style={s.heroArea}>
         <View style={s.noriWrap}>
@@ -74,6 +74,11 @@ export default function Welcome() {
       <View style={s.bottom}>
         <Button label="Let's get started" onPress={handleStart} loading={loading} />
         <Text style={s.disclaimer}>Free 7-day trial · No credit card required to start</Text>
+        <TouchableOpacity onPress={() => router.push('/(onboarding)/sign-in')} activeOpacity={0.7} style={s.signInRow}>
+          <Text style={s.signInText}>
+            Already have an account? <Text style={[s.signInLink, { color: colors.primary }]}>Sign in</Text>
+          </Text>
+        </TouchableOpacity>
       </View>
     </OnboardingShell>
   );
@@ -140,5 +145,8 @@ function makeStyles(c: ThemeColors) {
 
     bottom: { gap: Spacing.md, paddingBottom: Spacing.md },
     disclaimer: { textAlign: 'center', color: c.mutedForeground, fontSize: FontSize.xs },
+    signInRow: { alignItems: 'center', paddingTop: Spacing.xs, paddingVertical: 8 },
+    signInText: { fontSize: FontSize.sm, color: c.mutedForeground },
+    signInLink: { fontFamily: 'PlusJakartaSans-Bold' },
   });
 }

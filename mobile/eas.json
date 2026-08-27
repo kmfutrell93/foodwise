@@ -1,6 +1,7 @@
 {
   "cli": {
-    "version": ">= 7.0.0"
+    "version": ">= 7.0.0",
+    "appVersionSource": "remote"
   },
   "build": {
     "development": {
@@ -8,6 +9,12 @@
       "distribution": "internal",
       "ios": {
         "simulator": true
+      },
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://rxxgkhppeewudzalewgy.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_aOKPzAotz3yQm4tvPObBeg_YDx8Me1y",
+        "EXPO_PUBLIC_REVENUECAT_API_KEY": "appl_neqeLZKlPulKwgUPlebzVgQTLkM",
+        "EXPO_PUBLIC_MIXPANEL_TOKEN": "df078b22c885c0e329c6f5ba3e9e2d83"
       }
     },
     "preview": {
@@ -16,14 +23,26 @@
         "simulator": false,
         "resourceClass": "m-medium"
       },
-      "channel": "preview"
+      "channel": "preview",
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://rxxgkhppeewudzalewgy.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_aOKPzAotz3yQm4tvPObBeg_YDx8Me1y",
+        "EXPO_PUBLIC_REVENUECAT_API_KEY": "appl_neqeLZKlPulKwgUPlebzVgQTLkM",
+        "EXPO_PUBLIC_MIXPANEL_TOKEN": "df078b22c885c0e329c6f5ba3e9e2d83"
+      }
     },
     "production": {
       "ios": {
         "resourceClass": "m-medium"
       },
       "channel": "production",
-      "autoIncrement": "buildNumber"
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://rxxgkhppeewudzalewgy.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_aOKPzAotz3yQm4tvPObBeg_YDx8Me1y",
+        "EXPO_PUBLIC_REVENUECAT_API_KEY": "appl_neqeLZKlPulKwgUPlebzVgQTLkM",
+        "EXPO_PUBLIC_MIXPANEL_TOKEN": "df078b22c885c0e329c6f5ba3e9e2d83"
+      }
     }
   },
   "submit": {

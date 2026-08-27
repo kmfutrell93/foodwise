@@ -100,6 +100,7 @@ export default function AppLayout() {
       ))}
       <Tabs.Screen name="smart-fridge" options={{ href: null }} />
       <Tabs.Screen name="recipe/[id]" options={{ href: null }} />
+      <Tabs.Screen name="paywall" options={{ href: null }} />
     </Tabs>
   );
 }

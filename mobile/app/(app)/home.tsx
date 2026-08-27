@@ -19,6 +19,10 @@ import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
 import { useThemeColors } from '@/context/ThemeContext';
 import { usePaywallGate } from '@/lib/usePaywallGate';
 import { STARTER_GUIDE, GuideCard } from '@/lib/starter-guide';
+import { parseProteinGoal, logError } from '@/lib/utils';
+import { computeEscalationStatus } from '@/lib/escalation';
+import { FREE_PLAN_LIMIT } from '@/lib/constants';
+import { generatePlanWithPolling } from '@/lib/generate-plan';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -66,12 +70,6 @@ function getInsight(daysSince: number, name: string): string {
   if (daysSince <= 3) return `It's Day ${daysSince}. Appetite suppression is still strong. Make every bite count — prioritize protein above all.`;
   if (daysSince <= 5) return `It's Day ${daysSince} — appetite may return slightly. Use this window to hit protein early. Start with your yogurt parfait!`;
   return `It's Day ${daysSince}. Appetite returning before your next injection. Stay consistent with protein targets to preserve muscle.`;
-}
-
-function parseProteinGoal(range: string | null | undefined): number {
-  if (!range) return 120;
-  const nums = range.match(/\d+/g);
-  return nums ? parseInt(nums[nums.length - 1]) : 120;
 }
 
 function RingCard({
@@ -174,7 +172,9 @@ export default function Home() {
   const emergencyScale         = useSharedValue(1);
   const emergencyBorderOpacity = useSharedValue(1);
 
-  const FREE_PLAN_LIMIT = 3;
+  const regenFiredRef = useRef(false);
+  const mountedRef = useRef(true);
+  useEffect(() => () => { mountedRef.current = false; }, []);
 
   async function load() {
     const { data: { user } } = await supabase.auth.getUser();
@@ -185,6 +185,7 @@ export default function Home() {
       supabase.from('streaks').select('*').eq('user_id', user.id).single(),
       supabase.from('meal_plans').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
     ]);
+    if (!mountedRef.current) return;
     if (profileRes.data) {
       setProfile(profileRes.data);
       setGuideStep(profileRes.data.starter_guide_step ?? 0);
@@ -195,6 +196,27 @@ export default function Home() {
   }
 
   useEffect(() => { load(); }, []);
+
+  // If the current plan is more than 6 days old, silently regenerate next
+  // week's plan in the background — fires at most once per app session.
+  useEffect(() => {
+    if (!todayPlan || regenFiredRef.current) return;
+    const planAge = Date.now() - new Date(todayPlan.created_at).getTime();
+    const sixDays = 6 * 24 * 60 * 60 * 1000;
+    if (planAge > sixDays) {
+      regenFiredRef.current = true;
+      regeneratePlanInBackground();
+    }
+  }, [todayPlan]);
+
+  async function regeneratePlanInBackground() {
+    try {
+      const result = await generatePlanWithPolling();
+      if (result.success) await load();
+    } catch {
+      // Silent failure — user never knows this happened
+    }
+  }
 
   // Entry sequence — fires once on mount
   useEffect(() => {
@@ -249,17 +271,15 @@ export default function Home() {
     setGeneratingPlan(true);
     setGenerateError(null);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-      const res = await fetch(
-        `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/meal-plans/generate`,
-        { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` }, body: JSON.stringify({}) }
-      );
-      if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error ?? 'Generation failed'); }
+      const result = await generatePlanWithPolling();
+      if (!result.success) throw new Error(result.error);
       await load();
     } catch (e: unknown) {
-      setGenerateError(e instanceof Error ? e.message : 'Something went wrong');
-    } finally { setGeneratingPlan(false); }
+      logError('home:generatePlan', e);
+      if (mountedRef.current) setGenerateError(e instanceof Error ? e.message : 'Something went wrong');
+    } finally {
+      if (mountedRef.current) setGeneratingPlan(false);
+    }
   }
 
   async function openEmergencyMode() {
@@ -303,7 +323,9 @@ export default function Home() {
   const greeting = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
   const firstName = profile?.full_name?.split(' ')[0] ?? 'there';
   const todayName = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-  const todayDayData = todayPlan?.plan_json?.days?.find((d: { day: string }) => d.day.toLowerCase() === todayName);
+  const todayDayData = todayPlan?.plan_json?.days?.find((d: { day: string }) =>
+    d.day?.toLowerCase()?.trim() === todayName?.toLowerCase()?.trim()
+  ) ?? todayPlan?.plan_json?.days?.[0] ?? null;
 
   const daysSince = profile?.injection_day ? getDaysSince(profile.injection_day) : 4;
   const isInjectionDay = daysSince === 0;
@@ -323,11 +345,15 @@ export default function Home() {
     (todayDayData as any)?.meals ?? [];
 
   // Escalation awareness
-  const daysOnDose = profile?.dose_start_date
-    ? Math.floor((Date.now() - new Date(profile.dose_start_date).getTime()) / 86_400_000)
+  const escalationStatus = profile?.medication
+    ? computeEscalationStatus(
+        profile.medication as Parameters<typeof computeEscalationStatus>[0],
+        profile.dose_mg ?? null,
+        profile.dose_start_date ?? null,
+      )
     : null;
-  const isNewDose = daysOnDose !== null && daysOnDose <= 7;
-  const isEscalationWeek = daysOnDose !== null && daysOnDose > 7 && (28 - daysOnDose) <= 7;
+  const isEscalationWeek = escalationStatus?.is_escalation_week ?? false;
+  const isNewDose = (escalationStatus?.days_on_current_dose ?? 99) <= 7;
   const showEscalationCard = isNewDose || isEscalationWeek;
 
   // Starter guide
@@ -432,7 +458,7 @@ export default function Home() {
         <View style={s.insightCard}>
           <Image source={require('@/assets/images/nori_pointing_right_1.png')} style={s.noriSmall} resizeMode="contain" />
           <View style={s.insightBody}>
-            <Text style={[s.insightLabel, { color: colors.secondary }]}>Nori's insight for today</Text>
+            <Text style={[s.insightLabel, { color: colors.secondary }]}>Nori&apos;s insight for today</Text>
             <Text style={[s.insightText, { color: colors.foreground }]}>{insight}</Text>
           </View>
         </View>
@@ -470,7 +496,7 @@ export default function Home() {
         </View>
         <Animated.View style={ringsStyle}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.ringsScroll} contentContainerStyle={s.ringsContent}>
-            <RingCard value={`${proteinG}`} unit="g" label="Protein" subtitle={`${proteinG}/${proteinGoal}g`} pct={proteinPct} color={colors.primary} icon="🥩" colors={colors} />
+            <RingCard value={`${proteinG}`} unit="g" label="Protein" subtitle={`${proteinG}g planned today`} pct={proteinPct} color={colors.primary} icon="🥩" colors={colors} />
             <RingCard value="15" unit="g" label="Fiber" subtitle="15/25g" pct={60} color={colors.secondary} icon="🌿" colors={colors} />
             <RingCard value="48" unit="oz" label="Hydration" subtitle="48/80oz" pct={60} color={colors.accent} icon="💧" colors={colors} />
             <RingCard value={`${calories}`} unit="" label="Calories" subtitle={`${calories}/1,380`} pct={caloriePct} color={DESTRUCTIVE} icon="🔥" colors={colors} />
@@ -487,13 +513,15 @@ export default function Home() {
           <View style={s.streakBody}>
             <Animated.View entering={BounceIn.delay(100).duration(600)}>
               <View style={s.streakTopRow}>
-                <Text style={[s.streakTitle, { color: colors.foreground }]}>{streakCount} Day Streak! 🔥</Text>
+                <Text style={[s.streakTitle, { color: colors.foreground }]}>
+                  {streakCount > 0 ? `${streakCount} Day Streak! 🔥` : 'Start your streak today'}
+                </Text>
                 <View style={s.xpBadge}>
                   <Text style={[s.xpText, { color: colors.primary }]}>+50 XP</Text>
                 </View>
               </View>
               <Text style={[s.streakSub, { color: colors.mutedForeground }]}>
-                {streakCount > 0 ? `Protein goal hit ${streakCount} days straight. Keep going!` : 'Log your first symptoms to start your streak.'}
+                {streakCount > 0 ? `Logged ${streakCount} days straight. Keep going!` : 'Log your first symptoms to start your streak.'}
               </Text>
             </Animated.View>
             <Animated.View entering={BounceIn.delay(200).duration(600)}>
@@ -512,7 +540,7 @@ export default function Home() {
 
         {/* Today's Meals */}
         <View style={s.sectionHeader}>
-          <Text style={[s.sectionTitle, { color: colors.foreground }]}>Today's Meals</Text>
+          <Text style={[s.sectionTitle, { color: colors.foreground }]}>Today&apos;s Meals</Text>
           <View style={{ flexDirection: 'row', gap: Spacing.md, alignItems: 'center' }}>
             <TouchableOpacity onPress={generatePlan} disabled={generatingPlan}>
               <Text style={[s.sectionLink, { color: colors.mutedForeground }]}>
@@ -524,6 +552,18 @@ export default function Home() {
             </TouchableOpacity>
           </View>
         </View>
+        {todayMeals.length === 0 && todayPlan ? (
+          <TouchableOpacity
+            style={[s.noMealsCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+            onPress={() => router.push('/(app)/meal-plan' as any)}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="calendar-outline" size={20} color={colors.mutedForeground} />
+            <Text style={[s.noMealsText, { color: colors.mutedForeground }]}>
+              No meals scheduled for today — tap to view your full plan
+            </Text>
+          </TouchableOpacity>
+        ) : (
         <Animated.View style={mealsStyle}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.mealsScroll} contentContainerStyle={s.mealsContent}>
             {(todayMeals.length > 0 ? todayMeals : DEMO_MEALS).map((meal, i) => {
@@ -531,25 +571,50 @@ export default function Home() {
               const slotColor = SLOT_COLORS[slotKey] ?? colors.primary;
               const emoji = MEAL_EMOJIS[slotKey] ?? '🍽️';
               const time = MEAL_TIMES[slotKey] ?? '';
+              const isRealMeal = todayMeals.length > 0;
               return (
-                <View key={i} style={[s.mealCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <TouchableOpacity
+                  key={`${meal.slot}-${i}`}
+                  style={[s.mealCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+                  activeOpacity={isRealMeal ? 0.75 : 1}
+                  disabled={!isRealMeal}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    router.push({
+                      pathname: '/(app)/recipe/[id]',
+                      params: {
+                        id: 'generate',
+                        mode: 'generate',
+                        source: 'home',
+                        mealName: meal.name,
+                        mealSlot: meal.slot,
+                        proteinG: String(meal.protein_g),
+                        calories: String(meal.calories),
+                      },
+                    } as any);
+                  }}
+                >
                   <View style={[s.mealEmojiBg, { backgroundColor: colors.muted }]}>
                     <Text style={s.mealEmoji}>{emoji}</Text>
                   </View>
                   <View style={s.mealCardBody}>
-                    <View style={[s.mealSlotBadge, { backgroundColor: slotColor + '1A' }]}>
-                      <Text style={[s.mealSlotText, { color: slotColor }]}>
-                        {meal.slot}{time ? ` · ${time}` : ''}
-                      </Text>
+                    <View style={s.mealCardTopRow}>
+                      <View style={[s.mealSlotBadge, { backgroundColor: slotColor + '1A' }]}>
+                        <Text style={[s.mealSlotText, { color: slotColor }]}>
+                          {meal.slot}{time ? ` · ${time}` : ''}
+                        </Text>
+                      </View>
+                      {isRealMeal && <Ionicons name="chevron-forward" size={14} color={colors.mutedForeground} />}
                     </View>
                     <Text style={[s.mealName, { color: colors.foreground }]} numberOfLines={2}>{meal.name}</Text>
                     <Text style={[s.mealMacros, { color: colors.mutedForeground }]}>{meal.protein_g}g protein · {meal.calories} cal</Text>
                   </View>
-                </View>
+                </TouchableOpacity>
               );
             })}
           </ScrollView>
         </Animated.View>
+        )}
 
         {/* Smart Fridge entry card */}
         <TouchableOpacity
@@ -566,7 +631,7 @@ export default function Home() {
               />
               <View style={{ flex: 1 }}>
                 <Text style={[s.smartFridgeCardTitle, { color: colors.foreground }]}>
-                  What's in your fridge?
+                  What&apos;s in your fridge?
                 </Text>
                 <Text style={[s.smartFridgeCardSub, { color: colors.mutedForeground }]}>
                   Tap to get meal ideas from your ingredients
@@ -822,11 +887,14 @@ function makeStyles(c: ThemeColors) {
     weekDotText: { fontSize: 10, fontFamily: 'PlusJakartaSans-Bold' },
     mealsScroll: { marginBottom: Spacing.xl },
     mealsContent: { paddingHorizontal: Spacing.xl, gap: Spacing.md },
+    noMealsCard: { marginHorizontal: Spacing.xl, marginBottom: Spacing.xl, flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: 16, borderRadius: Radius.xl, borderWidth: 1 },
+    noMealsText: { flex: 1, fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Medium' },
     mealCard: { width: 208, borderRadius: 24, overflow: 'hidden', borderWidth: 1 },
     mealEmojiBg: { height: 96, alignItems: 'center', justifyContent: 'center' },
     mealEmoji: { fontSize: 40 },
     mealCardBody: { padding: 12 },
-    mealSlotBadge: { alignSelf: 'flex-start', borderRadius: Radius.full, paddingHorizontal: 8, paddingVertical: 2, marginBottom: 6 },
+    mealCardTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
+    mealSlotBadge: { alignSelf: 'flex-start', borderRadius: Radius.full, paddingHorizontal: 8, paddingVertical: 2 },
     mealSlotText: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-Bold' },
     mealName: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-ExtraBold', marginBottom: 2, lineHeight: 18 },
     mealMacros: { fontSize: FontSize.xs },

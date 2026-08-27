@@ -8,9 +8,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase, MealPlan, MealDay, MealItem } from '@/lib/supabase';
+import { fetchWithTimeout } from '@/lib/fetch-with-timeout';
 import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
 import { useThemeColors } from '@/context/ThemeContext';
+import { usePaywallGate } from '@/lib/usePaywallGate';
 import { trackMealSwapped, trackRecipeViewed } from '@/lib/analytics';
+import { FREE_PLAN_LIMIT, CHECKIN_TIMEOUT_MS } from '@/lib/constants';
+import { generatePlanWithPolling } from '@/lib/generate-plan';
+import { logError } from '@/lib/utils';
 
 const DAY_SHORT: Record<string, string> = {
   monday: 'Mon', tuesday: 'Tue', wednesday: 'Wed', thursday: 'Thu',
@@ -32,25 +37,35 @@ export default function MealPlanScreen() {
   const s = makeStyles(colors);
   const router = useRouter();
   const [plan, setPlan] = useState<MealPlan | null>(null);
+  const [weeklyBudget, setWeeklyBudget] = useState<number | null>(null);
   const [generating, setGenerating] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedDay, setSelectedDay] = useState(0);
+  const [selectedDay, setSelectedDay] = useState(new Date().getDay() === 0 ? 6 : new Date().getDay() - 1);
   const [error, setError] = useState<string | null>(null);
   const [swapping, setSwapping] = useState<string | null>(null);
   const [swapModal, setSwapModal] = useState<{ day: string; slot: string } | null>(null);
   const [swapReason, setSwapReason] = useState('');
+  const [planCount, setPlanCount] = useState(0);
+  const requirePro = usePaywallGate();
 
   async function loadPlan() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const { data } = await supabase
-      .from('meal_plans')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('week_start', { ascending: false })
-      .limit(1)
-      .single();
-    if (data) setPlan(data);
+    const [planRes, countRes, profileRes] = await Promise.all([
+      supabase
+        .from('meal_plans')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('week_start', { ascending: false })
+        .limit(1)
+        .single(),
+      supabase.from('meal_plans').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
+      supabase.from('profiles').select('weekly_budget').eq('id', user.id).single(),
+    ]);
+    if (planRes.data) setPlan(planRes.data);
+    setPlanCount(countRes.count ?? 0);
+    const budget = profileRes.data?.weekly_budget;
+    setWeeklyBudget(budget != null ? Number(budget) : null);
   }
 
   useEffect(() => { loadPlan(); }, []);
@@ -69,39 +84,41 @@ export default function MealPlanScreen() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
-      const res = await fetch(
-        `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/meal-plans/swap-meal`,
+      const res = await fetchWithTimeout(
+        `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/meal-plans-swap`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
           body: JSON.stringify({ plan_id: plan.id, day, slot, reason }),
-        }
+        },
+        CHECKIN_TIMEOUT_MS
       );
       if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error ?? 'Swap failed'); }
       trackMealSwapped({ slot, day });
       await loadPlan();
     } catch (e: unknown) {
+      logError('meal-plan:swapMeal', e);
       setError(e instanceof Error ? e.message : 'Swap failed');
     } finally { setSwapping(null); }
   }
 
   async function generatePlan() {
+    if (planCount >= FREE_PLAN_LIMIT) {
+      const granted = await requirePro();
+      if (!granted) return;
+    }
     setGenerating(true);
     setError(null);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
-      const res = await fetch(
-        `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/meal-plans/generate`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-          body: JSON.stringify({}),
-        }
+      const result = await generatePlanWithPolling();
+      if (!result.success) throw new Error(result.error);
+      console.log(
+        '[meal-plan] generated, first meal has ingredients:',
+        !!result.plan?.plan_json?.days?.[0]?.meals?.[0]?.ingredients,
       );
-      if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error ?? 'Generation failed'); }
       await loadPlan();
     } catch (e: unknown) {
+      logError('meal-plan:generatePlan', e);
       setError(e instanceof Error ? e.message : 'Something went wrong');
     } finally { setGenerating(false); }
   }
@@ -113,6 +130,15 @@ export default function MealPlanScreen() {
   const weekLabel = weekStart && weekEnd
     ? `${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
     : '';
+
+  // Weekly grocery total when ready; otherwise the user's budget target.
+  const groceryTotal = plan?.grocery_list?.estimated_total;
+  const budgetDisplay =
+    groceryTotal != null && Number.isFinite(Number(groceryTotal))
+      ? `$${Number(groceryTotal).toFixed(2)}`
+      : weeklyBudget != null && Number.isFinite(weeklyBudget)
+        ? `$${weeklyBudget.toFixed(0)}`
+        : null;
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
@@ -128,13 +154,20 @@ export default function MealPlanScreen() {
             {weekLabel ? <Text style={[s.weekSub, { color: colors.mutedForeground }]}>{weekLabel}</Text> : null}
           </View>
           <TouchableOpacity
-            style={[s.headerBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+            style={[s.headerRegenBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
             onPress={generatePlan}
             activeOpacity={0.8}
+            accessibilityLabel="Generate a new weekly plan"
+            disabled={generating}
           >
             {generating
               ? <ActivityIndicator size="small" color={colors.primary} />
-              : <Ionicons name="sparkles-outline" size={22} color={colors.primary} />}
+              : (
+                <>
+                  <Ionicons name="sparkles-outline" size={18} color={colors.primary} />
+                  <Text style={[s.headerRegenText, { color: colors.primary }]}>New week</Text>
+                </>
+              )}
           </TouchableOpacity>
         </View>
 
@@ -214,16 +247,11 @@ export default function MealPlanScreen() {
 
             {day && (
               <>
-                {/* Flat macros row */}
+                {/* Flat macros row — Protein / Calories / Budget (no Fiber; not in meal schema) */}
                 <View style={[s.macrosRow, { backgroundColor: colors.muted }]}>
                   <View style={s.macroStat}>
                     <Text style={[s.macroValue, { color: colors.primary }]}>{day.total_protein_g}g</Text>
                     <Text style={[s.macroLabel, { color: colors.mutedForeground }]}>Protein</Text>
-                  </View>
-                  <View style={[s.macroDivider, { backgroundColor: colors.border }]} />
-                  <View style={s.macroStat}>
-                    <Text style={[s.macroValue, { color: colors.secondary }]}>—</Text>
-                    <Text style={[s.macroLabel, { color: colors.mutedForeground }]}>Fiber</Text>
                   </View>
                   <View style={[s.macroDivider, { backgroundColor: colors.border }]} />
                   <View style={s.macroStat}>
@@ -233,11 +261,19 @@ export default function MealPlanScreen() {
                   <View style={[s.macroDivider, { backgroundColor: colors.border }]} />
                   <View style={s.macroStat}>
                     <Text style={[s.macroValue, { color: colors.foreground }]}>
-                      {day.estimated_cost != null ? `$${day.estimated_cost.toFixed(2)}` : '—'}
+                      {budgetDisplay ?? '—'}
                     </Text>
-                    <Text style={[s.macroLabel, { color: colors.mutedForeground }]}>Budget</Text>
+                    <Text style={[s.macroLabel, { color: colors.mutedForeground }]}>
+                      {groceryTotal != null ? 'Grocery' : 'Budget'}
+                    </Text>
                   </View>
                 </View>
+
+                {day.day_note ? (
+                  <Text style={[s.dayNote, { color: colors.mutedForeground }]} numberOfLines={3}>
+                    {day.day_note}
+                  </Text>
+                ) : null}
 
                 {/* Meals */}
                 <View style={s.mealsList}>
@@ -252,7 +288,7 @@ export default function MealPlanScreen() {
                         activeOpacity={0.88}
                         onPress={() => {
                           trackRecipeViewed({ recipe_id: 'ai-meal', recipe_name: meal.name, meal_type: meal.slot, source: 'meal_plan' });
-                          router.push({ pathname: '/(app)/recipe/[id]' as any, params: { id: 'ai-meal', name: meal.name, protein_g: String(meal.protein_g), calories: String(meal.calories), slot: meal.slot } });
+                          router.push({ pathname: '/(app)/recipe/[id]' as any, params: { id: `gen-${day.day}-${meal.slot}`, mealName: meal.name, mealSlot: meal.slot, proteinG: String(meal.protein_g), calories: String(meal.calories), mealPlanId: plan?.id ?? '', source: 'meal_plan' } });
                         }}
                       >
                       <Animated.View entering={FadeIn.delay(delay).duration(400)} style={[s.mealCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -262,9 +298,6 @@ export default function MealPlanScreen() {
                               <Text style={[s.slotBadgeText, { color: slotColor }]}>{meal.slot}</Text>
                             </View>
                             <Text style={[s.mealName, { color: colors.foreground }]}>{meal.name}</Text>
-                            {meal.note ? (
-                              <Text style={[s.mealDesc, { color: colors.mutedForeground }]} numberOfLines={2}>{meal.note}</Text>
-                            ) : null}
                           </View>
                           <View style={s.mealRight}>
                             <Text style={s.mealEmoji}>{emoji}</Text>
@@ -275,8 +308,9 @@ export default function MealPlanScreen() {
                                   style={[s.swapBtn, { backgroundColor: colors.muted + '80' }]}
                                   onPress={() => setSwapModal({ day: day.day, slot: meal.slot })}
                                   activeOpacity={0.7}
+                                  accessibilityLabel={`Swap ${meal.slot} meal`}
                                 >
-                                  <Ionicons name="refresh-outline" size={14} color={colors.mutedForeground} />
+                                  <Ionicons name="swap-horizontal-outline" size={14} color={colors.mutedForeground} />
                                 </TouchableOpacity>
                               )}
                           </View>
@@ -300,14 +334,15 @@ export default function MealPlanScreen() {
                   })}
                 </View>
 
-                {/* Regenerate */}
+                {/* Regenerate full week (same action as header "New week") */}
                 <TouchableOpacity
                   style={[s.regenBtn, { backgroundColor: colors.muted, borderColor: colors.border }]}
                   onPress={generatePlan}
                   activeOpacity={0.8}
+                  disabled={generating}
                 >
-                  <Ionicons name="refresh-outline" size={18} color={colors.mutedForeground} />
-                  <Text style={[s.regenText, { color: colors.mutedForeground }]}>Regenerate This Day's Plan</Text>
+                  <Ionicons name="sparkles-outline" size={18} color={colors.mutedForeground} />
+                  <Text style={[s.regenText, { color: colors.mutedForeground }]}>Generate a new weekly plan</Text>
                 </TouchableOpacity>
               </>
             )}
@@ -320,19 +355,18 @@ export default function MealPlanScreen() {
         <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setSwapModal(null)} />
         <View style={[s.modalSheet, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
           <Text style={[s.modalTitle, { color: colors.foreground }]}>Swap {swapModal?.slot}</Text>
-          <Text style={[s.modalSub, { color: colors.mutedForeground }]}>Optional: tell us why so we can find a better match</Text>
+          <Text style={[s.modalSub, { color: colors.mutedForeground }]}>We&apos;ll find a better match for this meal</Text>
           <TextInput
             style={[s.modalInput, { backgroundColor: colors.input, borderColor: colors.border, color: colors.foreground }]}
-            placeholder="e.g. Don't feel like fish, too expensive, nauseous…"
+            placeholder="Why? (optional)"
             placeholderTextColor={colors.mutedForeground}
             value={swapReason}
             onChangeText={setSwapReason}
             multiline
-            autoFocus
           />
           <TouchableOpacity
             style={[s.modalBtn, { backgroundColor: colors.primary }]}
-            onPress={() => swapModal && swapMeal(swapModal.day, swapModal.slot, swapReason)}
+            onPress={() => swapModal && swapMeal(swapModal.day, swapModal.slot, swapReason.trim())}
             activeOpacity={0.85}
           >
             <Text style={[s.modalBtnText, { color: colors.primaryForeground }]}>Find a replacement</Text>
@@ -354,6 +388,17 @@ function makeStyles(c: ThemeColors) {
     screenTitle: { fontSize: FontSize['2xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground, marginBottom: 2 },
     weekSub: { fontSize: FontSize.sm },
     headerBtn: { width: 48, height: 48, borderRadius: 24, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+    headerRegenBtn: {
+      minHeight: 48,
+      paddingHorizontal: 14,
+      borderRadius: 24,
+      borderWidth: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+    },
+    headerRegenText: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold' },
     errorBox: { marginHorizontal: Spacing.xl, borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.lg, marginBottom: Spacing.lg },
     errorText: { color: '#EF4444', fontSize: FontSize.sm },
     emptyState: { alignItems: 'center', paddingTop: Spacing['3xl'], paddingHorizontal: Spacing.xl },
@@ -376,6 +421,13 @@ function makeStyles(c: ThemeColors) {
     macroValue: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-ExtraBold' },
     macroLabel: { fontSize: FontSize.xs, marginTop: 2 },
     macroDivider: { width: 1, height: 24 },
+    dayNote: {
+      marginHorizontal: Spacing.xl,
+      marginBottom: Spacing.md,
+      fontSize: FontSize.sm,
+      fontFamily: 'PlusJakartaSans-Medium',
+      lineHeight: 20,
+    },
     mealsList: { paddingHorizontal: Spacing.xl, gap: Spacing.md, marginBottom: Spacing['2xl'] },
     mealCard: { borderRadius: 24, borderWidth: 1, padding: 16 },
     mealCardTop: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 },

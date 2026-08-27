@@ -14,7 +14,7 @@ if [ -f "$SCRIPT_DIR/.env.local" ]; then
 fi
 
 PROJECT_REF="rxxgkhppeewudzalewgy"
-IMPORT_MAP="/Users/kenny/foodwise/supabase/functions/import_map.json"
+IMPORT_MAP="/Users/kenny/Documents/FoodWise App/supabase/functions/import_map.json"
 
 echo "→ Linking project..."
 supabase link --project-ref $PROJECT_REF
@@ -37,20 +37,26 @@ fi
 
 echo "→ Deploying edge functions..."
 # AI / meal functions (require user JWT)
-supabase functions deploy meal-plans-generate    --project-ref $PROJECT_REF --import-map $IMPORT_MAP --no-verify-jwt
-supabase functions deploy meal-plans-swap        --project-ref $PROJECT_REF --import-map $IMPORT_MAP --no-verify-jwt
-supabase functions deploy symptoms-insights      --project-ref $PROJECT_REF --import-map $IMPORT_MAP --no-verify-jwt
-supabase functions deploy grocery-list-generate  --project-ref $PROJECT_REF --import-map $IMPORT_MAP --no-verify-jwt
-supabase functions deploy weekly-report          --project-ref $PROJECT_REF --import-map $IMPORT_MAP --no-verify-jwt
-supabase functions deploy delete-account         --project-ref $PROJECT_REF --import-map $IMPORT_MAP --no-verify-jwt
+supabase functions deploy meal-plans-generate    --project-ref $PROJECT_REF --import-map "$IMPORT_MAP" --no-verify-jwt
+supabase functions deploy meal-plans-swap        --project-ref $PROJECT_REF --import-map "$IMPORT_MAP" --no-verify-jwt
+supabase functions deploy symptoms-insights      --project-ref $PROJECT_REF --import-map "$IMPORT_MAP" --no-verify-jwt
+supabase functions deploy grocery-list-generate  --project-ref $PROJECT_REF --import-map "$IMPORT_MAP" --no-verify-jwt
+supabase functions deploy weekly-report          --project-ref $PROJECT_REF --import-map "$IMPORT_MAP" --no-verify-jwt
+supabase functions deploy recipe-generate        --project-ref $PROJECT_REF --import-map "$IMPORT_MAP" --no-verify-jwt
+supabase functions deploy recipes                --project-ref $PROJECT_REF --import-map "$IMPORT_MAP" --no-verify-jwt
+supabase functions deploy delete-account         --project-ref $PROJECT_REF --import-map "$IMPORT_MAP" --no-verify-jwt
+supabase functions deploy emergency-meal         --project-ref $PROJECT_REF --import-map "$IMPORT_MAP" --no-verify-jwt
+supabase functions deploy escalation-status      --project-ref $PROJECT_REF --import-map "$IMPORT_MAP" --no-verify-jwt
+supabase functions deploy weight-logs            --project-ref $PROJECT_REF --import-map "$IMPORT_MAP" --no-verify-jwt
+supabase functions deploy smart-fridge           --project-ref $PROJECT_REF --import-map "$IMPORT_MAP" --no-verify-jwt
 
 # Webhook (no JWT — RevenueCat calls this directly)
-supabase functions deploy revenuecat-webhook     --project-ref $PROJECT_REF --import-map $IMPORT_MAP --no-verify-jwt
+supabase functions deploy revenuecat-webhook     --project-ref $PROJECT_REF --import-map "$IMPORT_MAP" --no-verify-jwt
 
 # Cron / push functions (called by pg_cron with service role — no user JWT)
-supabase functions deploy push-weekly-report     --project-ref $PROJECT_REF --import-map $IMPORT_MAP --no-verify-jwt
-supabase functions deploy push-injection-day     --project-ref $PROJECT_REF --import-map $IMPORT_MAP --no-verify-jwt
-supabase functions deploy push-reengagement      --project-ref $PROJECT_REF --import-map $IMPORT_MAP --no-verify-jwt
+supabase functions deploy push-weekly-report     --project-ref $PROJECT_REF --import-map "$IMPORT_MAP" --no-verify-jwt
+supabase functions deploy push-injection-day     --project-ref $PROJECT_REF --import-map "$IMPORT_MAP" --no-verify-jwt
+supabase functions deploy push-reengagement      --project-ref $PROJECT_REF --import-map "$IMPORT_MAP" --no-verify-jwt
 
 echo ""
 echo "✅ Deployment complete ($(date '+%Y-%m-%d %H:%M'))."

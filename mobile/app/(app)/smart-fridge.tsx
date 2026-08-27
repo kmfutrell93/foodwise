@@ -13,6 +13,7 @@ import * as Haptics from 'expo-haptics';
 import { supabase, Profile } from '@/lib/supabase';
 import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
 import { useThemeColors } from '@/context/ThemeContext';
+import { parseProteinGoal } from '@/lib/utils';
 import {
   trackSmartFridgeOpened,
   trackSmartFridgeIngredientsSelected,
@@ -54,12 +55,6 @@ const INGREDIENT_CATEGORIES = [
     items: ['Olive Oil', 'Butter', 'Cheese', 'Almond Butter'],
   },
 ];
-
-function parseProteinGoal(range: string | null | undefined): number {
-  if (!range) return 120;
-  const nums = range.match(/\d+/g);
-  return nums ? parseInt(nums[nums.length - 1]!) : 120;
-}
 
 export default function SmartFridgeScreen() {
   const colors = useThemeColors();
@@ -181,7 +176,7 @@ export default function SmartFridgeScreen() {
           </TouchableOpacity>
           <View style={s.headerText}>
             <Text style={[s.title, { color: colors.foreground }]}>Smart Fridge</Text>
-            <Text style={[s.subtitle, { color: colors.mutedForeground }]}>What's in your fridge?</Text>
+            <Text style={[s.subtitle, { color: colors.mutedForeground }]}>What&apos;s in your fridge?</Text>
           </View>
         </View>
 
@@ -194,7 +189,7 @@ export default function SmartFridgeScreen() {
           />
           <View style={[s.bubble, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Text style={[s.bubbleText, { color: colors.foreground }]}>
-              Tell me what you have — I'll find your meal! 🥘
+              Tell me what you have — I&apos;ll find your meal! 🥘
             </Text>
             <View style={s.bubbleTail} />
           </View>
@@ -295,7 +290,7 @@ export default function SmartFridgeScreen() {
               resizeMode="contain"
             />
             <Text style={[s.errorTitle, { color: colors.foreground }]}>
-              Nori couldn't find meals with those ingredients.
+              Nori couldn&apos;t find meals with those ingredients.
             </Text>
             <Text style={[s.errorSub, { color: colors.mutedForeground }]}>
               Try adding more!

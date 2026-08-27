@@ -38,7 +38,7 @@ export default function Problem() {
   const iconColor = { primary: colors.primary, accent: colors.accent, secondary: colors.secondary };
 
   return (
-    <OnboardingShell step={2} skipRoute="/(onboarding)/10-restrictions">
+    <OnboardingShell step={2} screenKey="02-problem" skipRoute="/(onboarding)/10-restrictions">
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
 
         {/* Nori says card */}
@@ -50,19 +50,19 @@ export default function Problem() {
           />
           <View style={s.noriText}>
             <Text style={s.noriLabel}>Nori says</Text>
-            <Text style={s.noriQuote}>"There's something most GLP-1 users don't realize..."</Text>
+            <Text style={s.noriQuote}>&quot;There&apos;s something most GLP-1 users don&apos;t realize...&quot;</Text>
           </View>
         </View>
 
         {/* Title */}
         <Text style={s.title}>
-          You're eating less.{'\n'}
+          You&apos;re eating less.{'\n'}
           <Text style={s.titleHighlight}>But is your body{'\n'}getting what it needs?</Text>
         </Text>
 
         {/* Subtitle */}
         <Text style={s.sub}>
-          GLP-1 medications suppress your appetite — but they can't tell the difference between{' '}
+          GLP-1 medications suppress your appetite — but they can&apos;t tell the difference between{' '}
           <Text style={s.emphasisStrong}>healthy restriction</Text> and{' '}
           <Text style={s.emphasisAccent}>dangerous deficiency.</Text>
         </Text>

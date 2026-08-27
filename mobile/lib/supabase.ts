@@ -62,7 +62,9 @@ export type MealItem = {
   protein_g: number;
   calories: number;
   cost?: number;
+  /** @deprecated Prefer day-level day_note on MealDay */
   note?: string;
+  ingredients?: { name: string; quantity: string; estimated_cost: number }[];
 };
 
 export type MealDay = {
@@ -71,6 +73,7 @@ export type MealDay = {
   total_protein_g: number;
   total_calories: number;
   estimated_cost?: number;
+  day_note?: string;
   meals: MealItem[];
 };
 
@@ -97,9 +100,11 @@ export type MealPlan = {
   id: string;
   user_id: string;
   created_at: string;
+  updated_at?: string;
   week_start: string;
   plan_json: { days: MealDay[] };
-  grocery_list: GroceryList;
+  grocery_list: GroceryList | null;
+  generation_status?: 'generating' | 'ready' | 'failed' | string;
 };
 
 export type SymptomLog = {
@@ -167,6 +172,29 @@ export type Recipe = {
   tags: string[];
   dietitian_reviewed: boolean;
   created_at: string;
+};
+
+export type SavedRecipe = {
+  id: string;
+  user_id: string;
+  meal_plan_id: string | null;
+  recipe_name: string;
+  meal_slot: string | null;
+  ingredients: { qty: string; unit: string; name: string }[];
+  instructions: string[];
+  prep_time_min: number | null;
+  cook_time_min: number | null;
+  total_time_min: number | null;
+  servings: number;
+  protein_g: number | null;
+  calories: number | null;
+  fiber_g: number | null;
+  estimated_cost: number | null;
+  tags: string[];
+  injection_day_friendly: boolean;
+  nori_tip: string | null;
+  saved_at: string;
+  expires_at: string | null;
 };
 
 export type WeeklyReport = {

@@ -20,6 +20,7 @@ function RootNavigator() {
         <Stack.Screen name="index" />
         <Stack.Screen name="(onboarding)" />
         <Stack.Screen name="(app)" />
+        <Stack.Screen name="reset-password" />
       </Stack>
       <StatusBar style="light" />
     </>
@@ -37,7 +38,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (fontsLoaded || fontError) {
-      if (fontError) console.warn('[RootLayout] Font load error:', fontError.message);
+      if (fontError && __DEV__) console.warn('[RootLayout] Font load error:', fontError.message);
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded, fontError]);

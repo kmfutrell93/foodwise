@@ -2,6 +2,12 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
 import Anthropic from 'https://esm.sh/@anthropic-ai/sdk@0.39.0';
 
+function errorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (err && typeof err === 'object' && 'message' in err) return String((err as { message: unknown }).message);
+  return 'Internal error';
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -48,7 +54,7 @@ Deno.serve(async (req) => {
         .single(),
       supabase
         .from('profiles')
-        .select('medication, injection_day, protein_goal_range, weekly_budget')
+        .select('medication, injection_day, weekly_budget')
         .eq('id', user.id)
         .single(),
       supabase
@@ -80,6 +86,16 @@ Deno.serve(async (req) => {
       .slice(0, 3)
       .map(([sym, count]) => `${sym} (${count}x)`);
 
+    // Day-by-day detail (incl. notes) so the report can reference specific
+    // days/patterns instead of only aggregate counts.
+    const dailyBreakdown = logs
+      .map((l: { logged_at: string; symptoms: string[]; severity: number; energy_level: number; notes: string | null }) => {
+        const day = new Date(l.logged_at).toLocaleDateString('en-US', { weekday: 'short' });
+        const symptomsStr = l.symptoms.length > 0 ? l.symptoms.join('/') : 'none';
+        return `${day}: ${symptomsStr}, severity ${l.severity}/5, energy ${l.energy_level}/10${l.notes ? `, note: "${l.notes}"` : ''}`;
+      })
+      .join('\n');
+
     // Estimate avg protein from plan
     const planDays = plan?.plan_json?.days ?? [];
     const avgProtein = planDays.length > 0
@@ -89,9 +105,9 @@ Deno.serve(async (req) => {
     const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
 
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 600,
-      system: `You are a GLP-1 nutrition coach writing a brief, encouraging weekly summary. Be specific, warm, and actionable. 2-3 sentences max.`,
+      system: `You are a GLP-1 nutrition coach writing a brief, encouraging weekly summary. Be specific, warm, and actionable — reference an actual day or note from the log detail below when relevant, not just the aggregate counts. 2-3 sentences max.`,
       messages: [{
         role: 'user',
         content: `Write a weekly insight for this GLP-1 user:
@@ -100,20 +116,33 @@ Logs this week: ${logs.length}
 Top symptoms: ${topSymptoms.join(', ') || 'none'}
 Average energy: ${avgEnergy != null ? avgEnergy.toFixed(1) + '/10' : 'unknown'}
 Average protein: ${avgProtein != null ? Math.round(avgProtein) + 'g/day' : 'unknown'}
-Protein target: ${profile?.protein_goal_range ?? 'unknown'}
+Protein target: 100-130g/day
 Current streak: ${streak?.current_streak ?? 0} days
 Medication: ${profile?.medication ?? 'GLP-1'}
 Injection day: ${profile?.injection_day ?? 'unknown'}
 
-Return ONLY JSON:
-{
-  "insight_text": "..."
-}`
+Day-by-day log detail this week:
+${dailyBreakdown || 'No logs this week.'}`
       }],
+      tools: [{
+        name: 'output',
+        description: 'Structured output for this function',
+        input_schema: {
+          type: 'object',
+          properties: {
+            insight_text: { type: 'string' },
+          },
+          required: ['insight_text'],
+        },
+      }],
+      tool_choice: { type: 'tool', name: 'output' },
     });
 
-    const rawText = message.content[0].type === 'text' ? message.content[0].text : '{}';
-    const aiResult = JSON.parse(rawText);
+    const toolBlock = message.content.find(b => b.type === 'tool_use');
+    if (!toolBlock || toolBlock.type !== 'tool_use') {
+      throw new Error('No tool_use block in Claude response');
+    }
+    const aiResult = toolBlock.input as { insight_text: string };
 
     const { data: report } = await supabase
       .from('weekly_reports')
@@ -133,9 +162,9 @@ Return ONLY JSON:
     });
 
   } catch (err) {
-    console.error('weekly-report error:', err);
+    console.error('weekly-report error:', errorMessage(err), err);
     return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : 'Internal error' }),
+      JSON.stringify({ error: errorMessage(err) }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

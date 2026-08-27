@@ -15,7 +15,7 @@ export default function Solution() {
   const router = useRouter();
 
   return (
-    <OnboardingShell step={3} skipRoute="/(onboarding)/10-restrictions">
+    <OnboardingShell step={3} screenKey="03-solution" skipRoute="/(onboarding)/10-restrictions">
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
 
         <Text style={s.label}>The Right Way</Text>
@@ -59,8 +59,8 @@ export default function Solution() {
             resizeMode="contain"
           />
           <Text style={s.noriQuote}>
-            "On GLP-1, every bite counts double. FoodWise makes sure each one works{' '}
-            <Text style={s.noriHighlight}>harder for you.</Text>"
+            &quot;On GLP-1, every bite counts double. FoodWise makes sure each one works{' '}
+            <Text style={s.noriHighlight}>harder for you.</Text>&quot;
           </Text>
         </View>
       </ScrollView>

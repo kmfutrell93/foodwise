@@ -50,7 +50,7 @@ export default function Mirror1() {
   const copy = COPY[struggle] ?? COPY.protein;
 
   return (
-    <OnboardingShell step={6} skipRoute="/(onboarding)/10-restrictions">
+    <OnboardingShell step={6} screenKey="06-mirror1" skipRoute="/(onboarding)/10-restrictions">
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
 
         {/* Nori + empathy header */}
@@ -90,7 +90,7 @@ export default function Mirror1() {
         <View style={s.reassureCard}>
           <Text style={s.reassureCheck}>✓</Text>
           <Text style={s.reassureText}>
-            <Text style={s.reassureStrong}>You're not failing. </Text>
+            <Text style={s.reassureStrong}>You&apos;re not failing. </Text>
             {copy.reassurance}
           </Text>
         </View>

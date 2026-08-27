@@ -26,19 +26,19 @@ export default function Commitment() {
       Animated.timing(scale, { toValue: 0.95, duration: 100, useNativeDriver: true }),
       Animated.timing(scale, { toValue: 1, duration: 100, useNativeDriver: true }),
     ]).start();
-    await saveStep(18);
+    await saveStep(21); // screens[21] = '19-pricing-intro'
     router.push('/(onboarding)/19-pricing-intro');
   }
 
   return (
-    <OnboardingShell step={18}>
+    <OnboardingShell step={18} screenKey="18-commitment">
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <View style={s.noriWrap}>
           <Image source={require('@/assets/images/nori_character.png')} style={s.noriImg} resizeMode="contain" />
         </View>
         <Text style={s.label}>Your commitment</Text>
         <Text style={s.title}>Make it{'\n'}official.</Text>
-        <Text style={s.sub}>Small daily actions build the habit. Here's what you're committing to:</Text>
+        <Text style={s.sub}>Small daily actions build the habit. Here&apos;s what you&apos;re committing to:</Text>
 
         <View style={s.list}>
           {COMMITMENTS.map(c => (
@@ -52,7 +52,7 @@ export default function Commitment() {
         <View style={s.pledge}>
           <Text style={s.pledgeTitle}>The FoodWise Pledge</Text>
           <Text style={s.pledgeText}>
-            "I'll show up for myself — not perfectly, but consistently. I'll use food as a tool to protect my health while on GLP-1 medication."
+            &quot;I&apos;ll show up for myself — not perfectly, but consistently. I&apos;ll use food as a tool to protect my health while on GLP-1 medication.&quot;
           </Text>
         </View>
       </ScrollView>

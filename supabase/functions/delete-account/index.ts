@@ -30,15 +30,18 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    // Delete all user data in dependency order
+    // Delete all user data in dependency order.
+    // Grocery data lives in the meal_plans.grocery_list column, not a separate table.
     await Promise.all([
       admin.from('symptom_logs').delete().eq('user_id', userId),
       admin.from('milestones').delete().eq('user_id', userId),
       admin.from('weekly_reports').delete().eq('user_id', userId),
+      admin.from('weight_logs').delete().eq('user_id', userId),
+      admin.from('recipe_user_ratings').delete().eq('user_id', userId),
+      admin.from('saved_recipes').delete().eq('user_id', userId),
     ]);
     await Promise.all([
       admin.from('meal_plans').delete().eq('user_id', userId),
-      admin.from('grocery_list').delete().eq('user_id', userId),
       admin.from('streaks').delete().eq('user_id', userId),
     ]);
     await admin.from('profiles').delete().eq('id', userId);

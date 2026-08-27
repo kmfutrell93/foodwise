@@ -4,9 +4,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius } from '@/constants/theme';
+import { getOnboardingProgressPct, OnboardingScreenKey } from '@/constants/onboardingFlow';
 
 type Props = {
   step: number;
+  // Omit on screens outside the linear onboarding funnel (e.g. sign-in,
+  // reached as a side entrance rather than a step in the flow) to hide
+  // the progress bar instead of showing a meaningless percentage.
+  screenKey?: OnboardingScreenKey;
   children: React.ReactNode;
   showBack?: boolean;
   onBack?: () => void;
@@ -20,16 +25,24 @@ const STEP_NAV_START   = 10;
 const STEP_NAV_END     = 12;
 
 export function OnboardingShell({
-  step, children, showBack = true, onBack, skipRoute, onSkip, centerLabel,
+  step, screenKey, children, showBack = true, onBack, skipRoute, onSkip, centerLabel,
 }: Props) {
   const router = useRouter();
 
   const showBottomDots = step >= 1 && step <= BOTTOM_DOT_COUNT;
   const showStepNav    = step >= STEP_NAV_START && step <= STEP_NAV_END;
   const questionStep   = showStepNav ? step - STEP_NAV_START + 1 : 0;
+  const progressPct    = screenKey ? getOnboardingProgressPct(screenKey) : null;
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
+      {/* Top progress bar */}
+      {progressPct !== null && (
+        <View style={s.progressTrack}>
+          <View style={[s.progressFill, { width: `${progressPct}%` }]} />
+        </View>
+      )}
+
       {/* Nav row */}
       <View style={s.nav}>
         {showBack ? (
@@ -94,6 +107,17 @@ export function OnboardingShell({
 
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.background },
+
+  progressTrack: {
+    height: 4,
+    backgroundColor: Colors.backgroundMid,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: 4,
+    backgroundColor: Colors.teal,
+    borderRadius: 2,
+  },
 
   nav: {
     flexDirection: 'row',

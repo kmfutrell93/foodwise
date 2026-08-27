@@ -17,6 +17,7 @@ Deno.serve(async (req) => {
     return new Response('Unauthorized', { status: 401 });
   }
 
+  try {
   const admin = createClient(
     Deno.env.get('SUPABASE_URL')!,
     serviceRoleKey
@@ -37,15 +38,31 @@ Deno.serve(async (req) => {
 
   const userIds = streaks.map((s: { user_id: string }) => s.user_id);
 
-  const { data: profiles } = await admin
+  const { data: allProfiles } = await admin
     .from('profiles')
-    .select('id, push_token, full_name, last_nudge_sent_at')
+    .select('id, push_token, full_name, last_nudge_sent_at, check_in_time')
     .in('id', userIds)
     .eq('notifications_enabled', true)
     .not('push_token', 'is', null)
     .or(`last_nudge_sent_at.lt.${cutoff72h},last_nudge_sent_at.is.null`);
 
-  if (!profiles?.length) return new Response('No eligible users', { status: 200 });
+  if (!allProfiles?.length) return new Response('No eligible users', { status: 200 });
+
+  // No real per-user timezone is stored — check_in_time is a rough US-Eastern-
+  // anchored bucket. Only fire for users whose bucket roughly matches the
+  // current UTC hour, so a 6-hourly cron doesn't wake someone at 3am.
+  // Users with no preference set are never excluded by this filter.
+  const CHECK_IN_UTC_HOURS: Record<string, number[]> = {
+    morning: [11, 12, 13, 14, 15],   // ~7-11am ET
+    midday: [16, 17, 18, 19, 20],    // ~11am-3pm ET
+    evening: [21, 22, 23, 0, 1, 2],  // ~4pm-9pm ET (wraps midnight UTC)
+  };
+  const currentUtcHour = now.getUTCHours();
+  const profiles = allProfiles.filter(p =>
+    !p.check_in_time || (CHECK_IN_UTC_HOURS[p.check_in_time] ?? []).includes(currentUtcHour)
+  );
+
+  if (!profiles.length) return new Response('No eligible users in this time window', { status: 200 });
 
   const MESSAGES = [
     { title: 'How are you feeling today? 🌿', body: "Log your symptoms — Nori's waiting to spot any patterns." },
@@ -78,4 +95,8 @@ Deno.serve(async (req) => {
     .in('id', notifiedIds);
 
   return new Response(JSON.stringify({ sent: messages.length }), { status: 200 });
+  } catch (err) {
+    console.error('push-reengagement error:', err);
+    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : 'Internal error' }), { status: 500 });
+  }
 });

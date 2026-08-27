@@ -2,6 +2,12 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
 import Anthropic from 'https://esm.sh/@anthropic-ai/sdk@0.39.0';
 
+function errorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (err && typeof err === 'object' && 'message' in err) return String((err as { message: unknown }).message);
+  return 'Internal error';
+}
+
 const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
 
 // Simple in-memory cache: user_id → { data, expires_at }
@@ -29,12 +35,11 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify(cached.data), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    const { data: profile } = await supabase.from('profiles').select('medication, food_aversions, protein_goal_range').eq('id', user.id).single();
+    const { data: profile } = await supabase.from('profiles').select('medication, food_aversions').eq('id', user.id).single();
     const { data: latestLog } = await supabase.from('symptom_logs').select('*').eq('user_id', user.id).order('logged_at', { ascending: false }).limit(1).single();
 
     const medication = profile?.medication ?? 'semaglutide';
     const aversions = (profile?.food_aversions ?? []).join(', ') || 'none';
-    const proteinGoal = profile?.protein_goal_range ?? '100-130g';
 
     // Map symptom_logs structure to nausea/constipation/fatigue scores
     const symptoms: string[] = latestLog?.symptoms ?? [];
@@ -57,19 +62,43 @@ Their food aversions are: ${aversions}.
 Mode: ${mode}.
 Return exactly 5 foods or simple meals they can eat RIGHT NOW.
 Rules: soft textures only if nausea >= 3. High-fibre if mode=constipation.
-Exclude all food_aversions. Each item: name, one-line why it helps, prep time.
-Return JSON: { "items": [{"name": string, "reason": string, "prep_mins": number}] }`;
+Exclude all food_aversions. Each item: name, one-line why it helps, prep time.`;
 
     const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 800,
       messages: [{ role: 'user', content: 'Give me 5 foods I can eat right now.' }],
       system: systemPrompt,
+      tools: [{
+        name: 'output',
+        description: 'Structured output for this function',
+        input_schema: {
+          type: 'object',
+          properties: {
+            items: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string' },
+                  reason: { type: 'string' },
+                  prep_mins: { type: 'number' },
+                },
+                required: ['name', 'reason', 'prep_mins'],
+              },
+            },
+          },
+          required: ['items'],
+        },
+      }],
+      tool_choice: { type: 'tool', name: 'output' },
     });
 
-    const raw = response.content[0].type === 'text' ? response.content[0].text : '{}';
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : { items: [] };
+    const toolBlock = response.content.find(b => b.type === 'tool_use');
+    if (!toolBlock || toolBlock.type !== 'tool_use') {
+      throw new Error('No tool_use block in Claude response');
+    }
+    const parsed = toolBlock.input as { items: unknown[] };
 
     const result = { ...parsed, mode, nausea_score: nauseaScore, medication };
 
@@ -80,7 +109,7 @@ Return JSON: { "items": [{"name": string, "reason": string, "prep_mins": number}
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (err) {
-    console.error('emergency-meal error:', err);
-    return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500, headers: corsHeaders });
+    console.error('emergency-meal error:', errorMessage(err), err);
+    return new Response(JSON.stringify({ error: errorMessage(err) }), { status: 500, headers: corsHeaders });
   }
 });

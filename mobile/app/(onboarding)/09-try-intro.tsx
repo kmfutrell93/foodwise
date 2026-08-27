@@ -3,7 +3,7 @@ import { View, Text, Image, StyleSheet, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { OnboardingShell } from '@/components/ui/OnboardingShell';
 import { Button } from '@/components/ui/Button';
-import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
+import { FontSize, Spacing, ThemeColors } from '@/constants/theme';
 import { useThemeColors } from '@/context/ThemeContext';
 
 const STEPS = [
@@ -18,7 +18,7 @@ export default function TryIntro() {
   const router = useRouter();
 
   return (
-    <OnboardingShell step={9}>
+    <OnboardingShell step={9} screenKey="09-try-intro">
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
 
         {/* Big Nori centered */}
@@ -32,10 +32,10 @@ export default function TryIntro() {
 
         <Text style={s.label}>Time to try it</Text>
         <Text style={s.title}>
-          Let's build your{'\n'}<Text style={s.titleHighlight}>first meal plan</Text>{'\n'}together!
+          Let&apos;s build your{'\n'}<Text style={s.titleHighlight}>first meal plan</Text>{'\n'}together!
         </Text>
         <Text style={s.sub}>
-          I'll ask you 3 quick questions, then show you a real personalized plan. Takes about 60 seconds.
+          I&apos;ll ask you 3 quick questions, then show you a real personalized plan. Takes about 60 seconds.
         </Text>
 
         {/* Horizontal step connector */}

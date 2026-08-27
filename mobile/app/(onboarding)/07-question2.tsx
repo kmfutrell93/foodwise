@@ -29,13 +29,14 @@ export default function Question2() {
   async function handleNext() {
     if (!selected) return;
     setField('protein_goal_range', selected);
-    await saveStep(7);
+    await saveStep(7, { protein_goal_range: selected });
     router.push('/(onboarding)/08-mirror2');
   }
 
   return (
     <OnboardingShell
       step={7}
+      screenKey="07-question2"
       centerLabel="Question 2 of 2"
       skipRoute="/(onboarding)/10-restrictions"
     >
@@ -80,7 +81,7 @@ export default function Question2() {
         <View style={s.infoBox}>
           <Text style={s.infoIcon}>ℹ️</Text>
           <Text style={s.infoText}>
-            Most GLP-1 users hit <Text style={s.infoStrong}>less than 50%</Text> of their protein goal — and don't even know it.
+            Most GLP-1 users hit <Text style={s.infoStrong}>less than 50%</Text> of their protein goal — and don&apos;t even know it.
           </Text>
         </View>
       </ScrollView>

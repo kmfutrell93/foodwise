@@ -20,6 +20,7 @@ Deno.serve(async (req) => {
     return new Response('Unauthorized', { status: 401 });
   }
 
+  try {
   const admin = createClient(
     Deno.env.get('SUPABASE_URL')!,
     serviceRoleKey
@@ -44,14 +45,17 @@ Deno.serve(async (req) => {
   };
 
   // Morning meal push (7am — this run)
-  const morningMessages = profiles.map(p => ({
-    to: p.push_token,
-    title: '💉 Injection day — your plan is ready',
-    body: `Today's meals are optimized for ${MEDICATION_NAMES[p.medication ?? ''] ?? 'your medication'} day. Soft textures, easy on the stomach.`,
-    data: { screen: 'meal-plan' },
-    sound: 'default',
-    priority: 'high',
-  }));
+  const morningMessages = profiles.map(p => {
+    const medName = MEDICATION_NAMES[p.medication ?? ''] ?? 'your medication';
+    return {
+      to: p.push_token,
+      title: `💉 Your ${medName} injection day`,
+      body: `Today's meals are optimized for injection day. Soft textures, easy on the stomach.`,
+      data: { screen: 'meal-plan' },
+      sound: 'default',
+      priority: 'high',
+    };
+  });
 
   await fetch(EXPO_PUSH_URL, {
     method: 'POST',
@@ -103,4 +107,8 @@ Deno.serve(async (req) => {
   }
 
   return new Response(JSON.stringify({ sent: morningMessages.length, hydration_sent: hydrationProfiles.length * 3, day: todayName }), { status: 200 });
+  } catch (err) {
+    console.error('push-injection-day error:', err);
+    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : 'Internal error' }), { status: 500 });
+  }
 });

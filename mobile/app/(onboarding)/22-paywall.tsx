@@ -10,10 +10,13 @@ import * as Haptics from 'expo-haptics';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { useRevenueCat, ENTITLEMENT_ID } from '@/context/RevenueCatContext';
 import { trackPaywallShown } from '@/lib/analytics';
-import { formatPricingDisplay, calcSavingsPct } from '@/lib/pricing';
+import { formatBillingAmount, calcSavingsPct } from '@/lib/pricing';
 import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
 import { useThemeColors } from '@/context/ThemeContext';
 import { TESTIMONIALS } from '@/lib/testimonials';
+import { getOnboardingProgressPct } from '@/constants/onboardingFlow';
+
+const PROGRESS_PCT = getOnboardingProgressPct('22-paywall');
 
 const FEATURES = [
   { icon: '💉', text: 'Meal plans synced to your injection day' },
@@ -95,6 +98,9 @@ export default function Paywall() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
+      <View style={s.progressTrack}>
+        <View style={[s.progressFill, { width: `${PROGRESS_PCT}%` }]} />
+      </View>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={s.scroll}
@@ -124,7 +130,7 @@ export default function Paywall() {
             <View style={{ gap: 10 }}>
               {TESTIMONIALS.map((t, i) => (
                 <View key={i} style={s.testimonialCard}>
-                  <Text style={s.testimonialQuote} numberOfLines={3}>"{t.quote}"</Text>
+                  <Text style={s.testimonialQuote} numberOfLines={3}>&quot;{t.quote}&quot;</Text>
                   <Text style={s.testimonialAttrib}>
                     {t.name} · {t.medication} · {t.weeks_on_app} weeks
                   </Text>
@@ -142,9 +148,10 @@ export default function Paywall() {
         ) : (
           <View style={s.plans}>
             {packages.map(pkg => {
-              const { weeklyDisplay, fullBillingDisplay, periodLabel } = formatPricingDisplay(pkg);
               const isAnnual = pkg.packageType === PACKAGE_TYPE.ANNUAL;
               const isSelected = selectedPkg?.product.identifier === pkg.product.identifier;
+              const periodLabel = isAnnual ? 'Yearly' : 'Monthly';
+              const priceLine = formatBillingAmount(pkg);
               return (
                 <TouchableOpacity
                   key={pkg.product.identifier}
@@ -165,9 +172,11 @@ export default function Paywall() {
                         )}
                       </View>
                       <Text style={[s.weeklyPrice, isSelected && s.weeklyPriceSelected]}>
-                        {weeklyDisplay}
+                        {priceLine}
                       </Text>
-                      <Text style={s.billingSubtext}>{fullBillingDisplay}</Text>
+                      <Text style={s.billingSubtext}>
+                        {isAnnual ? 'Best value · billed once a year' : 'Billed monthly'}
+                      </Text>
                     </View>
                     <View style={[s.radio, isSelected && s.radioSelected]}>
                       {isSelected && <View style={s.radioDot} />}
@@ -230,6 +239,8 @@ export default function Paywall() {
 function makeStyles(c: ThemeColors) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: c.background },
+    progressTrack: { height: 4, backgroundColor: c.muted, overflow: 'hidden' },
+    progressFill: { height: 4, backgroundColor: c.primary, borderRadius: 2 },
     scroll: { paddingHorizontal: Spacing.xl, paddingTop: Spacing['2xl'], paddingBottom: Spacing['3xl'] },
 
     header: { alignItems: 'center', marginBottom: Spacing['2xl'] },
