@@ -102,12 +102,10 @@ Secondary: **Food & Drink** (optional)
 
 ## App Review notes
 
-⚠️ SET DEMO PASSWORD IN SUPABASE AUTH AND PASTE IT HERE BEFORE SUBMITTING.
-
 ```
 DEMO ACCOUNT
 Email: demo@foodwise.app
-Password: [SET IN SUPABASE AUTH — PASTE HERE BEFORE SUBMITTING]
+Password: FoodWiseDemo2026!
 
 HOW TO REVIEW
 1. Sign in with the demo account (or create a new account via onboarding).
