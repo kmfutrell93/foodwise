@@ -7,16 +7,45 @@ export type GeneratePlanResult =
   | { success: true; plan: MealPlan }
   | { success: false; error: string };
 
+export type GeneratePlanOptions = {
+  onStatus?: (msg: string) => void;
+  /**
+   * - 'ready' (default): wait for ingredients + grocery (in-app meal plan / regenerate).
+   * - 'plan_ready': advance as soon as meal names/macros exist (onboarding reveal).
+   *   Also accepts 'ready' if the full pipeline finishes first.
+   */
+  waitFor?: 'plan_ready' | 'ready';
+};
+
+function hasUsableDays(plan: { plan_json?: { days?: unknown } } | null): boolean {
+  const days = plan?.plan_json?.days;
+  return Array.isArray(days) && days.length >= 3;
+}
+
+function isSuccessStatus(
+  status: string | undefined,
+  waitFor: 'plan_ready' | 'ready',
+): boolean {
+  if (waitFor === 'ready') return status === 'ready';
+  return status === 'plan_ready' || status === 'ready';
+}
+
 /**
  * LTE-resilient meal plan generation.
  * Fires meal-plans-generate without aborting (server keeps working), then polls
- * meal_plans for generation_status ready/failed via short DB reads.
+ * meal_plans for generation_status via short DB reads.
  *
  * Polls on updated_at (not created_at) because same-week upserts keep created_at.
  */
 export async function generatePlanWithPolling(
-  onStatus?: (msg: string) => void,
+  onStatusOrOptions?: ((msg: string) => void) | GeneratePlanOptions,
 ): Promise<GeneratePlanResult> {
+  const options: GeneratePlanOptions =
+    typeof onStatusOrOptions === 'function'
+      ? { onStatus: onStatusOrOptions }
+      : (onStatusOrOptions ?? {});
+  const { onStatus, waitFor = 'ready' } = options;
+
   const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
   if (!supabaseUrl) {
     return { success: false, error: 'Missing Supabase URL' };
@@ -34,7 +63,7 @@ export async function generatePlanWithPolling(
   onStatus?.('Starting your plan…');
 
   const url = `${supabaseUrl}/functions/v1/meal-plans-generate`;
-  console.log('[gen] fire', { url, userId, startTime, hasToken: !!session.access_token });
+  console.log('[gen] fire', { url, userId, startTime, waitFor, hasToken: !!session.access_token });
 
   // Fire-and-forget: do NOT abort. Aborting can cancel the edge function.
   // Client connection may drop on LTE — polling is the source of truth.
@@ -72,14 +101,14 @@ export async function generatePlanWithPolling(
 
       if (!data) continue;
 
-      if (data.generation_status === 'ready') {
-        const days = data.plan_json?.days;
-        if (Array.isArray(days) && days.length > 0) {
-          console.log('[gen] ready', { planId: data.id, days: days.length });
-          return { success: true, plan: data as MealPlan };
-        }
-        // Ready but empty — treat as still in progress / bad write
-        continue;
+      if (isSuccessStatus(data.generation_status, waitFor) && hasUsableDays(data)) {
+        console.log('[gen] success', {
+          planId: data.id,
+          status: data.generation_status,
+          days: data.plan_json?.days?.length,
+          waitFor,
+        });
+        return { success: true, plan: data as MealPlan };
       }
 
       if (data.generation_status === 'failed') {
@@ -87,7 +116,7 @@ export async function generatePlanWithPolling(
         return { success: false, error: 'Generation failed — please try again.' };
       }
 
-      // still 'generating'
+      // still 'generating' (or plan_ready when waitFor === 'ready')
     } catch (e) {
       console.log('[gen] poll exception:', e);
     }

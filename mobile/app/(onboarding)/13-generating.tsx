@@ -23,17 +23,13 @@ export default function Generating() {
   const router = useRouter();
   const colors = useThemeColors();
   const s = makeStyles(colors);
-  const { data, saveStep } = useOnboarding();
+  const { saveStep } = useOnboarding();
 
-  const medication = data.medication ?? 'GLP-1';
   const messages = [
-    `Checking your ${medication} profile…`,
-    `Planning your injection day meals…`,
-    `Setting your 100–130g protein target…`,
-    `Adjusting for your food preferences…`,
-    `Building your Week 1 plan…`,
-    `Adding your grocery list…`,
-    `Almost ready…`,
+    'Reading your medication profile…',
+    'Planning injection-day meals…',
+    'Balancing protein across your week…',
+    'Finalizing your plan…',
   ];
 
   const [currentMessage, setCurrentMessage] = useState(messages[0]);
@@ -109,7 +105,9 @@ export default function Generating() {
     intervalRef.current = interval;
 
     try {
-      const result = await generatePlanWithPolling();
+      // Advance as soon as meals exist (plan_ready). Ingredients + grocery finish
+      // server-side in the background while the user continues onboarding.
+      const result = await generatePlanWithPolling({ waitFor: 'plan_ready' });
       clearInterval(interval);
       intervalRef.current = null;
 

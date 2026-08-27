@@ -104,7 +104,7 @@ export type MealPlan = {
   week_start: string;
   plan_json: { days: MealDay[] };
   grocery_list: GroceryList | null;
-  generation_status?: 'generating' | 'ready' | 'failed' | string;
+  generation_status?: 'generating' | 'plan_ready' | 'ready' | 'failed' | string;
 };
 
 export type SymptomLog = {

@@ -279,7 +279,24 @@ Rules:
       );
     }
 
-    // Ingredients (2 batches) + deterministic grocery — all server-side before ready.
+    // Publish meals ASAP so onboarding can reveal (~15–20s) without waiting for
+    // ingredients + grocery. Clients that need the full pipeline wait for 'ready'.
+    const { error: planReadyErr } = await supabase
+      .from('meal_plans')
+      .update({
+        plan_json: { days: planData.days },
+        grocery_list: null,
+        generation_status: 'plan_ready',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', planId!);
+    if (planReadyErr) {
+      console.error('[plan-fn] plan_ready save failed', planReadyErr);
+      throw planReadyErr;
+    }
+    console.log('[plan-fn] status plan_ready', { planId, dayCount, mealCount });
+
+    // Ingredients (2 batches) + deterministic grocery — continue in the same request.
     console.log('[plan-fn] ingredients started');
     const daysWithIngredients = await attachIngredientsToDays(
       anthropic,
