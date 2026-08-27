@@ -1,6 +1,6 @@
 # FoodWise — App Store submission runbook
 
-Do these steps **in order**. Items marked 🟡 are manual-only (portal / device / your git credentials).
+**Status (as of Aug 27, 2026):** Production build **finished**. EAS submit **`6e320e18…` → status `in queue`** (binary → ASC for build `123ae1fa…`). Remaining work: ASC metadata, legal Pages push, IAP wiring, screenshots, demo password.
 
 **Demo account**
 
@@ -10,63 +10,33 @@ Do these steps **in order**. Items marked 🟡 are manual-only (portal / device 
 | UUID | `2623b22e-b1eb-49b1-b2b5-2fb7b6f285c9` |
 | Password | `[SET IN SUPABASE — FILL HERE]` |
 
----
+**Production build to attach**
 
-## 0) CRITICAL — Commit (or build from this machine’s working tree)
-
-Recent fixes live in the **local working tree** and are **not all on `origin/main`**.  
-`eas build` uploads your local `mobile/` project (including uncommitted files that aren’t gitignored).
-
-**Strongly recommended before building:**
-
-```bash
-cd "/Users/kenny/Documents/FoodWise App"
-git status
-# Review, then commit everything needed for production (ask Cursor to commit if you want)
-git add mobile/ supabase/ APP_STORE_LISTING.md APP_PRIVACY_ANSWERS.md SCREENSHOT_GUIDE.md SUBMISSION_RUNBOOK.md apps/foodwise-legal/
-git commit -m "$(cat <<'EOF'
-Ship App Store prep: polling generation, onboarding order, meal-plan header, legal + listing docs
-
-EOF
-)"
-git push origin main
-```
-
-If you skip commit, run the EAS build **from this Mac** with the current dirty tree so those files are packaged. Do **not** build from a clean CI checkout of old `main`.
-
-Fixes that must be in the iOS binary source:
-
-| Fix | File(s) | In working tree? | On origin/main? |
-|-----|---------|------------------|-----------------|
-| Fire-and-forget + DB polling | `mobile/lib/generate-plan.ts` (untracked), used by meal-plan / home / 13-generating | ✅ | ❌ |
-| Onboarding: habit before generate | `mobile/constants/onboardingFlow.ts` (untracked) | ✅ | ❌ |
-| Meal plan header Grocery (not Fiber) | `mobile/app/(app)/meal-plan.tsx` (modified) | ✅ | ❌ (old has Fiber) |
-| meal_key normalize (server) | `supabase/functions/_shared/generate-ingredients.ts` | ✅ | ❌ — already deploy to Supabase separately |
-
-Server `meal_key` fix is **not** part of the iOS binary; confirm edge functions are deployed:
-
-```bash
-cd "/Users/kenny/Documents/FoodWise App"
-# If unsure whether live functions include normalizeMealKey, redeploy:
-./supabase/deploy.sh   # or your usual supabase functions deploy
-```
+| Field | Value |
+|-------|--------|
+| Build ID | `123ae1fa-dc15-4659-afc4-788fcfba3fe8` |
+| Version / build | `1.0.0` (3) |
+| Profile | `production` · store · channel `production` |
+| Commit | `690867740ea9d511d238bb9111d5edaea48311a0` |
+| Logs | https://expo.dev/accounts/kmfutrell93/projects/foodwise/builds/123ae1fa-dc15-4659-afc4-788fcfba3fe8 |
 
 ---
 
-## 1) 🟡 Set demo password (Supabase dashboard)
+## ✅ Already done (do not redo)
 
-1. Open [Supabase Dashboard](https://supabase.com/dashboard) → project `rxxgkhppeewudzalewgy`  
-2. **Authentication → Users** → find `demo@foodwise.app`  
-3. Reset / set password (or “Send password recovery” then set known password)  
-4. Paste password into the table at the top of this runbook **and** into ASC Review Notes  
-
-Seed data is already applied (plan ready, grocery, symptoms, streak, weights, milestones, recommendation, `is_pro`).
+- [x] Critical fixes committed + pushed to `main` (`6908677`)
+- [x] Edge functions redeployed (`meal-plans-generate`, `grocery-list-generate`) with `normalizeMealKey`
+- [x] Demo account seeded (plan ready, grocery, symptoms, streak, weights, milestones, `is_pro`)
+- [x] Production iOS build **finished** (`123ae1fa…`)
+- [x] App source uses only live GitHub Pages privacy + terms URLs (no custom domain)
 
 ---
 
-## 2) 🟡 Push legal GitHub Pages repo
+## What’s left (do in this order)
 
-Source files ready in the monorepo: `apps/foodwise-legal/`
+### 1) 🟡 Push legal GitHub Pages repo
+
+Source files: `apps/foodwise-legal/` in the FoodWise App monorepo (Markdown matches live Pages).
 
 ```bash
 git clone https://github.com/kmfutrell93/foodwise-legal.git
@@ -86,92 +56,84 @@ EOF
 git push origin main
 ```
 
-**Verify (wait 1–2 min):**
+**Verify (wait 1–2 min) — all must return HTTP 200:**
 
-- https://kmfutrell93.github.io/foodwise-legal/terms → $12.99 / $99.00  
-- https://kmfutrell93.github.io/foodwise-legal/support → 200  
-- https://kmfutrell93.github.io/foodwise-legal/privacy → 200  
+```bash
+curl -sI -o /dev/null -w "%{http_code} %{url_effective}\n" https://kmfutrell93.github.io/foodwise-legal/support
+curl -sI -o /dev/null -w "%{http_code} %{url_effective}\n" https://kmfutrell93.github.io/foodwise-legal/terms
+curl -sI -o /dev/null -w "%{http_code} %{url_effective}\n" https://kmfutrell93.github.io/foodwise-legal/privacy
+```
+
+Also open terms and confirm prices show **$12.99/month** and **$99.00/year**.
 
 ---
 
-## 3) 🟡 Production build
+### 2) 🟡 Set demo password (Supabase dashboard)
+
+1. [Supabase Dashboard](https://supabase.com/dashboard) → project `rxxgkhppeewudzalewgy`  
+2. **Authentication → Users** → `demo@foodwise.app`  
+3. Set / reset password  
+4. Paste into this runbook table **and** into `APP_STORE_LISTING.md` App Review notes (look for the ⚠️ reminder)
+
+---
+
+### 3) 🟡 Take 5 screenshots
+
+Follow **`SCREENSHOT_GUIDE.md`** — full-bleed **1290×2796**, demo account signed in.
+
+Captions: injection schedule · medication · symptom/meal notes · grocery budget · streaks/progress.
+
+---
+
+### 4) 🟡 RevenueCat ↔ ASC IAP wiring (required for first submission)
+
+Do this **before** submitting the version — first-app submission needs IAP subscriptions attached to the version.
+
+1. **ASC → My Apps → FoodWise → App Information**  
+   Generate **App-Specific Shared Secret** (Subscriptions). Copy it.  
+2. **ASC → Users and Access → Integrations → In-App Purchase**  
+   Create an In-App Purchase Key → download `.p8` → note **Key ID** + **Issuer ID**.  
+3. **ASC → Features → In-App Purchases** (or Subscriptions)  
+   Confirm Monthly (~$12.99) and Annual (~$99) auto-renewable subscriptions exist, localized, and are **Ready to Submit**.  
+4. **RevenueCat → Project → iOS app (app.foodwise.ios)**  
+   - Paste App-Specific Shared Secret  
+   - Upload In-App Purchase key (`.p8` + Key ID + Issuer ID)  
+   - Confirm product IDs match StoreKit / RC offerings used by the paywall  
+5. **ASC → version 1.0**  
+   Attach both subscription products to this version (first submission requirement).
+
+---
+
+### 5) 🟡 App Store Connect — version 1.0 checklist
+
+1. Open ASC → FoodWise (`ascAppId` **6770304357**) → create/open **1.0** version  
+2. Paste listing from **`APP_STORE_LISTING.md`** (name, subtitle, keywords, description, promo, What’s New)  
+3. Support URL: `https://kmfutrell93.github.io/foodwise-legal/support` *(only after §1 shows 200)*  
+4. Privacy Policy: `https://kmfutrell93.github.io/foodwise-legal/privacy`  
+5. App Privacy questionnaire → **`APP_PRIVACY_ANSWERS.md`**  
+6. Upload 5 screenshots (6.7")  
+7. **Build:** select / attach **`123ae1fa-dc15-4659-afc4-788fcfba3fe8`** (1.0.0 build 3) once processed in ASC  
+8. **IAP:** attach Monthly + Annual subscriptions to this version  
+9. **App Review Information** — paste full notes from `APP_STORE_LISTING.md` with real demo password  
+10. Age Rating / Content Rights / Export Compliance (encryption: non-exempt = No; already in `app.json`)  
+11. **Add for Review → Submit**
+
+If `eas submit` already uploaded the binary, you only need to wait for ASC processing, then select that build on the version.
+
+Check submit status:
 
 ```bash
 cd "/Users/kenny/Documents/FoodWise App/mobile"
-npx tsc --noEmit          # expect 0 errors
-npx expo-doctor           # expect 18/18
-eas build --platform ios --profile production
+npx eas-cli@latest submit:list -p ios --limit 5
 ```
 
-When the build finishes, optionally:
-
-```bash
-eas submit --platform ios --profile production --latest
-```
-
-Or download the `.ipa` / use the Expo dashboard → Submit to ASC.
-
 ---
 
-## 4) 🟡 Screenshots
+## Quick “only left” checklist
 
-Follow **`SCREENSHOT_GUIDE.md`** — 5 full-bleed shots at **1290×2796**, demo account signed in.
-
----
-
-## 5) 🟡 App Store Connect — listing + privacy + screenshots + review notes
-
-1. Open App Store Connect → FoodWise (`ascAppId` **6770304357**)  
-2. Paste copy from **`APP_STORE_LISTING.md`** (name, subtitle, keywords, description, promo, What’s New)  
-3. Support URL: `https://kmfutrell93.github.io/foodwise-legal/support`  
-4. Privacy Policy URL: `https://kmfutrell93.github.io/foodwise-legal/privacy`  
-5. Fill App Privacy questionnaire using **`APP_PRIVACY_ANSWERS.md`**  
-6. Upload the 5 screenshots (6.7")  
-7. **App Review Information** — demo credentials:
-
-```
-Email: demo@foodwise.app
-Password: [YOUR DEMO PASSWORD]
-
-See APP_STORE_LISTING.md “App Review notes” for the full review flow text
-(not medical advice, core paths to test, Restore Purchases, do not delete demo).
-```
-
-8. Attach the production build once processing completes  
-
----
-
-## 6) 🟡 RevenueCat ↔ ASC IAP wiring
-
-From `TODO_BEFORE_APP_STORE.md`, expanded:
-
-1. **ASC → App Information** → generate **App-Specific Shared Secret**  
-2. **ASC → Users and Access → Integrations → In-App Purchase** → create IAP key (`.p8`), note Key ID + Issuer ID  
-3. **ASC → Features → In-App Purchases** → ensure Monthly (~$12.99) and Annual (~$99) products exist and are Ready to Submit  
-4. **RevenueCat** → iOS app settings:  
-   - Paste App-Specific Shared Secret  
-   - Upload In-App Purchase key (`.p8` + Key ID + Issuer ID)  
-   - Confirm product IDs match StoreKit / paywall offerings  
-5. Smoke-test Restore Purchases on a TestFlight / sandbox build if possible  
-
----
-
-## 7) 🟡 Submit for review
-
-1. Complete Age Rating, Content Rights, Export Compliance (`ITSAppUsesNonExemptEncryption: false` already in app.json)  
-2. Select the build → **Add for Review** → **Submit**  
-3. Watch for “Waiting for Review”  
-
----
-
-## Quick checklist
-
-- [ ] Working-tree fixes committed **or** EAS built from this dirty tree  
-- [ ] Edge functions (meal_key) confirmed deployed  
-- [ ] Demo password set + written in ASC notes  
-- [ ] Legal Pages: terms pricing + support live  
-- [ ] Production iOS build green  
-- [ ] 5 screenshots uploaded  
-- [ ] Listing + privacy questionnaire pasted  
-- [ ] RevenueCat ↔ ASC wired  
-- [ ] Submitted  
+- [ ] Push `foodwise-legal` (terms pricing + support.html) + verify 3 URLs = 200  
+- [ ] Set demo password → paste into review notes  
+- [ ] 5 screenshots  
+- [ ] ASC/RevenueCat IAP wiring + attach subs to version 1.0  
+- [ ] ASC: paste listing + privacy answers + screenshots + build `123ae1fa…` + review notes  
+- [ ] Submit for review  

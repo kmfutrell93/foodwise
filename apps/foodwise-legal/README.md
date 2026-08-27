@@ -1,32 +1,28 @@
 # Legal Pages — copy these into kmfutrell93/foodwise-legal
 
-Pages repo renders **Markdown** (`privacy.md`, `terms.md`) via GitHub Pages. Keep the same `# Title` + metadata header format as live pages.
+Pages repo renders **Markdown** (`privacy.md`, `terms.md`) via GitHub Pages — same `# Title` + metadata header as live pages. `support.html` is plain HTML (fine alongside).
 
-## Files to copy (from this folder → legal repo root)
+**Do not change domains** — keep `https://kmfutrell93.github.io/foodwise-legal/...` everywhere until a custom domain is ready.
 
-| This monorepo path | Destination in foodwise-legal |
-|--------------------|-------------------------------|
-| `apps/foodwise-legal/terms.md` | `terms.md` (pricing: **$12.99/month**, **$99.00/year**) |
-| `apps/foodwise-legal/support.html` | `support.html` (new Support URL) |
-| `apps/foodwise-legal/privacy.md` | `privacy.md` (optional sync; no pricing; safe to overwrite) |
+## Files to copy (this folder → legal repo root)
 
-Do **not** need HTML for privacy/terms — live site already uses `.md`.
+| This monorepo path | Destination |
+|--------------------|-------------|
+| `terms.md` | `terms.md` — **$12.99/month**, **$99.00/year** |
+| `support.html` | `support.html` — FAQ + support@foodwise.app |
+| `privacy.md` | `privacy.md` — optional sync; no pricing |
 
 ## Exact git commands
 
 ```bash
-# 1. Clone (or cd into your existing clone)
 git clone https://github.com/kmfutrell93/foodwise-legal.git
 cd foodwise-legal
 
-# 2. Copy files from the FoodWise App monorepo
 FW="/Users/kenny/Documents/FoodWise App/apps/foodwise-legal"
 cp "$FW/terms.md" ./terms.md
 cp "$FW/support.html" ./support.html
-cp "$FW/privacy.md" ./privacy.md   # optional but recommended
+cp "$FW/privacy.md" ./privacy.md
 
-# 3. Commit + push
-git status
 git add terms.md support.html privacy.md
 git commit -m "$(cat <<'EOF'
 Update Terms pricing to $12.99/$99 and add Support page
@@ -36,8 +32,12 @@ EOF
 git push origin main
 ```
 
-## Verify after push (wait ~1–2 min for Pages)
+## Verify after push (wait 1–2 min)
 
-- https://kmfutrell93.github.io/foodwise-legal/terms → must show **$12.99/month** and **$99.00/year**
-- https://kmfutrell93.github.io/foodwise-legal/support → FAQ + support@foodwise.app (**200**)
-- https://kmfutrell93.github.io/foodwise-legal/privacy → still **200**, no $11.99/$59.99
+```bash
+curl -sI -o /dev/null -w "%{http_code} %{url_effective}\n" https://kmfutrell93.github.io/foodwise-legal/support
+curl -sI -o /dev/null -w "%{http_code} %{url_effective}\n" https://kmfutrell93.github.io/foodwise-legal/terms
+curl -sI -o /dev/null -w "%{http_code} %{url_effective}\n" https://kmfutrell93.github.io/foodwise-legal/privacy
+```
+
+All three must be **200**. Terms page must show **$12.99/month** and **$99.00/year** (not $11.99 / $59.99).

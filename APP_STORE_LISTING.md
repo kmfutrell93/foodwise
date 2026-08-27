@@ -23,10 +23,10 @@ glp-1,ozempic,wegovy,mounjaro,zepbound,meal plan,protein,grocery,nausea,semaglut
 ## Promotional text (170 max)
 
 ```
-Built for GLP-1 users: meal plans that soften on injection day, hit 100–130g protein, track symptoms with Nori, and keep groceries under budget.
+Built for GLP-1 users: meal plans designed for injection day, protein-focused portions, meal notes with Nori, and grocery lists under budget.
 ```
 
-(~148 chars)
+(~145 chars)
 
 ## Description
 
@@ -41,13 +41,13 @@ WHAT YOU GET
   Soft, low-fat meals on shot day. Higher-fiber options mid-week when constipation tends to hit. Your plan rotates with your medication schedule.
 
 • Medication-specific personalization
-  Semaglutide and tirzepatide aren’t the same. FoodWise adjusts nausea profile, portion density, and protein emphasis to your drug.
+  Semaglutide and tirzepatide aren’t the same. FoodWise is designed for each medication’s typical appetite and portion preferences — density and protein emphasis tuned to your drug.
 
-• 100–130g protein targets
-  Built for muscle preservation when appetite is low — smaller, protein-dense meals you can actually finish.
+• Protein-focused daily targets
+  Built to support protein intake when appetite is low — smaller, protein-dense meals you can actually finish.
 
-• Symptom tracker + AI insights
-  Log nausea, fatigue, bloating, and more. After a few logs, Nori (your AI coach) surfaces patterns and food adjustments. Those insights feed your next meal plan.
+• Symptom & meal notes
+  Log how you're feeling and note what you ate. FoodWise suggests meal and texture adjustments to try — always alongside your provider's guidance. Your notes shape your next plan.
 
 • Grocery list under budget
   One list from your week’s meals, sectioned for the store, trimmed to your weekly budget.
@@ -75,7 +75,7 @@ Start with a free trial of FoodWise Pro. Cancel anytime in Apple Subscriptions.
 Welcome to FoodWise 1.0 — meal plans built for GLP-1 life.
 
 • Injection-day aware weekly plans
-• Symptom tracking with AI insights
+• Meal notes that shape your next plan
 • Grocery lists under your budget
 • Meal swaps, streaks, and weekly reports
 
@@ -102,16 +102,18 @@ Secondary: **Food & Drink** (optional)
 
 ## App Review notes
 
+⚠️ SET DEMO PASSWORD IN SUPABASE AUTH AND PASTE IT HERE BEFORE SUBMITTING.
+
 ```
 DEMO ACCOUNT
 Email: demo@foodwise.app
-Password: [SET WHEN YOU CREATE THE AUTH USER — paste here]
+Password: [SET IN SUPABASE AUTH — PASTE HERE BEFORE SUBMITTING]
 
 HOW TO REVIEW
 1. Sign in with the demo account (or create a new account via onboarding).
 2. Home / Meal Plan: open the current week — 7 days of GLP-1-aware meals with soft textures on Monday (injection day).
 3. Grocery: open the grocery list — sections + estimated total under budget.
-4. Symptoms: log a symptom (demo already has 14 days of history + insight).
+4. Symptoms: log a note (demo already has 14 days of history + recommendation).
 5. Settings → Delete Account is available; please do not delete the demo account.
 6. Settings → Subscription / paywall: Restore Purchases and Privacy/Terms links work.
 
