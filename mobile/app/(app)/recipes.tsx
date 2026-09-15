@@ -30,12 +30,6 @@ const MEAL_TYPE_FILTERS = [
   { label: 'Snack', value: 'snack' },
 ];
 
-const NOVA_FILTERS = [
-  { label: 'Any', value: null },
-  { label: 'Nova ≤ 2', value: '2' },
-  { label: 'Nova ≤ 3', value: '3' },
-];
-
 type LibraryRecipe = Recipe & { user_rating: number | null };
 
 // Shown only when the recipes table returns zero results with no filters
@@ -306,7 +300,6 @@ export default function Recipes() {
   const [libraryRecipes, setLibraryRecipes] = useState<LibraryRecipe[]>([]);
   const [libraryLoading, setLibraryLoading] = useState(true);
   const [mealTypeFilter, setMealTypeFilter] = useState('all');
-  const [novaFilter, setNovaFilter] = useState<string | null>(null);
 
   // Saved state
   const [savedRecipes, setSavedRecipes] = useState<SavedRecipe[]>([]);
@@ -325,7 +318,6 @@ export default function Recipes() {
       if (!session) return;
       const params = new URLSearchParams({ limit: '40' });
       if (mealTypeFilter !== 'all') params.set('meal_type', mealTypeFilter);
-      if (novaFilter) params.set('nova_max', novaFilter);
       const res = await fetch(
         `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/recipes?${params}`,
         { headers: { Authorization: `Bearer ${session.access_token}` } }
@@ -334,7 +326,7 @@ export default function Recipes() {
     } finally {
       setLibraryLoading(false);
     }
-  }, [mealTypeFilter, novaFilter]);
+  }, [mealTypeFilter]);
 
   useEffect(() => {
     if (segment === 'library') fetchLibrary();
@@ -383,7 +375,7 @@ export default function Recipes() {
   }
 
   function renderLibraryEmpty() {
-    const noFiltersActive = mealTypeFilter === 'all' && novaFilter === null;
+    const noFiltersActive = mealTypeFilter === 'all';
     if (!noFiltersActive) {
       return (
         <View style={s.emptyState}>
@@ -462,8 +454,6 @@ export default function Recipes() {
       {/* Library tab */}
       {segment === 'library' && (
         <>
-          {/* Meal-type chips alone — Nova is a second row so Dinner/Snack aren't
-              pushed off-screen behind Nova filters at scroll offset 0. */}
           <ChipScrollRow>
             {MEAL_TYPE_FILTERS.map((f, i) => (
               <React.Fragment key={f.value}>
@@ -472,18 +462,6 @@ export default function Recipes() {
                   label={f.label}
                   active={mealTypeFilter === f.value}
                   onPress={() => setMealTypeFilter(f.value)}
-                />
-              </React.Fragment>
-            ))}
-          </ChipScrollRow>
-          <ChipScrollRow>
-            {NOVA_FILTERS.map((f, i) => (
-              <React.Fragment key={f.label}>
-                {i > 0 ? <ChipSpacer /> : null}
-                <FilterChip
-                  label={f.label}
-                  active={novaFilter === f.value}
-                  onPress={() => setNovaFilter(f.value)}
                 />
               </React.Fragment>
             ))}
