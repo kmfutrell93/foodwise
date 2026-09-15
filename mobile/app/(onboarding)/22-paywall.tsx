@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ActivityIndicator,
-  Alert, ScrollView, Linking,
+  Alert, ScrollView, Linking, Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -108,7 +108,11 @@ export default function Paywall() {
       >
         {/* Header */}
         <View style={s.header}>
-          <Text style={s.icon}>🌿</Text>
+          <Image
+            source={require('@/assets/images/nori_character.png')}
+            style={s.nori}
+            resizeMode="contain"
+          />
           <Text style={s.title}>FoodWise Pro</Text>
           <Text style={s.subtitle}>The nutrition companion built for GLP-1 users</Text>
         </View>
@@ -244,7 +248,7 @@ function makeStyles(c: ThemeColors) {
     scroll: { paddingHorizontal: Spacing.xl, paddingTop: Spacing['2xl'], paddingBottom: Spacing['3xl'] },
 
     header: { alignItems: 'center', marginBottom: Spacing['2xl'] },
-    icon: { fontSize: 48, marginBottom: Spacing.md },
+    nori: { width: 96, height: 96, marginBottom: Spacing.md },
     title: { fontSize: FontSize['2xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground, marginBottom: Spacing.sm },
     subtitle: { fontSize: FontSize.sm, color: c.mutedForeground, textAlign: 'center' },
 
