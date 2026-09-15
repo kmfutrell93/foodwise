@@ -51,31 +51,30 @@ const FALLBACK_SUGGESTIONS = [
 ];
 
 // ── Animated filter chip ──────────────────────────────────────────────────────
+// Active state changes color only — no scale transform (scale was clipping against
+// parent overflow and could skew horizontal content-size measurement).
 
 function FilterChip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
   const colors = useThemeColors();
-  const scale = useSharedValue(1);
   const bgAnim = useSharedValue(active ? 1 : 0);
   const prevActive = useRef(active);
 
   useEffect(() => {
     if (prevActive.current === active) return;
     prevActive.current = active;
-    bgAnim.value = withTiming(active ? 1 : 0, { duration: 300 });
-    if (active) scale.value = withSequence(withSpring(1.05), withSpring(1.0));
+    bgAnim.value = withTiming(active ? 1 : 0, { duration: 250 });
   }, [active]);
 
   const chipStyle = useAnimatedStyle(() => ({
     backgroundColor: interpolateColor(bgAnim.value, [0, 1], [colors.card, colors.primary]),
     borderColor: interpolateColor(bgAnim.value, [0, 1], [colors.border, colors.primary]),
-    transform: [{ scale: scale.value }],
   }));
   const textStyle = useAnimatedStyle(() => ({
     color: interpolateColor(bgAnim.value, [0, 1], [colors.mutedForeground, colors.primaryForeground]),
   }));
 
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity onPress={onPress} activeOpacity={0.7} style={chipS.touch}>
       <Animated.View style={[chipS.chip, chipStyle]}>
         <Animated.Text style={[chipS.text, textStyle]}>{label}</Animated.Text>
       </Animated.View>
@@ -84,10 +83,52 @@ function FilterChip({ label, active, onPress }: { label: string; active: boolean
 }
 
 const chipS = StyleSheet.create({
-  chip: { borderRadius: Radius.full, borderWidth: 1.5, paddingHorizontal: Spacing.md, paddingVertical: 6 },
+  touch: { flexShrink: 0 },
+  chip: {
+    borderRadius: Radius.full,
+    borderWidth: 1.5,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 6,
+    flexShrink: 0,
+  },
   text: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-SemiBold' },
 });
 
+/** Horizontal chip row — always scrollable so nothing clips when content overflows. */
+function ChipScrollRow({ children }: { children: React.ReactNode }) {
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      bounces
+      style={chipRowS.scroll}
+      contentContainerStyle={chipRowS.content}
+    >
+      {children}
+    </ScrollView>
+  );
+}
+
+const chipRowS = StyleSheet.create({
+  scroll: {
+    flexGrow: 0,
+    flexShrink: 0,
+    width: '100%',
+    overflow: 'visible',
+  },
+  content: {
+    paddingHorizontal: Spacing.xl,
+    paddingBottom: Spacing.md,
+    paddingTop: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    // Prefer margin on children over gap — more reliable content width on ScrollView
+  },
+});
+
+function ChipSpacer() {
+  return <View style={{ width: Spacing.sm }} />;
+}
 // ── Library recipe card ───────────────────────────────────────────────────────
 
 function RecipeCard({ item, index, onPress }: { item: LibraryRecipe; index: number; onPress: () => void }) {
@@ -421,30 +462,32 @@ export default function Recipes() {
       {/* Library tab */}
       {segment === 'library' && (
         <>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={s.filterRow}
-            style={s.filterScroll}
-          >
-            {MEAL_TYPE_FILTERS.map(f => (
-              <FilterChip
-                key={f.value}
-                label={f.label}
-                active={mealTypeFilter === f.value}
-                onPress={() => setMealTypeFilter(f.value)}
-              />
+          {/* Meal-type chips alone — Nova is a second row so Dinner/Snack aren't
+              pushed off-screen behind Nova filters at scroll offset 0. */}
+          <ChipScrollRow>
+            {MEAL_TYPE_FILTERS.map((f, i) => (
+              <React.Fragment key={f.value}>
+                {i > 0 ? <ChipSpacer /> : null}
+                <FilterChip
+                  label={f.label}
+                  active={mealTypeFilter === f.value}
+                  onPress={() => setMealTypeFilter(f.value)}
+                />
+              </React.Fragment>
             ))}
-            <View style={s.chipDivider} />
-            {NOVA_FILTERS.map(f => (
-              <FilterChip
-                key={f.label}
-                label={f.label}
-                active={novaFilter === f.value}
-                onPress={() => setNovaFilter(f.value)}
-              />
+          </ChipScrollRow>
+          <ChipScrollRow>
+            {NOVA_FILTERS.map((f, i) => (
+              <React.Fragment key={f.label}>
+                {i > 0 ? <ChipSpacer /> : null}
+                <FilterChip
+                  label={f.label}
+                  active={novaFilter === f.value}
+                  onPress={() => setNovaFilter(f.value)}
+                />
+              </React.Fragment>
             ))}
-          </ScrollView>
+          </ChipScrollRow>
 
           {libraryLoading ? renderSkeleton() : libraryRecipes.length === 0 ? renderLibraryEmpty() : (
             <FlatList
@@ -472,21 +515,18 @@ export default function Recipes() {
       {/* Saved tab */}
       {segment === 'saved' && (
         <>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={s.filterRow}
-            style={s.filterScroll}
-          >
-            {MEAL_TYPE_FILTERS.map(f => (
-              <FilterChip
-                key={f.value}
-                label={f.label}
-                active={savedSlotFilter === f.value}
-                onPress={() => setSavedSlotFilter(f.value)}
-              />
+          <ChipScrollRow>
+            {MEAL_TYPE_FILTERS.map((f, i) => (
+              <React.Fragment key={f.value}>
+                {i > 0 ? <ChipSpacer /> : null}
+                <FilterChip
+                  label={f.label}
+                  active={savedSlotFilter === f.value}
+                  onPress={() => setSavedSlotFilter(f.value)}
+                />
+              </React.Fragment>
             ))}
-          </ScrollView>
+          </ChipScrollRow>
 
           {!isPro && (
             <View style={s.freeBanner}>
@@ -530,9 +570,6 @@ function makeStyles(c: ThemeColors) {
     safe: { flex: 1, backgroundColor: c.background },
     header: { paddingHorizontal: Spacing.xl, paddingTop: Spacing.lg, paddingBottom: Spacing.sm },
     title: { fontSize: FontSize['2xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground },
-    filterScroll: { flexGrow: 0 },
-    filterRow: { paddingHorizontal: Spacing.xl, paddingBottom: Spacing.lg, gap: Spacing.sm, flexDirection: 'row', alignItems: 'center' },
-    chipDivider: { width: 1, height: 20, backgroundColor: c.border, marginHorizontal: Spacing.xs },
     grid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: Spacing.xl, gap: Spacing.md },
     listContent: { paddingHorizontal: Spacing.xl, paddingBottom: 120 },
     row: { gap: Spacing.md, marginBottom: Spacing.md },
