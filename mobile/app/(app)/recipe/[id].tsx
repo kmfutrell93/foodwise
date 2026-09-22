@@ -21,7 +21,7 @@ import {
   trackRecipeRated, trackRecipeAddedToPlan, trackRecipeViewed,
   trackRecipeStepsViewed, trackRecipeGenerated, trackRecipeSaved, trackRecipeUpsellShown,
 } from '@/lib/analytics';
-import { CHECKIN_TIMEOUT_MS } from '@/lib/constants';
+import { GENERATION_TIMEOUT_MS } from '@/lib/constants';
 import { logError } from '@/lib/utils';
 
 type LibraryRecipe = Recipe & { user_rating: number | null };
@@ -478,7 +478,7 @@ export default function RecipeDetail() {
             calories: calParam ? parseFloat(calParam) : undefined,
           }),
         },
-        CHECKIN_TIMEOUT_MS
+        GENERATION_TIMEOUT_MS
       );
 
       if (res.ok) {
