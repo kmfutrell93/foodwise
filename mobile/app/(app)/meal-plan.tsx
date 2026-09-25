@@ -16,6 +16,7 @@ import { trackMealSwapped, trackRecipeViewed } from '@/lib/analytics';
 import { FREE_PLAN_LIMIT, CHECKIN_TIMEOUT_MS } from '@/lib/constants';
 import { generatePlanWithPolling } from '@/lib/generate-plan';
 import { logError } from '@/lib/utils';
+import { SourcesLink } from '@/components/ui/SourcesLink';
 
 const DAY_SHORT: Record<string, string> = {
   monday: 'Mon', tuesday: 'Tue', wednesday: 'Wed', thursday: 'Thu',
@@ -203,10 +204,13 @@ export default function MealPlanScreen() {
             {day?.is_injection_day && (
               <View style={s.injBanner}>
                 <Ionicons name="medical-outline" size={16} color={colors.accent} style={{ flexShrink: 0 }} />
-                <Text style={[s.injBannerText, { color: colors.foreground }]}>
-                  <Text style={{ color: colors.accent, fontFamily: 'PlusJakartaSans-Bold' }}>Injection day. </Text>
-                  Gentle, low-nausea meals scheduled automatically.
-                </Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={[s.injBannerText, { color: colors.foreground }]}>
+                    <Text style={{ color: colors.accent, fontFamily: 'PlusJakartaSans-Bold' }}>Injection day. </Text>
+                    Gentler, lower-nausea meals scheduled when GI symptoms are often strongest.
+                  </Text>
+                  <SourcesLink prefix="Sources" align="left" style={{ marginTop: 4 }} />
+                </View>
               </View>
             )}
 

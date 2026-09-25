@@ -20,6 +20,7 @@ function RootNavigator() {
         <Stack.Screen name="index" />
         <Stack.Screen name="(onboarding)" />
         <Stack.Screen name="(app)" />
+        <Stack.Screen name="sources" options={{ presentation: 'modal' }} />
         <Stack.Screen name="reset-password" />
       </Stack>
       <StatusBar style="light" />

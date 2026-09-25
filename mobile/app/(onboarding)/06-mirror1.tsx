@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { OnboardingShell } from '@/components/ui/OnboardingShell';
 import { Button } from '@/components/ui/Button';
 import { useOnboarding } from '@/context/OnboardingContext';
+import { SourcesLink } from '@/components/ui/SourcesLink';
 import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
 import { useThemeColors } from '@/context/ThemeContext';
 
@@ -16,28 +17,28 @@ const COPY: Record<Struggle, {
   reassurance: string;
 }> = {
   protein: {
-    headline: '"Not hitting my protein" is the #1 challenge for GLP-1 users.',
+    headline: '"Not hitting my protein" is a top challenge for GLP-1 users.',
     pct: 78,
-    statText: 'of GLP-1 users struggle to hit their daily protein goal due to appetite suppression.',
+    statText: 'of GLP-1 users in our community say appetite suppression makes daily protein goals harder.',
     reassurance: "You're not failing. The medication itself makes protein goals harder. FoodWise was built to solve exactly this.",
   },
   nausea: {
     headline: 'Nausea on injection day affects your whole week — not just one meal.',
     pct: 65,
-    statText: 'of GLP-1 users report that nausea significantly disrupts their eating for 2–3 days after each dose.',
-    reassurance: "Nausea on injection day is a real side effect — not a weakness. FoodWise schedules softer foods when it hits hardest.",
+    statText: 'of GLP-1 users in our community say nausea disrupts eating for 1–3 days after each dose.',
+    reassurance: "Nausea is a documented GLP-1 side effect — not a weakness. FoodWise schedules softer, easier-to-tolerate foods when it hits hardest.",
   },
   confusion: {
     headline: 'Most nutrition apps weren\'t built for GLP-1 users — and it shows.',
     pct: 71,
-    statText: 'of GLP-1 users feel that standard nutrition guidance doesn\'t apply to their appetite patterns.',
+    statText: 'of GLP-1 users in our community feel that standard nutrition guidance doesn\'t match their appetite patterns.',
     reassurance: "Generic meal plans weren't designed around your injection schedule. FoodWise knows exactly how your hunger changes each week.",
   },
   muscle: {
-    headline: 'Losing muscle on GLP-1 is common — but it\'s not inevitable.',
+    headline: 'Losing lean mass on GLP-1 is common — but nutrition can help.',
     pct: 60,
-    statText: 'of GLP-1 users lose more muscle than expected because they don\'t prioritize protein on low-appetite days.',
-    reassurance: "Muscle loss isn't your fault. Without a plan, appetite suppression silently steals your protein — FoodWise prevents that.",
+    statText: 'of GLP-1 users in our community worry about muscle loss when appetite is low.',
+    reassurance: "Lean-mass loss during weight loss is well documented. Prioritizing protein on low-appetite days is one of the main ways FoodWise helps.",
   },
 };
 
@@ -94,6 +95,7 @@ export default function Mirror1() {
             {copy.reassurance}
           </Text>
         </View>
+        <SourcesLink prefix="Clinical sources for nausea, protein & lean mass" />
       </ScrollView>
       <View style={s.footer}>
         <Button label="Good to know" onPress={() => router.push('/(onboarding)/07-question2')} />

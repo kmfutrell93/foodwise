@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { OnboardingShell } from '@/components/ui/OnboardingShell';
 import { Button } from '@/components/ui/Button';
+import { SourcesLink } from '@/components/ui/SourcesLink';
 import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
 import { useThemeColors } from '@/context/ThemeContext';
 
@@ -55,6 +56,7 @@ export default function AiDisclosure() {
             doctor, dietitian, or prescribing provider. Always follow your healthcare team&apos;s guidance
             regarding your GLP-1 medication.
           </Text>
+          <SourcesLink prefix="Sources for protein, lean mass & GI guidance" align="left" style={{ marginTop: 12 }} />
         </View>
       </ScrollView>
       <View style={s.footer}>

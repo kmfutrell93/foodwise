@@ -11,7 +11,7 @@ export const STARTER_GUIDE: GuideCard[] = [
   {
     id: 'week1_expectations',
     title: 'What to expect in week 1',
-    body: 'Nausea is most common in the first 2–4 weeks. It usually peaks 24–48 hours after your injection and improves as your body adjusts. Most people feel significantly better by week 4.',
+    body: 'Nausea is among the most common GLP-1 side effects and is often strongest in the first weeks or after a dose increase. It usually improves as your body adjusts. Most people feel significantly better by week 4 — follow your clinician’s guidance if symptoms are severe.',
     icon: '📅',
     cta_label: 'Got it',
     cta_action: 'none',
@@ -19,7 +19,7 @@ export const STARTER_GUIDE: GuideCard[] = [
   {
     id: 'protein_nonnegotiable',
     title: 'Why protein is non-negotiable',
-    body: 'GLP-1s can cause up to 30% of weight lost to come from muscle, not fat. Hitting 100–120g protein per day is the main thing you can do to prevent this. Every meal plan FoodWise builds hits this target.',
+    body: 'GLP-1–supported weight loss can include lean-tissue loss alongside fat loss (see STEP 1 body-composition findings). Higher protein intake — often around 100–130g/day depending on body size — is a common strategy to help protect muscle. Every FoodWise meal plan targets this range.',
     icon: '💪',
     cta_label: 'See my meal plan',
     cta_action: 'meal_plan',
@@ -27,7 +27,7 @@ export const STARTER_GUIDE: GuideCard[] = [
   {
     id: 'injection_day_meals',
     title: 'Your injection day meals',
-    body: 'On the day you inject and the day after: soft textures, easy to digest, no heavy red meat or greasy food. Your meal plan already accounts for this — just follow it on those days.',
+    body: 'On the day you inject and the day after, many people feel more nausea. Clinical dietary guidance for GLP-1 GI symptoms often favors smaller portions and easier-to-digest textures. Your meal plan already accounts for this — follow it on those days.',
     icon: '💉',
     cta_label: 'View my plan',
     cta_action: 'meal_plan',

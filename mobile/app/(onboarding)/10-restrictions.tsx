@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
 import { useThemeColors } from '@/context/ThemeContext';
+import { SourcesLink } from '@/components/ui/SourcesLink';
 import * as Haptics from 'expo-haptics';
 
 const RESTRICTIONS = [
@@ -88,9 +89,10 @@ export default function Restrictions() {
         <View style={s.note}>
           <Text style={s.noteIcon}>💉</Text>
           <Text style={s.noteText}>
-            All meals are automatically optimized for GLP-1 users — small portions, high nutrient density, injection-day aware.
+            Meal plans use smaller portions and injection-day–aware textures to align with common GLP-1 appetite and GI patterns.
           </Text>
         </View>
+        <SourcesLink prefix="Sources for GLP-1 meal guidance" />
       </ScrollView>
       <View style={s.footer}>
         <Button label="Next: Set my budget" onPress={handleNext} />

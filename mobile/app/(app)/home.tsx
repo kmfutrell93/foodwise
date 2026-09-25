@@ -23,6 +23,7 @@ import { parseProteinGoal, logError } from '@/lib/utils';
 import { computeEscalationStatus } from '@/lib/escalation';
 import { FREE_PLAN_LIMIT } from '@/lib/constants';
 import { generatePlanWithPolling } from '@/lib/generate-plan';
+import { SourcesLink } from '@/components/ui/SourcesLink';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -432,7 +433,7 @@ export default function Home() {
             <Text style={s.hydrationIcon}>💧</Text>
             <View style={s.hydrationBody}>
               <Text style={s.hydrationTitle}>Drink water now</Text>
-              <Text style={s.hydrationSub}>Hydration cuts nausea on dose day. Have a full glass before your next meal.</Text>
+              <Text style={s.hydrationSub}>Staying hydrated may help with comfort on dose day. Have a full glass before your next meal.</Text>
             </View>
           </Animated.View>
         )}
@@ -460,6 +461,7 @@ export default function Home() {
           <View style={s.insightBody}>
             <Text style={[s.insightLabel, { color: colors.secondary }]}>Nori&apos;s insight for today</Text>
             <Text style={[s.insightText, { color: colors.foreground }]}>{insight}</Text>
+            <SourcesLink prefix="Sources" align="left" style={{ marginTop: 8 }} />
           </View>
         </View>
 
@@ -749,6 +751,7 @@ function EmergencySheet({
   colors: ThemeColors;
 }) {
   const s = makeSheetStyles(colors);
+  const router = useRouter();
   return (
     <SafeAreaView style={s.sheet} edges={['top', 'bottom']}>
       <View style={s.sheetHandle} />
@@ -782,7 +785,10 @@ function EmergencySheet({
             </View>
           ))}
           <Text style={[s.disclaimer, { color: colors.mutedForeground }]}>
-            Based on your {data.medication} medication profile and recent symptom log. These are general suggestions — consult your healthcare provider for medical advice.
+            Based on your {data.medication} medication profile and recent symptom log. These are general suggestions — consult your healthcare provider for medical advice.{' '}
+            <Text style={{ color: colors.primary, textDecorationLine: 'underline' }} onPress={() => router.push('/sources' as any)}>
+              View sources
+            </Text>
           </Text>
         </ScrollView>
       )}

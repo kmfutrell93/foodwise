@@ -7,6 +7,7 @@ import { useOnboarding } from '@/context/OnboardingContext';
 import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
 import { useThemeColors } from '@/context/ThemeContext';
 import { getDoseOptions } from '@/lib/escalation';
+import { SourcesLink } from '@/components/ui/SourcesLink';
 import * as Haptics from 'expo-haptics';
 
 type Medication = 'semaglutide' | 'tirzepatide' | 'liraglutide' | 'other';
@@ -107,7 +108,8 @@ export default function Habit() {
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <Text style={s.label}>Medication</Text>
         <Text style={s.title}>Your GLP-1{'\n'}details.</Text>
-        <Text style={s.sub}>This powers injection-day meal adjustments — the most important part of your plan.</Text>
+        <Text style={s.sub}>This powers injection-day meal adjustments — softer, easier-to-tolerate foods when GI symptoms are often strongest.</Text>
+        <SourcesLink prefix="Why injection-day meals differ" align="left" style={{ marginTop: -12, marginBottom: 16 }} />
 
         <Text style={s.sectionTitle}>Which medication?</Text>
         <View style={s.medGrid}>

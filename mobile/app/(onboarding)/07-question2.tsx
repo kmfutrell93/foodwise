@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { OnboardingShell } from '@/components/ui/OnboardingShell';
 import { Button } from '@/components/ui/Button';
 import { useOnboarding } from '@/context/OnboardingContext';
+import { SourcesLink } from '@/components/ui/SourcesLink';
 import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
 import { useThemeColors } from '@/context/ThemeContext';
 import * as Haptics from 'expo-haptics';
@@ -57,7 +58,10 @@ export default function Question2() {
         <Text style={s.title}>
           On a typical day, how{'\n'}much of your <Text style={s.titleHighlight}>protein{'\n'}goal</Text> do you hit?
         </Text>
-        <Text style={s.hint}>GLP-1 users should aim for 100–130g protein daily.</Text>
+        <Text style={s.hint}>
+          Many adults aiming to protect lean mass during weight loss target roughly 100–130g protein daily (about 1.4–2.0 g/kg).
+        </Text>
+        <SourcesLink prefix="Protein target sources" align="left" style={{ marginBottom: 16, marginTop: 0 }} />
 
         {/* 3×2 pill grid */}
         <View style={s.grid}>
@@ -81,7 +85,7 @@ export default function Question2() {
         <View style={s.infoBox}>
           <Text style={s.infoIcon}>ℹ️</Text>
           <Text style={s.infoText}>
-            Most GLP-1 users hit <Text style={s.infoStrong}>less than 50%</Text> of their protein goal — and don&apos;t even know it.
+            Appetite suppression on GLP-1s can make protein goals harder to hit — FoodWise plans meals to help close that gap.
           </Text>
         </View>
       </ScrollView>

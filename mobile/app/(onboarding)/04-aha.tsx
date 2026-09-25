@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { OnboardingShell } from '@/components/ui/OnboardingShell';
 import { Button } from '@/components/ui/Button';
+import { SourcesLink } from '@/components/ui/SourcesLink';
 import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
 import { useThemeColors } from '@/context/ThemeContext';
 
@@ -24,9 +25,9 @@ export default function AhaStat() {
         {/* Stat block */}
         <View style={s.statSection}>
           <Text style={s.label}>Surprising fact</Text>
-          <Text style={s.statNum}>30%</Text>
-          <Text style={s.statLine1}>of the weight you lose{'\n'}on GLP-1 medication</Text>
-          <Text style={s.statLine2}>is muscle — not fat.</Text>
+          <Text style={s.statNum}>~25–40%</Text>
+          <Text style={s.statLine1}>of tissue lost during{'\n'}GLP-1 weight loss</Text>
+          <Text style={s.statLine2}>can be lean mass — not just fat.</Text>
         </View>
 
         {/* What you lose card */}
@@ -50,12 +51,18 @@ export default function AhaStat() {
             resizeMode="contain"
           />
           <Text style={s.noriQuote}>
-            &quot;But with the right food plan? You can preserve{' '}
-            <Text style={s.noriHighlight}>100% of that muscle</Text> while still losing fat.&quot;
+            &quot;But with enough protein and the right food plan, you can help{' '}
+            <Text style={s.noriHighlight}>protect more of that lean mass</Text> while still losing fat.&quot;
           </Text>
         </View>
 
-        <Text style={s.citation}>Source: NEJM GLP-1 muscle preservation study, 2024</Text>
+        <TouchableOpacity onPress={() => router.push('/sources' as any)} activeOpacity={0.7}>
+          <Text style={s.citation}>
+            Based on STEP 1 body-composition findings (NEJM / DXA substudy).{' '}
+            <Text style={s.citationLink}>View sources →</Text>
+          </Text>
+        </TouchableOpacity>
+        <SourcesLink prefix="Full medical & nutrition references" />
       </ScrollView>
       <View style={s.footer}>
         <Button label="This can't happen to me" onPress={() => router.push('/(onboarding)/05-question1')} />
@@ -79,11 +86,12 @@ function makeStyles(c: ThemeColors) {
       marginBottom: Spacing.lg,
     },
     statNum: {
-      fontSize: 96,
+      fontSize: 64,
       fontFamily: 'PlusJakartaSans-ExtraBold',
       color: c.destructive,
-      lineHeight: 96,
+      lineHeight: 72,
       marginBottom: Spacing.sm,
+      textAlign: 'center',
     },
     statLine1: {
       fontSize: FontSize.xl,
@@ -160,6 +168,13 @@ function makeStyles(c: ThemeColors) {
       color: c.mutedForeground,
       textAlign: 'center',
       marginTop: Spacing.md,
+      lineHeight: 18,
+      paddingHorizontal: Spacing.md,
+    },
+    citationLink: {
+      color: c.primary,
+      fontFamily: 'PlusJakartaSans-SemiBold',
+      textDecorationLine: 'underline',
     },
   });
 }

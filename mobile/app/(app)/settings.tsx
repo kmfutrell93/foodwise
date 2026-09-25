@@ -502,6 +502,13 @@ export default function Settings() {
             </View>
             <Text style={s.chevron}>›</Text>
           </TouchableOpacity>
+          <TouchableOpacity style={[s.linkRow, s.rowBorder]} onPress={() => router.push('/sources' as any)} activeOpacity={0.75}>
+            <View style={s.rowContent}>
+              <Text style={s.rowTitle}>Sources & References</Text>
+              <Text style={s.rowSub}>Citations for health guidance</Text>
+            </View>
+            <Text style={s.chevron}>›</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={[s.linkRow, s.rowBorder]} onPress={() => Linking.openURL('https://kmfutrell93.github.io/foodwise-legal/terms')} activeOpacity={0.75}>
             <View style={s.rowContent}>
               <Text style={s.rowTitle}>Terms of Service</Text>
