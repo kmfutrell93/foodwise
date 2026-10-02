@@ -55,8 +55,10 @@ export default function PricingIntro() {
         </View>
 
         <View style={s.badge}>
-          <Text style={s.badgeTitle}>Used by 47,000+ GLP-1 members</Text>
-          <Text style={s.badgeSub}>Average member logs 6.4 days/week and reports 89% protein goal adherence by week 3.</Text>
+          <Text style={s.badgeTitle}>Built for GLP-1 routines</Text>
+          <Text style={s.badgeSub}>
+            Injection-day aware meals, protein-forward plans, and symptom logging — so you can stay consistent without generic calorie apps.
+          </Text>
         </View>
       </ScrollView>
       <View style={s.footer}>

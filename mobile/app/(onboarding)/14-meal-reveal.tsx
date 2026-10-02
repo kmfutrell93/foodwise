@@ -8,6 +8,7 @@ import { supabase, MealDay } from '@/lib/supabase';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
 import { useThemeColors } from '@/context/ThemeContext';
+import { SourcesLink } from '@/components/ui/SourcesLink';
 
 const SLOT_LABEL_COLOR: Record<string, 'primary' | 'secondary' | 'accent'> = {
   breakfast: 'primary', lunch: 'secondary', dinner: 'secondary', snack: 'accent',
@@ -160,6 +161,8 @@ export default function MealReveal() {
             </View>
           </>
         )}
+
+        <SourcesLink prefix="How we set protein & GLP-1 meal targets" />
       </ScrollView>
       <View style={s.footer}>
         <Button label="Love it! Keep going" onPress={() => router.push('/(onboarding)/15-review')} />

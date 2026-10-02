@@ -5,6 +5,7 @@ import { OnboardingShell } from '@/components/ui/OnboardingShell';
 import { Button } from '@/components/ui/Button';
 import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
 import { useThemeColors } from '@/context/ThemeContext';
+import { SourcesLink } from '@/components/ui/SourcesLink';
 
 const PROBLEMS = [
   {
@@ -62,9 +63,7 @@ export default function Problem() {
 
         {/* Subtitle */}
         <Text style={s.sub}>
-          GLP-1 medications suppress your appetite — but they can&apos;t tell the difference between{' '}
-          <Text style={s.emphasisStrong}>healthy restriction</Text> and{' '}
-          <Text style={s.emphasisAccent}>dangerous deficiency.</Text>
+          GLP-1 medications suppress appetite — which can make it easier to under-eat protein and other nutrients your body still needs.
         </Text>
 
         {/* Problem cards */}
@@ -81,6 +80,8 @@ export default function Problem() {
             </View>
           ))}
         </View>
+
+        <SourcesLink prefix="Clinical sources for appetite, nutrient & lean-mass effects" />
       </ScrollView>
       <View style={s.footer}>
         <Button label="I want to know more" onPress={() => router.push('/(onboarding)/03-solution')} />
@@ -134,8 +135,6 @@ function makeStyles(c: ThemeColors) {
       lineHeight: 24,
       marginBottom: Spacing['2xl'],
     },
-    emphasisStrong: { color: c.foreground, fontFamily: 'PlusJakartaSans-SemiBold' },
-    emphasisAccent: { color: c.accent, fontFamily: 'PlusJakartaSans-SemiBold' },
 
     cards: { gap: Spacing.sm, marginBottom: Spacing['2xl'] },
     card: {

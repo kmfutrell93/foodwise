@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
 import { useThemeColors } from '@/context/ThemeContext';
+import { SourcesLink } from '@/components/ui/SourcesLink';
 import * as Haptics from 'expo-haptics';
 
 type AppetiteValue = 'low' | 'moderate' | 'normal';
@@ -23,7 +24,7 @@ const OPTIONS: {
     icon: '😶‍🌫️',
     label: 'Low',
     sub: "Barely hungry — I struggle to finish even small meals",
-    plan: "Nori's plan: 4–5 ultra-small, protein-dense meals per day",
+    plan: "Nori's plan: several smaller, easier-to-tolerate, protein-forward meals",
     badge: 'Most common',
   },
   {
@@ -31,14 +32,14 @@ const OPTIONS: {
     icon: '🙂',
     label: 'Moderate',
     sub: 'Some hunger — I can eat regular portions if I focus',
-    plan: "Nori's plan: 3 meals + 1–2 protein-rich snacks",
+    plan: "Nori's plan: regular meals plus protein-forward snacks as needed",
   },
   {
     value: 'normal',
     icon: '😄',
     label: 'Normal',
     sub: "Usual appetite — medication hasn't changed much yet",
-    plan: "Nori's plan: 3 balanced meals optimized for GLP-1",
+    plan: "Nori's plan: balanced meals sized for your GLP-1 schedule",
   },
 ];
 
@@ -95,6 +96,7 @@ export default function Appetite() {
               );
             })}
           </View>
+          <SourcesLink prefix="Sources for smaller meals & protein during appetite suppression" />
         </ScrollView>
         <Button label="Generate my meal plan!" onPress={handleNext} disabled={!selected} />
       </View>

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
 import { useThemeColors } from '@/context/ThemeContext';
+import { SourcesLink } from '@/components/ui/SourcesLink';
 import * as Haptics from 'expo-haptics';
 
 const AVERSIONS: { key: string; label: string }[] = [
@@ -48,7 +49,10 @@ export default function Aversions() {
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <Text style={s.label}>Food aversions</Text>
         <Text style={s.title}>Anything that makes{'\n'}your stomach turn?</Text>
-        <Text style={s.sub}>GLP-1 medications can intensify food reactions. We&apos;ll avoid these in your plan.</Text>
+        <Text style={s.sub}>
+          Taste and tolerance can shift while adjusting to GLP-1 medication. We&apos;ll avoid anything you mark here.
+        </Text>
+        <SourcesLink prefix="Sources for GLP-1 GI & appetite effects" align="left" style={{ marginBottom: 16, marginTop: 0 }} />
 
         <View style={s.tags}>
           {AVERSIONS.map(a => (

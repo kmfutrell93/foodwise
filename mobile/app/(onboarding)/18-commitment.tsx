@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/Button';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
 import { useThemeColors } from '@/context/ThemeContext';
+import { SourcesLink } from '@/components/ui/SourcesLink';
 
 const COMMITMENTS = [
   { icon: '🥩', text: 'Log my meals daily — even on rough injection days' },
-  { icon: '💪', text: 'Hit my protein target to protect my muscle' },
+  { icon: '💪', text: 'Hit my protein target to help protect lean mass' },
   { icon: '📅', text: 'Follow my injection-day plan' },
   { icon: '📈', text: 'Track symptoms to find what works for me' },
 ];
@@ -55,6 +56,7 @@ export default function Commitment() {
             &quot;I&apos;ll show up for myself — not perfectly, but consistently. I&apos;ll use food as a tool to protect my health while on GLP-1 medication.&quot;
           </Text>
         </View>
+        <SourcesLink prefix="Sources for protein & injection-day meal guidance" />
       </ScrollView>
       <View style={s.footer}>
         <Animated.View style={{ transform: [{ scale }] }}>

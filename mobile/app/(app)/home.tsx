@@ -448,9 +448,10 @@ export default function Home() {
               </Text>
               <Text style={s.escalationSub}>
                 {isNewDose
-                  ? 'Side effects are strongest in the first 7 days on a new dose. Soft textures, lots of water.'
-                  : 'Your next dose increase is coming up. Meal plan is already adjusted for stronger side effects.'}
+                  ? 'GI side effects are often more noticeable after a dose increase. Softer textures and steady fluids may help — follow your clinician’s guidance.'
+                  : 'A dose increase may be coming up. Your meal plan can favor easier-to-tolerate foods when side effects are stronger.'}
               </Text>
+              <SourcesLink prefix="Sources" align="left" style={{ marginTop: 6 }} />
             </View>
           </Animated.View>
         )}
@@ -477,6 +478,7 @@ export default function Home() {
               <View style={s.guideCardBody}>
                 <Text style={[s.guideCardTitle, { color: colors.foreground }]}>{currentGuideCard.title}</Text>
                 <Text style={[s.guideCardBody2, { color: colors.mutedForeground }]}>{currentGuideCard.body}</Text>
+                <SourcesLink prefix="Sources" align="left" style={{ marginTop: 8, marginBottom: 4 }} />
                 <TouchableOpacity
                   style={[s.guideCardCta, { backgroundColor: colors.primary }]}
                   onPress={() => advanceGuideStep(currentGuideCard)}

@@ -23,6 +23,7 @@ import {
 } from '@/lib/analytics';
 import { GENERATION_TIMEOUT_MS } from '@/lib/constants';
 import { logError } from '@/lib/utils';
+import { SourcesLink } from '@/components/ui/SourcesLink';
 
 type LibraryRecipe = Recipe & { user_rating: number | null };
 
@@ -280,6 +281,10 @@ function GeneratedRecipeView({
             <Text style={[s.noriTip, { color: colors.foreground }]}>{recipe.nori_tip}</Text>
           </View>
         </View>
+      )}
+
+      {(recipe.injection_day_friendly || recipe.nori_tip) && (
+        <SourcesLink prefix="Sources for injection-day & GI meal guidance" align="left" style={{ marginBottom: 16, marginTop: 0 }} />
       )}
 
       {/* Ingredients */}

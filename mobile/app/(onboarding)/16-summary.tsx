@@ -7,6 +7,7 @@ import { useOnboarding } from '@/context/OnboardingContext';
 import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
 import { useThemeColors } from '@/context/ThemeContext';
 import { formatProteinRange } from '@/lib/utils';
+import { SourcesLink } from '@/components/ui/SourcesLink';
 
 const STRUGGLE_LABELS: Record<string, string> = {
   protein: 'Getting enough protein',
@@ -74,6 +75,8 @@ export default function Summary() {
           <Text style={s.noteIcon}>💡</Text>
           <Text style={s.noteText}>You can edit any of this anytime in Settings — your plan stays in sync.</Text>
         </View>
+
+        <SourcesLink prefix="Sources for your protein target & GLP-1 guidance" />
       </ScrollView>
       <View style={s.footer}>
         <Button label="Almost done" onPress={handleNext} />

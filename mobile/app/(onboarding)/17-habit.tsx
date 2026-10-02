@@ -16,7 +16,7 @@ type CheckInTime = 'morning' | 'midday' | 'evening';
 
 const MEDICATIONS: { value: Medication; label: string; sub: string; badge?: string }[] = [
   { value: 'semaglutide', label: 'Ozempic / Wegovy', sub: 'Semaglutide · GLP-1' },
-  { value: 'tirzepatide', label: 'Mounjaro / Zepbound', sub: 'Tirzepatide · GLP-1 / GIP', badge: 'More intense nausea in weeks 1–8' },
+  { value: 'tirzepatide', label: 'Mounjaro / Zepbound', sub: 'Tirzepatide · GLP-1 / GIP', badge: 'GI side effects common during dose escalation' },
   { value: 'liraglutide', label: 'Saxenda / Victoza', sub: 'Liraglutide · GLP-1' },
   { value: 'other', label: 'Other / Not sure', sub: '' },
 ];

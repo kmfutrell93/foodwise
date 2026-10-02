@@ -10,6 +10,7 @@ import { useThemeColors } from '@/context/ThemeContext';
 import { trackSymptomLogged, trackInsightViewed } from '@/lib/analytics';
 import { INSIGHT_TIMEOUT_MS } from '@/lib/constants';
 import { logError } from '@/lib/utils';
+import { SourcesLink } from '@/components/ui/SourcesLink';
 
 const SYMPTOMS = ['nausea', 'fatigue', 'constipation', 'bloating', 'vomiting', 'headache', 'dizziness', 'heartburn'];
 const SYMPTOM_ICONS: Record<string, string> = {
@@ -323,6 +324,10 @@ export default function SymptomTracker() {
                 {insight.recommendation && (
                   <Text style={[s.insightRec, { color: colors.secondary }]}>💡 {insight.recommendation}</Text>
                 )}
+                <Text style={[s.insightText, { color: colors.mutedForeground, fontSize: FontSize.xs, marginTop: Spacing.sm }]}>
+                  General nutrition suggestions — not medical advice. Check with your clinician for personal guidance.
+                </Text>
+                <SourcesLink prefix="Sources for GI & nutrition guidance" align="left" style={{ marginTop: 8 }} />
               </>
             ) : null}
           </View>

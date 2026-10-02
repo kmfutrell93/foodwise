@@ -11,7 +11,7 @@ export const STARTER_GUIDE: GuideCard[] = [
   {
     id: 'week1_expectations',
     title: 'What to expect in week 1',
-    body: 'Nausea is among the most common GLP-1 side effects and is often strongest in the first weeks or after a dose increase. It usually improves as your body adjusts. Most people feel significantly better by week 4 — follow your clinician’s guidance if symptoms are severe.',
+    body: 'Nausea is among the most common GLP-1 side effects and is often more noticeable early on or after a dose increase. It often improves as your body adjusts — follow your clinician’s guidance if symptoms are severe.',
     icon: '📅',
     cta_label: 'Got it',
     cta_action: 'none',

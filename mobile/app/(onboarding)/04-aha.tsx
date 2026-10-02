@@ -25,14 +25,14 @@ export default function AhaStat() {
         {/* Stat block */}
         <View style={s.statSection}>
           <Text style={s.label}>Surprising fact</Text>
-          <Text style={s.statNum}>~25–40%</Text>
-          <Text style={s.statLine1}>of tissue lost during{'\n'}GLP-1 weight loss</Text>
-          <Text style={s.statLine2}>can be lean mass — not just fat.</Text>
+          <Text style={s.statNum}>Not just fat</Text>
+          <Text style={s.statLine1}>GLP-1 weight loss can{'\n'}reduce lean body mass</Text>
+          <Text style={s.statLine2}>alongside fat — body composition studies show both decline.</Text>
         </View>
 
         {/* What you lose card */}
         <View style={s.lossCard}>
-          <Text style={s.lossTitle}>That means you&apos;re losing...</Text>
+          <Text style={s.lossTitle}>That can mean losing...</Text>
           {LOSSES.map(item => (
             <View key={item.label} style={s.lossRow}>
               <View style={s.lossCircle}>
@@ -86,10 +86,10 @@ function makeStyles(c: ThemeColors) {
       marginBottom: Spacing.lg,
     },
     statNum: {
-      fontSize: 64,
+      fontSize: FontSize['3xl'],
       fontFamily: 'PlusJakartaSans-ExtraBold',
       color: c.destructive,
-      lineHeight: 72,
+      lineHeight: 40,
       marginBottom: Spacing.sm,
       textAlign: 'center',
     },
@@ -102,9 +102,12 @@ function makeStyles(c: ThemeColors) {
       marginBottom: 4,
     },
     statLine2: {
-      fontSize: FontSize['2xl'],
-      fontFamily: 'PlusJakartaSans-ExtraBold',
+      fontSize: FontSize.base,
+      fontFamily: 'PlusJakartaSans-SemiBold',
       color: c.accent,
+      textAlign: 'center',
+      lineHeight: 24,
+      paddingHorizontal: Spacing.lg,
     },
 
     lossCard: {

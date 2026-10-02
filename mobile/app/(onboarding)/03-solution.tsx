@@ -5,6 +5,7 @@ import { OnboardingShell } from '@/components/ui/OnboardingShell';
 import { Button } from '@/components/ui/Button';
 import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
 import { useThemeColors } from '@/context/ThemeContext';
+import { SourcesLink } from '@/components/ui/SourcesLink';
 
 const WITHOUT = ['Guessing what to eat', 'Skipping meals', 'Losing muscle', 'Low energy & fatigue', 'Hitting a plateau'];
 const WITH = ['AI-built meal plans', 'High protein, low volume', 'Muscle preserved', 'Steady energy', 'Budget-friendly'];
@@ -63,6 +64,8 @@ export default function Solution() {
             <Text style={s.noriHighlight}>harder for you.</Text>&quot;
           </Text>
         </View>
+
+        <SourcesLink prefix="Clinical sources for protein & muscle preservation" />
       </ScrollView>
       <View style={s.footer}>
         <Button label="Show me the right way" onPress={() => router.push('/(onboarding)/04-aha')} />

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { FontSize, Spacing, Radius, ThemeColors } from '@/constants/theme';
 import { useThemeColors } from '@/context/ThemeContext';
+import { SourcesLink } from '@/components/ui/SourcesLink';
 
 const WITHOUT_MEALS = [
   { name: 'Breakfast — Coffee & toast', protein: '4g protein' },
@@ -102,6 +103,8 @@ export default function Mirror2() {
           </View>
           <Text style={[s.barNote, { color: colors.secondary }]}>114g / 120g daily goal (95%)</Text>
         </View>
+
+        <SourcesLink prefix="Clinical sources for protein targets & timing" />
       </ScrollView>
       <View style={s.footer}>
         <Button label={copy.cta} onPress={() => router.push('/(onboarding)/08b-apple-health' as any)} />
