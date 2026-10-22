@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  RefreshControl, ActivityIndicator, Image, Modal,
+  RefreshControl, ActivityIndicator, Image, Modal, AccessibilityInfo,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle } from 'react-native-svg';
@@ -46,7 +46,6 @@ const MEAL_TIMES: Record<string,string> = {
   breakfast: '7am', 'morning snack': '10am', lunch: '12:30pm',
   'afternoon snack': '3pm', snack: '3pm', dinner: '6:30pm',
 };
-const DESTRUCTIVE = '#EF4444';
 
 type EmergencyItem = { name: string; reason: string; prep_mins: number };
 type EmergencyResult = { items: EmergencyItem[]; mode: string; nausea_score: number; medication: string };
@@ -74,23 +73,29 @@ function getInsight(daysSince: number, name: string): string {
 }
 
 function RingCard({
-  value, unit, label, subtitle, pct, color, icon, colors,
+  value, unit, label, subtitle, pct, color, icon, colors, reduceMotion = false,
 }: {
   value: string; unit: string; label: string; subtitle: string;
   pct: number; color: string; icon: string; colors: ThemeColors;
+  reduceMotion?: boolean;
 }) {
   const dash = Math.min(Math.max(pct, 0), 100);
-  const dashAnim = useSharedValue(0);
+  const dashAnim = useSharedValue(reduceMotion ? dash : 0);
   const ringScale = useSharedValue(1);
   const hasAnimated = useRef(false);
 
   useEffect(() => {
+    if (reduceMotion) {
+      dashAnim.value = dash;
+      ringScale.value = 1;
+      return;
+    }
     if (dash > 0 && !hasAnimated.current) {
       hasAnimated.current = true;
       dashAnim.value = withTiming(dash, { duration: 1200, easing: Easing.out(Easing.cubic) });
       ringScale.value = withDelay(1200, withSequence(withSpring(1.03), withSpring(1.0)));
     }
-  }, [dash]);
+  }, [dash, reduceMotion]);
 
   const animatedProps = useAnimatedProps(() => ({
     strokeDashoffset: 100 - dashAnim.value,
@@ -135,10 +140,10 @@ const ring = StyleSheet.create({
   subtitle: { fontSize: 11, fontFamily: 'PlusJakartaSans-Bold', marginTop: 4 },
 });
 
-const MODE_CONFIG: Record<string, { icon: string; title: string; color: string }> = {
-  nausea: { icon: '🤢', title: 'Nausea mode — gentle foods only', color: '#1D9E75' },
-  constipation: { icon: '🌿', title: 'High-fibre foods to get things moving', color: '#1D9E75' },
-  gentle: { icon: '🥣', title: 'Easy, nourishing options right now', color: '#1D9E75' },
+const MODE_CONFIG: Record<string, { icon: string; title: string }> = {
+  nausea: { icon: '🤢', title: 'Nausea mode — gentle foods only' },
+  constipation: { icon: '🌿', title: 'High-fibre foods to get things moving' },
+  gentle: { icon: '🥣', title: 'Easy, nourishing options right now' },
 };
 
 export default function Home() {
@@ -162,6 +167,10 @@ export default function Home() {
   // Starter guide
   const [guideStep, setGuideStep] = useState(0);
 
+  // Reduced-motion preference (iOS Accessibility → Motion)
+  const [reduceMotion, setReduceMotion] = useState(false);
+  const [motionReady, setMotionReady] = useState(false);
+
   // ── Entry animation values ────────────────────────────────
   const headerAnim    = useSharedValue(0);
   const ringsAnim     = useSharedValue(0);
@@ -176,6 +185,22 @@ export default function Home() {
   const regenFiredRef = useRef(false);
   const mountedRef = useRef(true);
   useEffect(() => () => { mountedRef.current = false; }, []);
+
+  useEffect(() => {
+    let alive = true;
+    AccessibilityInfo.isReduceMotionEnabled().then((enabled) => {
+      if (!alive) return;
+      setReduceMotion(enabled);
+      setMotionReady(true);
+    });
+    const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', (enabled) => {
+      setReduceMotion(enabled);
+    });
+    return () => {
+      alive = false;
+      sub.remove();
+    };
+  }, []);
 
   async function load() {
     const { data: { user } } = await supabase.auth.getUser();
@@ -219,18 +244,35 @@ export default function Home() {
     }
   }
 
-  // Entry sequence — fires once on mount
+  // Entry sequence — fires once after motion preference is known
   useEffect(() => {
-    if (entryFired.current) return;
+    if (!motionReady || entryFired.current) return;
     entryFired.current = true;
+    if (reduceMotion) {
+      headerAnim.value = 1;
+      ringsAnim.value = 1;
+      mealsAnim.value = 1;
+      emergencyAnim.value = 1;
+      return;
+    }
     headerAnim.value    = withTiming(1, { duration: 400 });
     ringsAnim.value     = withDelay(200, withTiming(1, { duration: 400 }));
     mealsAnim.value     = withDelay(350, withTiming(1, { duration: 450 }));
     emergencyAnim.value = withDelay(500, withTiming(1, { duration: 400 }));
-  }, []);
+  }, [motionReady, reduceMotion]);
 
-  // Emergency pulse — continuous
+  const daysSincePulse = profile?.injection_day ? getDaysSince(profile.injection_day) : -1;
+  const pulseInjectionDay = daysSincePulse === 0;
+
+  // Emergency pulse — injection day only; skipped when reduce-motion is on
   useEffect(() => {
+    cancelAnimation(emergencyScale);
+    cancelAnimation(emergencyBorderOpacity);
+    if (reduceMotion || !pulseInjectionDay) {
+      emergencyScale.value = 1;
+      emergencyBorderOpacity.value = 1;
+      return;
+    }
     emergencyScale.value = withRepeat(
       withSequence(withTiming(1.04, { duration: 1000 }), withTiming(1.0, { duration: 1000 })),
       -1, false,
@@ -243,7 +285,7 @@ export default function Home() {
       cancelAnimation(emergencyScale);
       cancelAnimation(emergencyBorderOpacity);
     };
-  }, []);
+  }, [reduceMotion, pulseInjectionDay]);
 
   // Animated styles
   const headerStyle = useAnimatedStyle(() => ({
@@ -361,13 +403,23 @@ export default function Home() {
   const showStarterGuide = profile?.time_on_medication === 'less_than_1_month' && !profile?.starter_guide_completed;
   const currentGuideCard = showStarterGuide ? STARTER_GUIDE[guideStep] ?? null : null;
 
-  const modeConfig = MODE_CONFIG[emergencyData?.mode ?? 'gentle'];
+  const modeConfig = {
+    ...MODE_CONFIG[emergencyData?.mode ?? 'gentle'],
+    color: colors.primary,
+  };
 
-  const medCardEntering = isInjectionDay
-    ? FadeIn.duration(400)
-    : isTomorrow
-      ? SlideInRight.duration(300)
-      : FadeIn.duration(400);
+  const medCardEntering = reduceMotion
+    ? undefined
+    : isInjectionDay
+      ? FadeIn.duration(400)
+      : isTomorrow
+        ? SlideInRight.duration(300)
+        : FadeIn.duration(400);
+
+  const fadeIn = (delay = 0, duration = 400) =>
+    reduceMotion ? undefined : FadeIn.delay(delay).duration(duration);
+  const bounceIn = (delay = 0, duration = 600) =>
+    reduceMotion ? undefined : BounceIn.delay(delay).duration(duration);
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
@@ -380,17 +432,22 @@ export default function Home() {
         <Animated.View style={[s.header, headerStyle]}>
           <View style={s.headerLeft}>
             <View>
-              <Image source={require('@/assets/images/nori_pointing_right_1.png')} style={s.noriAvatar} resizeMode="contain" />
-              <View style={[s.onlineDot, { borderColor: colors.background }]} />
+              <Image
+                source={require('@/assets/images/nori_pointing_right_1.png')}
+                style={s.noriAvatar}
+                resizeMode="contain"
+                accessibilityLabel="Nori"
+              />
+              <View
+                style={[s.onlineDot, { borderColor: colors.background, backgroundColor: colors.primary }]}
+                accessibilityElementsHidden
+                importantForAccessibility="no"
+              />
             </View>
             <View>
               <Text style={s.greeting}>{greeting},</Text>
-              <Text style={s.name}>{firstName} 👋</Text>
+              <Text style={s.name}>{firstName}</Text>
             </View>
-          </View>
-          <View style={[s.bellBtn, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <View style={[s.bellDot, { backgroundColor: DESTRUCTIVE, borderColor: colors.background }]} />
-            <Ionicons name="notifications-outline" size={22} color={colors.mutedForeground} />
           </View>
         </Animated.View>
 
@@ -405,7 +462,13 @@ export default function Home() {
             )}
             <View style={s.medLeft}>
               <View style={s.medIconCircle}>
-                <Ionicons name="medical-outline" size={20} color={colors.primary} />
+                <Ionicons
+                  name="medical-outline"
+                  size={20}
+                  color={colors.primary}
+                  accessibilityElementsHidden
+                  importantForAccessibility="no"
+                />
               </View>
               <View>
                 <Text style={s.medName}>
@@ -429,8 +492,8 @@ export default function Home() {
 
         {/* Hydration banner — injection day only */}
         {isInjectionDay && (
-          <Animated.View entering={FadeIn.delay(100).duration(400)} style={s.hydrationBanner}>
-            <Text style={s.hydrationIcon}>💧</Text>
+          <Animated.View entering={fadeIn(100, 400)} style={s.hydrationBanner}>
+            <Text style={s.hydrationIcon} accessibilityElementsHidden importantForAccessibility="no">💧</Text>
             <View style={s.hydrationBody}>
               <Text style={s.hydrationTitle}>Drink water now</Text>
               <Text style={s.hydrationSub}>Staying hydrated may help with comfort on dose day. Have a full glass before your next meal.</Text>
@@ -440,8 +503,15 @@ export default function Home() {
 
         {/* Escalation awareness card */}
         {showEscalationCard && (
-          <Animated.View entering={FadeIn.duration(400)} style={s.escalationCard}>
-            <Ionicons name="warning-outline" size={20} color={colors.primary} style={{ marginTop: 1 }} />
+          <Animated.View entering={fadeIn(0, 400)} style={s.escalationCard}>
+            <Ionicons
+              name="warning-outline"
+              size={20}
+              color={colors.primary}
+              style={{ marginTop: 1 }}
+              accessibilityElementsHidden
+              importantForAccessibility="no"
+            />
             <View style={{ flex: 1 }}>
               <Text style={s.escalationTitle}>
                 {isNewDose ? 'New dose this week' : 'Dose escalation this week'}
@@ -457,8 +527,13 @@ export default function Home() {
         )}
 
         {/* AI Insight */}
-        <View style={s.insightCard}>
-          <Image source={require('@/assets/images/nori_pointing_right_1.png')} style={s.noriSmall} resizeMode="contain" />
+        <View style={s.insightCard} accessibilityRole="summary">
+          <Image
+            source={require('@/assets/images/nori_pointing_right_1.png')}
+            style={s.noriSmall}
+            resizeMode="contain"
+            accessibilityLabel="Nori"
+          />
           <View style={s.insightBody}>
             <Text style={[s.insightLabel, { color: colors.secondary }]}>Nori&apos;s insight for today</Text>
             <Text style={[s.insightText, { color: colors.foreground }]}>{insight}</Text>
@@ -483,6 +558,8 @@ export default function Home() {
                   style={[s.guideCardCta, { backgroundColor: colors.primary }]}
                   onPress={() => advanceGuideStep(currentGuideCard)}
                   activeOpacity={0.8}
+                  accessibilityRole="button"
+                  accessibilityLabel={currentGuideCard.cta_label}
                 >
                   <Text style={[s.guideCardCtaText, { color: colors.primaryForeground }]}>{currentGuideCard.cta_label}</Text>
                 </TouchableOpacity>
@@ -493,29 +570,63 @@ export default function Home() {
 
         {/* Daily Progress */}
         <View style={s.sectionHeader}>
-          <Text style={[s.sectionTitle, { color: colors.foreground }]}>Daily Progress</Text>
-          <TouchableOpacity onPress={() => router.push('/(app)/progress' as any)}>
+          <Text style={[s.sectionTitle, { color: colors.foreground }]} accessibilityRole="header">Daily Progress</Text>
+          <TouchableOpacity
+            onPress={() => router.push('/(app)/progress' as any)}
+            style={s.sectionLinkHit}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel="View progress details"
+            activeOpacity={0.7}
+          >
             <Text style={[s.sectionLink, { color: colors.primary }]}>Details</Text>
           </TouchableOpacity>
         </View>
         <Animated.View style={ringsStyle}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.ringsScroll} contentContainerStyle={s.ringsContent}>
-            <RingCard value={`${proteinG}`} unit="g" label="Protein" subtitle={`${proteinG}g planned today`} pct={proteinPct} color={colors.primary} icon="🥩" colors={colors} />
-            <RingCard value="15" unit="g" label="Fiber" subtitle="15/25g" pct={60} color={colors.secondary} icon="🌿" colors={colors} />
-            <RingCard value="48" unit="oz" label="Hydration" subtitle="48/80oz" pct={60} color={colors.accent} icon="💧" colors={colors} />
-            <RingCard value={`${calories}`} unit="" label="Calories" subtitle={`${calories}/1,380`} pct={caloriePct} color={DESTRUCTIVE} icon="🔥" colors={colors} />
+            <RingCard
+              value={`${proteinG}`}
+              unit="g"
+              label="Protein"
+              subtitle={`${proteinG}g planned today`}
+              pct={proteinPct}
+              color={colors.primary}
+              icon="🥩"
+              colors={colors}
+              reduceMotion={reduceMotion}
+            />
+            <RingCard
+              value={`${calories}`}
+              unit=""
+              label="Calories"
+              subtitle={`${calories}/1,380`}
+              pct={caloriePct}
+              color={colors.destructive}
+              icon="🔥"
+              colors={colors}
+              reduceMotion={reduceMotion}
+            />
           </ScrollView>
         </Animated.View>
 
         {/* Streak card */}
-        <View style={[s.streakCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Animated.View entering={BounceIn.delay(0).duration(600)}>
+        <View
+          style={[s.streakCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+          accessibilityLabel={streakCount > 0 ? `${streakCount} day streak` : 'Start your streak today'}
+        >
+          <Animated.View entering={bounceIn(0, 600)}>
             <View style={s.streakIconWrap}>
-              <Ionicons name="flame" size={28} color={colors.primary} />
+              <Ionicons
+                name="flame"
+                size={28}
+                color={colors.primary}
+                accessibilityElementsHidden
+                importantForAccessibility="no"
+              />
             </View>
           </Animated.View>
           <View style={s.streakBody}>
-            <Animated.View entering={BounceIn.delay(100).duration(600)}>
+            <Animated.View entering={bounceIn(100, 600)}>
               <View style={s.streakTopRow}>
                 <Text style={[s.streakTitle, { color: colors.foreground }]}>
                   {streakCount > 0 ? `${streakCount} Day Streak! 🔥` : 'Start your streak today'}
@@ -528,8 +639,8 @@ export default function Home() {
                 {streakCount > 0 ? `Logged ${streakCount} days straight. Keep going!` : 'Log your first symptoms to start your streak.'}
               </Text>
             </Animated.View>
-            <Animated.View entering={BounceIn.delay(200).duration(600)}>
-              <View style={s.weekDots}>
+            <Animated.View entering={bounceIn(200, 600)}>
+              <View style={s.weekDots} accessibilityElementsHidden importantForAccessibility="no">
                 {[0,1,2,3,4,5,6].map(i => (
                   <View key={i} style={[s.weekDot, { backgroundColor: i < Math.min(streakCount, 7) ? colors.primary : colors.muted }]}>
                     <Text style={[s.weekDotText, { color: i < Math.min(streakCount, 7) ? colors.primaryForeground : colors.mutedForeground }]}>
@@ -544,14 +655,30 @@ export default function Home() {
 
         {/* Today's Meals */}
         <View style={s.sectionHeader}>
-          <Text style={[s.sectionTitle, { color: colors.foreground }]}>Today&apos;s Meals</Text>
+          <Text style={[s.sectionTitle, { color: colors.foreground }]} accessibilityRole="header">Today&apos;s Meals</Text>
           <View style={{ flexDirection: 'row', gap: Spacing.md, alignItems: 'center' }}>
-            <TouchableOpacity onPress={generatePlan} disabled={generatingPlan}>
+            <TouchableOpacity
+              onPress={generatePlan}
+              disabled={generatingPlan}
+              style={s.sectionLinkHit}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel={generatingPlan ? 'Generating meal plan' : 'Generate new meal plan'}
+              accessibilityState={{ disabled: generatingPlan, busy: generatingPlan }}
+              activeOpacity={0.7}
+            >
               <Text style={[s.sectionLink, { color: colors.mutedForeground }]}>
                 {generatingPlan ? 'Generating…' : 'New plan'}
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push('/(app)/meal-plan' as any)}>
+            <TouchableOpacity
+              onPress={() => router.push('/(app)/meal-plan' as any)}
+              style={s.sectionLinkHit}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel="Open full meal plan"
+              activeOpacity={0.7}
+            >
               <Text style={[s.sectionLink, { color: colors.primary }]}>Full plan</Text>
             </TouchableOpacity>
           </View>
@@ -561,8 +688,16 @@ export default function Home() {
             style={[s.noMealsCard, { backgroundColor: colors.card, borderColor: colors.border }]}
             onPress={() => router.push('/(app)/meal-plan' as any)}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="No meals scheduled for today. Open full meal plan"
           >
-            <Ionicons name="calendar-outline" size={20} color={colors.mutedForeground} />
+            <Ionicons
+              name="calendar-outline"
+              size={20}
+              color={colors.mutedForeground}
+              accessibilityElementsHidden
+              importantForAccessibility="no"
+            />
             <Text style={[s.noMealsText, { color: colors.mutedForeground }]}>
               No meals scheduled for today — tap to view your full plan
             </Text>
@@ -582,6 +717,9 @@ export default function Home() {
                   style={[s.mealCard, { backgroundColor: colors.card, borderColor: colors.border }]}
                   activeOpacity={isRealMeal ? 0.75 : 1}
                   disabled={!isRealMeal}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${meal.slot}: ${meal.name}, ${meal.protein_g} grams protein, ${meal.calories} calories`}
+                  accessibilityState={{ disabled: !isRealMeal }}
                   onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     router.push({
@@ -599,7 +737,7 @@ export default function Home() {
                   }}
                 >
                   <View style={[s.mealEmojiBg, { backgroundColor: colors.muted }]}>
-                    <Text style={s.mealEmoji}>{emoji}</Text>
+                    <Text style={s.mealEmoji} accessibilityElementsHidden importantForAccessibility="no">{emoji}</Text>
                   </View>
                   <View style={s.mealCardBody}>
                     <View style={s.mealCardTopRow}>
@@ -608,7 +746,15 @@ export default function Home() {
                           {meal.slot}{time ? ` · ${time}` : ''}
                         </Text>
                       </View>
-                      {isRealMeal && <Ionicons name="chevron-forward" size={14} color={colors.mutedForeground} />}
+                      {isRealMeal && (
+                        <Ionicons
+                          name="chevron-forward"
+                          size={14}
+                          color={colors.mutedForeground}
+                          accessibilityElementsHidden
+                          importantForAccessibility="no"
+                        />
+                      )}
                     </View>
                     <Text style={[s.mealName, { color: colors.foreground }]} numberOfLines={2}>{meal.name}</Text>
                     <Text style={[s.mealMacros, { color: colors.mutedForeground }]}>{meal.protein_g}g protein · {meal.calories} cal</Text>
@@ -625,13 +771,16 @@ export default function Home() {
           style={{ marginHorizontal: Spacing.xl, marginBottom: Spacing.xl }}
           onPress={() => router.push('/(app)/smart-fridge' as any)}
           activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel="What's in your fridge? Get meal ideas from your ingredients"
         >
-          <Animated.View entering={FadeIn.delay(450).duration(400)}>
-            <View style={s.smartFridgeCard}>
+          <Animated.View entering={fadeIn(450, 400)}>
+            <View style={[s.smartFridgeCard, { borderLeftColor: colors.primary }]}>
               <Image
                 source={require('../../assets/nori/nori_lightbulb.png')}
                 style={{ width: 44, height: 44 }}
                 resizeMode="contain"
+                accessibilityLabel="Nori"
               />
               <View style={{ flex: 1 }}>
                 <Text style={[s.smartFridgeCardTitle, { color: colors.foreground }]}>
@@ -641,7 +790,13 @@ export default function Home() {
                   Tap to get meal ideas from your ingredients
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color="#1D9E75" />
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={colors.primary}
+                accessibilityElementsHidden
+                importantForAccessibility="no"
+              />
             </View>
           </Animated.View>
         </TouchableOpacity>
@@ -652,31 +807,41 @@ export default function Home() {
             style={s.emergencyBtn}
             onPress={openEmergencyMode}
             activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel="I feel sick right now. Get five foods you can eat immediately"
           >
             <Animated.View style={[StyleSheet.absoluteFill, s.emergencyBtnBorderLayer, emergencyBorderStyle]} pointerEvents="none" />
             <View style={s.emergencyBtnLeft}>
               <View style={s.emergencyIcon}>
-                <Text style={{ fontSize: 22 }}>🤢</Text>
+                <Text style={{ fontSize: 22 }} accessibilityElementsHidden importantForAccessibility="no">🤢</Text>
               </View>
               <View>
                 <Text style={s.emergencyBtnTitle}>I feel sick right now</Text>
                 <Text style={s.emergencyBtnSub}>Get 5 foods you can eat immediately</Text>
               </View>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={DESTRUCTIVE} />
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={colors.destructive}
+              accessibilityElementsHidden
+              importantForAccessibility="no"
+            />
           </TouchableOpacity>
         </Animated.View>
 
         {/* Quick Actions */}
-        <Text style={[s.actionsTitle, { color: colors.foreground }]}>Quick Actions</Text>
+        <Text style={[s.actionsTitle, { color: colors.foreground }]} accessibilityRole="header">Quick Actions</Text>
         <View style={s.actionsGrid}>
           <TouchableOpacity
             style={[s.actionCard, { backgroundColor: colors.card, borderColor: colors.border }]}
             onPress={() => router.push('/(app)/meal-plan' as any)}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="Meal Plan"
           >
             <View style={[s.actionIcon, { backgroundColor: 'rgba(29,158,117,0.12)' }]}>
-              <Ionicons name="restaurant-outline" size={20} color={colors.primary} />
+              <Ionicons name="restaurant-outline" size={20} color={colors.primary} accessibilityElementsHidden importantForAccessibility="no" />
             </View>
             <Text style={[s.actionLabel, { color: colors.foreground }]}>Meal Plan</Text>
           </TouchableOpacity>
@@ -685,9 +850,11 @@ export default function Home() {
             style={[s.actionCard, { backgroundColor: colors.card, borderColor: colors.border }]}
             onPress={() => router.push('/(app)/grocery-list' as any)}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="Grocery List"
           >
             <View style={[s.actionIcon, { backgroundColor: 'rgba(29,158,117,0.12)' }]}>
-              <Ionicons name="cart-outline" size={20} color={colors.accent} />
+              <Ionicons name="cart-outline" size={20} color={colors.accent} accessibilityElementsHidden importantForAccessibility="no" />
             </View>
             <Text style={[s.actionLabel, { color: colors.foreground }]}>Grocery List</Text>
           </TouchableOpacity>
@@ -696,9 +863,11 @@ export default function Home() {
             style={[s.actionCard, { backgroundColor: 'rgba(29,158,117,0.1)', borderColor: 'rgba(29,158,117,0.2)' }]}
             onPress={() => router.push('/(app)/symptom-tracker' as any)}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="Log Symptoms"
           >
             <View style={[s.actionIcon, { backgroundColor: 'rgba(29,158,117,0.15)' }]}>
-              <Ionicons name="clipboard-outline" size={20} color={colors.secondary} />
+              <Ionicons name="clipboard-outline" size={20} color={colors.secondary} accessibilityElementsHidden importantForAccessibility="no" />
             </View>
             <Text style={[s.actionLabel, { color: colors.foreground }]}>Log Symptoms</Text>
           </TouchableOpacity>
@@ -707,15 +876,17 @@ export default function Home() {
             style={[s.actionCard, { backgroundColor: colors.card, borderColor: colors.border }]}
             onPress={() => router.push('/(app)/progress' as any)}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="View Trends"
           >
             <View style={[s.actionIcon, { backgroundColor: 'rgba(29,158,117,0.12)' }]}>
-              <Ionicons name="trending-up-outline" size={20} color={colors.primary} />
+              <Ionicons name="trending-up-outline" size={20} color={colors.primary} accessibilityElementsHidden importantForAccessibility="no" />
             </View>
             <Text style={[s.actionLabel, { color: colors.foreground }]}>View Trends</Text>
           </TouchableOpacity>
         </View>
 
-        {generateError && <Text style={[s.generateError, { color: DESTRUCTIVE }]}>{generateError}</Text>}
+        {generateError && <Text style={[s.generateError, { color: colors.destructive }]}>{generateError}</Text>}
         {generatingPlan && (
           <View style={s.genRow}>
             <ActivityIndicator size="small" color={colors.primary} />
@@ -756,13 +927,23 @@ function EmergencySheet({
   const router = useRouter();
   return (
     <SafeAreaView style={s.sheet} edges={['top', 'bottom']}>
-      <View style={s.sheetHandle} />
+      <View style={s.sheetHandle} accessibilityElementsHidden importantForAccessibility="no" />
       <View style={s.sheetHeader}>
         <View>
-          <Text style={s.sheetTitle}>{modeConfig.icon} I feel sick</Text>
+          <Text style={s.sheetTitle} accessibilityRole="header">
+            <Text accessibilityElementsHidden importantForAccessibility="no">{modeConfig.icon} </Text>
+            I feel sick
+          </Text>
           <Text style={s.sheetSub}>{data ? modeConfig.title : 'Finding the right foods…'}</Text>
         </View>
-        <TouchableOpacity onPress={onClose} style={s.closeBtn} activeOpacity={0.7}>
+        <TouchableOpacity
+          onPress={onClose}
+          style={s.closeBtn}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel="Close"
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
           <Ionicons name="close" size={22} color={colors.mutedForeground} />
         </TouchableOpacity>
       </View>
@@ -810,12 +991,12 @@ function makeSheetStyles(c: ThemeColors) {
     sheetHeader: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', paddingHorizontal: Spacing.xl, marginBottom: Spacing.xl },
     sheetTitle: { fontSize: FontSize.xl, fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground },
     sheetSub: { fontSize: FontSize.sm, color: c.mutedForeground, marginTop: 4 },
-    closeBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: c.muted, alignItems: 'center', justifyContent: 'center' },
+    closeBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: c.muted, alignItems: 'center', justifyContent: 'center' },
     loadingRow: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing.md, paddingHorizontal: Spacing.xl },
     loadingText: { fontSize: FontSize.sm, textAlign: 'center', lineHeight: 20 },
     sheetScroll: { paddingHorizontal: Spacing.xl, paddingBottom: Spacing['3xl'], gap: Spacing.md },
     foodItem: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md, padding: 16, borderRadius: Radius.xl, borderWidth: 1 },
-    foodNum: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#EF4444', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 },
+    foodNum: { width: 28, height: 28, borderRadius: 14, backgroundColor: c.destructive, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 },
     foodNumText: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-ExtraBold' },
     foodBody: { flex: 1, gap: 4 },
     foodName: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-ExtraBold' },
@@ -838,13 +1019,11 @@ function makeStyles(c: ThemeColors) {
     header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.xl, paddingTop: Spacing.xl, marginBottom: Spacing['2xl'] },
     headerLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
     noriAvatar: { width: 56, height: 56 },
-    onlineDot: { position: 'absolute', bottom: 0, right: 0, width: 16, height: 16, borderRadius: 8, backgroundColor: '#1D9E75', borderWidth: 2 },
+    onlineDot: { position: 'absolute', bottom: 0, right: 0, width: 16, height: 16, borderRadius: 8, borderWidth: 2 },
     greeting: { fontSize: FontSize.sm, color: c.mutedForeground, fontFamily: 'PlusJakartaSans-Medium' },
     name: { fontSize: FontSize['2xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground },
-    bellBtn: { width: 48, height: 48, borderRadius: 24, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-    bellDot: { position: 'absolute', top: 10, right: 10, width: 10, height: 10, borderRadius: 5, borderWidth: 2, zIndex: 1 },
     medCard: { marginHorizontal: Spacing.xl, marginBottom: Spacing.lg, padding: 16, borderRadius: Radius.xl, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(29,158,117,0.08)', borderWidth: 1, borderColor: 'rgba(29,158,117,0.2)', overflow: 'hidden' },
-    medCardGlowBorder: { borderRadius: Radius.xl, borderWidth: 2, borderColor: '#1D9E75' },
+    medCardGlowBorder: { borderRadius: Radius.xl, borderWidth: 2, borderColor: c.primary },
     medLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, flex: 1 },
     medIconCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(29,158,117,0.15)', alignItems: 'center', justifyContent: 'center' },
     medName: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', color: c.foreground },
@@ -875,11 +1054,12 @@ function makeStyles(c: ThemeColors) {
     guideCardBody: { flex: 1, gap: Spacing.sm },
     guideCardTitle: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-ExtraBold' },
     guideCardBody2: { fontSize: FontSize.sm, lineHeight: 20 },
-    guideCardCta: { alignSelf: 'flex-start', borderRadius: Radius.full, paddingHorizontal: Spacing.lg, paddingVertical: 8, marginTop: 4 },
+    guideCardCta: { alignSelf: 'flex-start', borderRadius: Radius.full, paddingHorizontal: Spacing.lg, paddingVertical: 12, marginTop: 4, minHeight: 44, justifyContent: 'center' },
     guideCardCtaText: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-ExtraBold' },
     sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.xl, marginBottom: Spacing.md },
     sectionTitle: { fontSize: FontSize.lg, fontFamily: 'PlusJakartaSans-ExtraBold' },
     sectionLink: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold' },
+    sectionLinkHit: { minHeight: 44, justifyContent: 'center' },
     ringsScroll: { marginBottom: Spacing['2xl'] },
     ringsContent: { paddingHorizontal: Spacing.xl, gap: Spacing.md },
     streakCard: { marginHorizontal: Spacing.xl, marginBottom: Spacing['2xl'], borderRadius: 24, borderWidth: 1, padding: 16, flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
@@ -906,11 +1086,11 @@ function makeStyles(c: ThemeColors) {
     mealSlotText: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-Bold' },
     mealName: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-ExtraBold', marginBottom: 2, lineHeight: 18 },
     mealMacros: { fontSize: FontSize.xs },
-    emergencyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderRadius: Radius.xl, backgroundColor: `${DESTRUCTIVE}12`, borderWidth: 1, borderColor: `${DESTRUCTIVE}30` },
-    emergencyBtnBorderLayer: { borderRadius: Radius.xl, borderWidth: 2, borderColor: DESTRUCTIVE },
+    emergencyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderRadius: Radius.xl, backgroundColor: `${c.destructive}12`, borderWidth: 1, borderColor: `${c.destructive}30`, minHeight: 72 },
+    emergencyBtnBorderLayer: { borderRadius: Radius.xl, borderWidth: 2, borderColor: c.destructive },
     emergencyBtnLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, flex: 1 },
-    emergencyIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: `${DESTRUCTIVE}15`, alignItems: 'center', justifyContent: 'center' },
-    emergencyBtnTitle: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-ExtraBold', color: DESTRUCTIVE },
+    emergencyIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: `${c.destructive}15`, alignItems: 'center', justifyContent: 'center' },
+    emergencyBtnTitle: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-ExtraBold', color: c.destructive },
     emergencyBtnSub: { fontSize: FontSize.xs, color: c.mutedForeground, marginTop: 2 },
     actionsTitle: { fontSize: FontSize.lg, fontFamily: 'PlusJakartaSans-ExtraBold', paddingHorizontal: Spacing.xl, marginBottom: Spacing.md },
     actionsGrid: { paddingHorizontal: Spacing.xl, flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md, marginBottom: Spacing['2xl'] },
@@ -920,7 +1100,7 @@ function makeStyles(c: ThemeColors) {
     generateError: { textAlign: 'center', fontSize: FontSize.xs, paddingHorizontal: Spacing.xl, marginTop: Spacing.sm },
     genRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, marginTop: Spacing.sm },
     genText: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-SemiBold' },
-    smartFridgeCard: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: 16, borderRadius: Radius.xl, backgroundColor: 'rgba(29,158,117,0.08)', borderWidth: 1, borderColor: 'rgba(29,158,117,0.3)', borderLeftWidth: 4, borderLeftColor: '#1D9E75' },
+    smartFridgeCard: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: 16, borderRadius: Radius.xl, backgroundColor: 'rgba(29,158,117,0.08)', borderWidth: 1, borderColor: 'rgba(29,158,117,0.3)', borderLeftWidth: 4, minHeight: 72 },
     smartFridgeCardTitle: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-ExtraBold' },
     smartFridgeCardSub: { fontSize: FontSize.xs, marginTop: 2 },
   });
