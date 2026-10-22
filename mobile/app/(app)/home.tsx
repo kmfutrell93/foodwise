@@ -39,8 +39,13 @@ const SLOT_COLORS: Record<string,string> = {
   breakfast: '#1D9E75', lunch: '#A8F0D8', dinner: '#1D9E75',
   snack: '#64748B', 'morning snack': '#A8F0D8', 'afternoon snack': '#64748B',
 };
-const MEAL_EMOJIS: Record<string,string> = {
-  breakfast: '🥣', lunch: '🥗', dinner: '🐟', snack: '🍎', 'morning snack': '🥒',
+const MEAL_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
+  breakfast: 'cafe-outline',
+  lunch: 'restaurant-outline',
+  dinner: 'fish-outline',
+  snack: 'nutrition-outline',
+  'morning snack': 'leaf-outline',
+  'afternoon snack': 'nutrition-outline',
 };
 const MEAL_TIMES: Record<string,string> = {
   breakfast: '7am', 'morning snack': '10am', lunch: '12:30pm',
@@ -76,7 +81,7 @@ function RingCard({
   value, unit, label, subtitle, pct, color, icon, colors, reduceMotion = false,
 }: {
   value: string; unit: string; label: string; subtitle: string;
-  pct: number; color: string; icon: string; colors: ThemeColors;
+  pct: number; color: string; icon: keyof typeof Ionicons.glyphMap; colors: ThemeColors;
   reduceMotion?: boolean;
 }) {
   const dash = Math.min(Math.max(pct, 0), 100);
@@ -119,7 +124,14 @@ function RingCard({
             />
           </Svg>
         </View>
-        <Text style={[ring.icon, { color }]}>{icon}</Text>
+        <Ionicons
+          name={icon}
+          size={20}
+          color={color}
+          style={ring.icon}
+          accessibilityElementsHidden
+          importantForAccessibility="no"
+        />
       </View>
       <Text style={[ring.value, { color: colors.foreground }]}>
         {value}<Text style={[ring.unit, { color: colors.mutedForeground }]}>{unit}</Text>
@@ -133,17 +145,25 @@ function RingCard({
 const ring = StyleSheet.create({
   card: { width: 144, padding: 16, borderRadius: 24, borderWidth: 1, alignItems: 'center' },
   svgWrap: { width: 64, height: 64, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
-  icon: { position: 'absolute', fontSize: 20 },
+  icon: { position: 'absolute' },
   value: { fontSize: 24, fontFamily: 'PlusJakartaSans-ExtraBold' },
   unit: { fontSize: 11, fontFamily: 'PlusJakartaSans-Regular' },
   label: { fontSize: 11, marginTop: 2 },
   subtitle: { fontSize: 11, fontFamily: 'PlusJakartaSans-Bold', marginTop: 4 },
 });
 
-const MODE_CONFIG: Record<string, { icon: string; title: string }> = {
-  nausea: { icon: '🤢', title: 'Nausea mode — gentle foods only' },
-  constipation: { icon: '🌿', title: 'High-fibre foods to get things moving' },
-  gentle: { icon: '🥣', title: 'Easy, nourishing options right now' },
+const MODE_CONFIG: Record<string, { icon: keyof typeof Ionicons.glyphMap; title: string }> = {
+  nausea: { icon: 'medkit-outline', title: 'Nausea mode — gentle foods only' },
+  constipation: { icon: 'leaf-outline', title: 'High-fibre foods to get things moving' },
+  gentle: { icon: 'restaurant-outline', title: 'Easy, nourishing options right now' },
+};
+
+const GUIDE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
+  week1_expectations: 'calendar-outline',
+  protein_nonnegotiable: 'barbell-outline',
+  injection_day_meals: 'medical-outline',
+  zero_appetite: 'nutrition-outline',
+  log_today: 'create-outline',
 };
 
 export default function Home() {
@@ -493,7 +513,14 @@ export default function Home() {
         {/* Hydration banner — injection day only */}
         {isInjectionDay && (
           <Animated.View entering={fadeIn(100, 400)} style={s.hydrationBanner}>
-            <Text style={s.hydrationIcon} accessibilityElementsHidden importantForAccessibility="no">💧</Text>
+            <Ionicons
+              name="water-outline"
+              size={26}
+              color={colors.accent}
+              style={s.hydrationIcon}
+              accessibilityElementsHidden
+              importantForAccessibility="no"
+            />
             <View style={s.hydrationBody}>
               <Text style={s.hydrationTitle}>Drink water now</Text>
               <Text style={s.hydrationSub}>Staying hydrated may help with comfort on dose day. Have a full glass before your next meal.</Text>
@@ -549,7 +576,14 @@ export default function Home() {
               <Text style={s.guideHeaderPct}>{guideStep + 1} of {STARTER_GUIDE.length}</Text>
             </View>
             <View style={[s.guideCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Text style={s.guideCardIcon}>{currentGuideCard.icon}</Text>
+              <Ionicons
+                name={GUIDE_ICONS[currentGuideCard.id] ?? 'sparkles-outline'}
+                size={28}
+                color={colors.primary}
+                style={s.guideCardIcon}
+                accessibilityElementsHidden
+                importantForAccessibility="no"
+              />
               <View style={s.guideCardBody}>
                 <Text style={[s.guideCardTitle, { color: colors.foreground }]}>{currentGuideCard.title}</Text>
                 <Text style={[s.guideCardBody2, { color: colors.mutedForeground }]}>{currentGuideCard.body}</Text>
@@ -591,7 +625,7 @@ export default function Home() {
               subtitle={`${proteinG}g planned today`}
               pct={proteinPct}
               color={colors.primary}
-              icon="🥩"
+              icon="nutrition-outline"
               colors={colors}
               reduceMotion={reduceMotion}
             />
@@ -602,7 +636,7 @@ export default function Home() {
               subtitle={`${calories}/1,380`}
               pct={caloriePct}
               color={colors.destructive}
-              icon="🔥"
+              icon="flame-outline"
               colors={colors}
               reduceMotion={reduceMotion}
             />
@@ -629,7 +663,7 @@ export default function Home() {
             <Animated.View entering={bounceIn(100, 600)}>
               <View style={s.streakTopRow}>
                 <Text style={[s.streakTitle, { color: colors.foreground }]}>
-                  {streakCount > 0 ? `${streakCount} Day Streak! 🔥` : 'Start your streak today'}
+                  {streakCount > 0 ? `${streakCount} Day Streak!` : 'Start your streak today'}
                 </Text>
                 <View style={s.xpBadge}>
                   <Text style={[s.xpText, { color: colors.primary }]}>+50 XP</Text>
@@ -708,7 +742,7 @@ export default function Home() {
             {(todayMeals.length > 0 ? todayMeals : DEMO_MEALS).map((meal, i) => {
               const slotKey = meal.slot?.toLowerCase() ?? '';
               const slotColor = SLOT_COLORS[slotKey] ?? colors.primary;
-              const emoji = MEAL_EMOJIS[slotKey] ?? '🍽️';
+              const mealIcon = MEAL_ICONS[slotKey] ?? 'restaurant-outline';
               const time = MEAL_TIMES[slotKey] ?? '';
               const isRealMeal = todayMeals.length > 0;
               return (
@@ -737,7 +771,13 @@ export default function Home() {
                   }}
                 >
                   <View style={[s.mealEmojiBg, { backgroundColor: colors.muted }]}>
-                    <Text style={s.mealEmoji} accessibilityElementsHidden importantForAccessibility="no">{emoji}</Text>
+                    <Ionicons
+                      name={mealIcon}
+                      size={36}
+                      color={colors.primary}
+                      accessibilityElementsHidden
+                      importantForAccessibility="no"
+                    />
                   </View>
                   <View style={s.mealCardBody}>
                     <View style={s.mealCardTopRow}>
@@ -813,7 +853,13 @@ export default function Home() {
             <Animated.View style={[StyleSheet.absoluteFill, s.emergencyBtnBorderLayer, emergencyBorderStyle]} pointerEvents="none" />
             <View style={s.emergencyBtnLeft}>
               <View style={s.emergencyIcon}>
-                <Text style={{ fontSize: 22 }} accessibilityElementsHidden importantForAccessibility="no">🤢</Text>
+                <Ionicons
+                  name="medkit-outline"
+                  size={22}
+                  color={colors.destructive}
+                  accessibilityElementsHidden
+                  importantForAccessibility="no"
+                />
               </View>
               <View>
                 <Text style={s.emergencyBtnTitle}>I feel sick right now</Text>
@@ -919,7 +965,7 @@ function EmergencySheet({
 }: {
   loading: boolean;
   data: EmergencyResult | null;
-  modeConfig: { icon: string; title: string; color: string };
+  modeConfig: { icon: keyof typeof Ionicons.glyphMap; title: string; color: string };
   onClose: () => void;
   colors: ThemeColors;
 }) {
@@ -930,10 +976,16 @@ function EmergencySheet({
       <View style={s.sheetHandle} accessibilityElementsHidden importantForAccessibility="no" />
       <View style={s.sheetHeader}>
         <View>
-          <Text style={s.sheetTitle} accessibilityRole="header">
-            <Text accessibilityElementsHidden importantForAccessibility="no">{modeConfig.icon} </Text>
-            I feel sick
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Ionicons
+              name={modeConfig.icon}
+              size={22}
+              color={colors.destructive}
+              accessibilityElementsHidden
+              importantForAccessibility="no"
+            />
+            <Text style={s.sheetTitle} accessibilityRole="header">I feel sick</Text>
+          </View>
           <Text style={s.sheetSub}>{data ? modeConfig.title : 'Finding the right foods…'}</Text>
         </View>
         <TouchableOpacity
@@ -1033,7 +1085,7 @@ function makeStyles(c: ThemeColors) {
     nextBadge: { backgroundColor: 'rgba(29,158,117,0.15)', borderRadius: Radius.full, paddingHorizontal: 10, paddingVertical: 6 },
     nextBadgeText: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-Bold' },
     hydrationBanner: { marginHorizontal: Spacing.xl, marginBottom: Spacing.lg, flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: 14, borderRadius: Radius.xl, backgroundColor: 'rgba(100,180,255,0.1)', borderWidth: 1, borderColor: 'rgba(100,180,255,0.25)' },
-    hydrationIcon: { fontSize: 26 },
+    hydrationIcon: { marginTop: 2 },
     hydrationBody: { flex: 1 },
     hydrationTitle: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground },
     hydrationSub: { fontSize: FontSize.xs, color: c.mutedForeground, marginTop: 2, lineHeight: 16 },
@@ -1050,7 +1102,7 @@ function makeStyles(c: ThemeColors) {
     guideHeaderLabel: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-ExtraBold', color: c.secondary, textTransform: 'uppercase', letterSpacing: 1 },
     guideHeaderPct: { fontSize: FontSize.xs, color: c.mutedForeground },
     guideCard: { borderRadius: Radius.xl, borderWidth: 1, padding: 16, flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md },
-    guideCardIcon: { fontSize: 28 },
+    guideCardIcon: { marginTop: 2 },
     guideCardBody: { flex: 1, gap: Spacing.sm },
     guideCardTitle: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-ExtraBold' },
     guideCardBody2: { fontSize: FontSize.sm, lineHeight: 20 },
@@ -1079,7 +1131,6 @@ function makeStyles(c: ThemeColors) {
     noMealsText: { flex: 1, fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Medium' },
     mealCard: { width: 208, borderRadius: 24, overflow: 'hidden', borderWidth: 1 },
     mealEmojiBg: { height: 96, alignItems: 'center', justifyContent: 'center' },
-    mealEmoji: { fontSize: 40 },
     mealCardBody: { padding: 12 },
     mealCardTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
     mealSlotBadge: { alignSelf: 'flex-start', borderRadius: Radius.full, paddingHorizontal: 8, paddingVertical: 2 },
