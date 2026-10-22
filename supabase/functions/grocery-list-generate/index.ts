@@ -1,52 +1,13 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
 import { buildGroceryList, type Day } from '../_shared/build-grocery-list.ts';
+import {
+  INGREDIENTS_TOOL,
+  flattenMeals,
+  mergeIngredientsByKey,
+  type MealPlanDay,
+} from '../_shared/generate-ingredients.ts';
 import Anthropic from 'https://esm.sh/@anthropic-ai/sdk@0.39.0';
-
-const INGREDIENTS_TOOL = {
-  name: 'submit_meal_ingredients',
-  description: 'Submit purchasable ingredients for meals. Echo meal_key exactly.',
-  input_schema: {
-    type: 'object',
-    properties: {
-      meals: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            // Stable key from the prompt — MUST be echoed verbatim (e.g. "2026-08-10|Breakfast")
-            meal_key: { type: 'string' },
-            ingredients: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  name: { type: 'string' },
-                  quantity: { type: 'string' },
-                  estimated_cost: { type: 'number' },
-                },
-                required: ['name', 'quantity', 'estimated_cost'],
-              },
-            },
-          },
-          required: ['meal_key', 'ingredients'],
-        },
-      },
-    },
-    required: ['meals'],
-  },
-} as const;
-
-type MealPlanDay = {
-  day: string;
-  meals: {
-    slot: string;
-    name: string;
-    protein_g?: number;
-    calories?: number;
-    ingredients?: { name: string; quantity: string; estimated_cost: number }[];
-  }[];
-};
 
 type FlatMeal = {
   meal_key: string;
@@ -75,58 +36,12 @@ function planHasIngredients(days: MealPlanDay[]): boolean {
   );
 }
 
-function flattenMeals(days: MealPlanDay[]): FlatMeal[] {
-  const out: FlatMeal[] = [];
-  for (const d of days ?? []) {
-    for (const m of d.meals ?? []) {
-      const day = String(d.day);
-      const slot = String(m.slot);
-      out.push({
-        meal_key: `${day}|${slot}`,
-        day,
-        slot,
-        name: String(m.name),
-        protein_g: m.protein_g,
-        calories: m.calories,
-      });
-    }
-  }
-  return out;
-}
-
-function mergeIngredientsByKey(
-  days: MealPlanDay[],
-  ingredientMeals: { meal_key: string; ingredients: { name: string; quantity: string; estimated_cost: number }[] }[],
-): { days: MealPlanDay[]; matched: number } {
-  const byKey = new Map<string, typeof ingredientMeals[number]['ingredients']>();
-  for (const m of ingredientMeals) {
-    // Normalize: Claude may echo "date|slot | Meal Name"
-    const raw = String(m.meal_key ?? '').trim();
-    const parts = raw.split('|').map((p) => p.trim()).filter(Boolean);
-    const key = parts.length >= 2 && /^\d{4}-\d{2}-\d{2}$/.test(parts[0])
-      ? `${parts[0]}|${parts[1]}`
-      : raw;
-    if (!key) continue;
-    byKey.set(key, m.ingredients ?? []);
-    byKey.set(key.toLowerCase(), m.ingredients ?? []);
-  }
-
-  let matched = 0;
-  const merged = days.map((day) => ({
-    ...day,
-    meals: (day.meals ?? []).map((meal) => {
-      const key = `${day.day}|${meal.slot}`;
-      const ingredients = byKey.get(key) ?? byKey.get(key.toLowerCase());
-      if (ingredients && ingredients.length > 0) {
-        matched += 1;
-        return { ...meal, ingredients };
-      }
-      return meal;
-    }),
-  }));
-  return { days: merged, matched };
-}
-
+/**
+ * Grocery-list-specific batch call. Kept local (not attachIngredientsToDays) so
+ * prompt wording, logging, and return shape stay identical to the previous
+ * grocery-list-generate implementation. Shared INGREDIENTS_TOOL / flatten /
+ * merge are reused so the tool schema cannot drift.
+ */
 async function generateIngredientsForBatch(
   anthropic: Anthropic,
   batch: FlatMeal[],
