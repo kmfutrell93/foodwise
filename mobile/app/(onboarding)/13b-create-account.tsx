@@ -20,10 +20,26 @@ export default function CreateAccount() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [emailInUse, setEmailInUse] = useState(false);
   const [marketingEmails, setMarketingEmails] = useState(true);
+
+  function isEmailAlreadyInUse(err: { message?: string; code?: string } | null): boolean {
+    if (!err) return false;
+    const code = (err.code ?? '').toLowerCase();
+    if (code === 'email_exists' || code === 'user_already_exists') return true;
+    const msg = (err.message ?? '').toLowerCase();
+    return (
+      msg.includes('already been registered') ||
+      msg.includes('already registered') ||
+      msg.includes('email address has already') ||
+      msg.includes('user already exists') ||
+      (msg.includes('already') && msg.includes('email'))
+    );
+  }
 
   async function handleSave() {
     setError(null);
+    setEmailInUse(false);
     if (!firstName.trim()) {
       setError('Please enter your first name');
       return;
@@ -38,9 +54,16 @@ export default function CreateAccount() {
     }
     setLoading(true);
     try {
+      // Anonymous → real conversion must use updateUser (not signUp) so the
+      // existing anon session / profile / meal-plan row stay attached.
       const { data, error: updateError } = await supabase.auth.updateUser({ email, password });
       if (updateError) {
-        setError(updateError.message);
+        if (isEmailAlreadyInUse(updateError)) {
+          setEmailInUse(true);
+          setError('That email already has an account. Sign in to continue with it.');
+        } else {
+          setError(updateError.message);
+        }
         return;
       }
       if (data.user) {
@@ -119,6 +142,19 @@ export default function CreateAccount() {
           </View>
 
           {error && <Text style={s.errorText}>{error}</Text>}
+          {emailInUse && (
+            <TouchableOpacity
+              onPress={() => router.push('/(onboarding)/sign-in')}
+              activeOpacity={0.7}
+              style={s.signInLink}
+              accessibilityRole="button"
+              accessibilityLabel="Sign in to existing account"
+            >
+              <Text style={[s.signInLinkText, { color: colors.primary }]}>
+                Sign in to your existing account →
+              </Text>
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             style={s.consentRow}
@@ -160,6 +196,8 @@ function makeStyles(c: ThemeColors) {
     eyeBtn: { position: 'absolute', right: 4, top: 0, bottom: 0, width: 44, alignItems: 'center', justifyContent: 'center' },
 
     errorText: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-SemiBold', color: '#EF4444', marginTop: Spacing.md },
+    signInLink: { marginTop: Spacing.sm, paddingVertical: 4 },
+    signInLinkText: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-SemiBold' },
 
     consentRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: Spacing.lg },
     checkbox: { width: 20, height: 20, borderRadius: 5, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },

@@ -51,7 +51,8 @@ export default function NotificationScreen() {
       console.log('[push] projectId available:', Boolean(projectId));
       if (!projectId) {
         console.error('[push] missing EAS projectId — cannot request Expo push token');
-        await proceed(true, null);
+        // Permission may be granted, but without a token we must not claim notifications are on.
+        await proceed(false, null);
         return;
       }
 
@@ -65,9 +66,9 @@ export default function NotificationScreen() {
         console.error('[push] token request failed');
       }
 
-      // Only mark notifications_enabled when permission was granted.
-      // Token may still be null (simulator / APNs failure) — do not invent success.
-      await proceed(true, token);
+      // Only mark notifications_enabled when we actually have an Expo push token.
+      // Permission alone is not enough (simulator / APNs / missing projectId).
+      await proceed(Boolean(token), token);
     } finally {
       setLoading(false);
     }
