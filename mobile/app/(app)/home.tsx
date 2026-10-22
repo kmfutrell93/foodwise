@@ -78,11 +78,12 @@ function getInsight(daysSince: number, name: string): string {
 }
 
 function RingCard({
-  value, unit, label, subtitle, pct, color, icon, colors, reduceMotion = false,
+  value, unit, label, subtitle, pct, color, icon, colors, reduceMotion = false, bare = false,
 }: {
   value: string; unit: string; label: string; subtitle: string;
   pct: number; color: string; icon: keyof typeof Ionicons.glyphMap; colors: ThemeColors;
   reduceMotion?: boolean;
+  bare?: boolean;
 }) {
   const dash = Math.min(Math.max(pct, 0), 100);
   const dashAnim = useSharedValue(reduceMotion ? dash : 0);
@@ -111,10 +112,18 @@ function RingCard({
   }));
 
   return (
-    <Animated.View style={[ring.card, { backgroundColor: colors.card, borderColor: colors.border }, cardScaleStyle]}>
+    <Animated.View
+      style={[
+        ring.card,
+        bare
+          ? { backgroundColor: 'transparent', borderWidth: 0 }
+          : { backgroundColor: colors.card, borderColor: colors.border },
+        cardScaleStyle,
+      ]}
+    >
       <View style={ring.svgWrap}>
         <View style={{ transform: [{ rotate: '-90deg' }] }}>
-          <Svg viewBox="0 0 36 36" width={64} height={64}>
+          <Svg viewBox="0 0 36 36" width={56} height={56}>
             <Circle cx="18" cy="18" r="15.9" fill="none" stroke={colors.muted} strokeWidth="4" />
             <AnimatedCircle
               cx="18" cy="18" r="15.9" fill="none" stroke={color} strokeWidth="4"
@@ -143,13 +152,13 @@ function RingCard({
 }
 
 const ring = StyleSheet.create({
-  card: { width: 144, padding: 16, borderRadius: 24, borderWidth: 1, alignItems: 'center' },
-  svgWrap: { width: 64, height: 64, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
+  card: { flex: 1, paddingVertical: 12, paddingHorizontal: 10, borderRadius: Radius.lg, borderWidth: 1, alignItems: 'center', minWidth: 0 },
+  svgWrap: { width: 56, height: 56, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
   icon: { position: 'absolute' },
-  value: { fontSize: 24, fontFamily: 'PlusJakartaSans-ExtraBold' },
+  value: { fontSize: 22, fontFamily: 'PlusJakartaSans-ExtraBold' },
   unit: { fontSize: 11, fontFamily: 'PlusJakartaSans-Regular' },
   label: { fontSize: 11, marginTop: 2 },
-  subtitle: { fontSize: 11, fontFamily: 'PlusJakartaSans-Bold', marginTop: 4 },
+  subtitle: { fontSize: 11, fontFamily: 'PlusJakartaSans-Bold', marginTop: 2, textAlign: 'center' },
 });
 
 const MODE_CONFIG: Record<string, { icon: keyof typeof Ionicons.glyphMap; title: string }> = {
@@ -602,9 +611,9 @@ export default function Home() {
           </View>
         )}
 
-        {/* Daily Progress */}
+        {/* Today — rings + streak in one card */}
         <View style={s.sectionHeader}>
-          <Text style={[s.sectionTitle, { color: colors.foreground }]} accessibilityRole="header">Daily Progress</Text>
+          <Text style={[s.sectionTitle, { color: colors.foreground }]} accessibilityRole="header">Today</Text>
           <TouchableOpacity
             onPress={() => router.push('/(app)/progress' as any)}
             style={s.sectionLinkHit}
@@ -616,8 +625,8 @@ export default function Home() {
             <Text style={[s.sectionLink, { color: colors.primary }]}>Details</Text>
           </TouchableOpacity>
         </View>
-        <Animated.View style={ringsStyle}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.ringsScroll} contentContainerStyle={s.ringsContent}>
+        <View style={[s.todayCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Animated.View style={[ringsStyle, s.ringsRow]}>
             <RingCard
               value={`${proteinG}`}
               unit="g"
@@ -628,6 +637,7 @@ export default function Home() {
               icon="nutrition-outline"
               colors={colors}
               reduceMotion={reduceMotion}
+              bare
             />
             <RingCard
               value={`${calories}`}
@@ -639,51 +649,53 @@ export default function Home() {
               icon="flame-outline"
               colors={colors}
               reduceMotion={reduceMotion}
+              bare
             />
-          </ScrollView>
-        </Animated.View>
-
-        {/* Streak card */}
-        <View
-          style={[s.streakCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-          accessibilityLabel={streakCount > 0 ? `${streakCount} day streak` : 'Start your streak today'}
-        >
-          <Animated.View entering={bounceIn(0, 600)}>
-            <View style={s.streakIconWrap}>
-              <Ionicons
-                name="flame"
-                size={28}
-                color={colors.primary}
-                accessibilityElementsHidden
-                importantForAccessibility="no"
-              />
-            </View>
           </Animated.View>
-          <View style={s.streakBody}>
-            <Animated.View entering={bounceIn(100, 600)}>
-              <View style={s.streakTopRow}>
-                <Text style={[s.streakTitle, { color: colors.foreground }]}>
-                  {streakCount > 0 ? `${streakCount} Day Streak!` : 'Start your streak today'}
-                </Text>
-                <View style={s.xpBadge}>
-                  <Text style={[s.xpText, { color: colors.primary }]}>+50 XP</Text>
-                </View>
+
+          <View style={[s.todayDivider, { backgroundColor: colors.border }]} />
+
+          <View
+            style={s.streakRow}
+            accessibilityLabel={streakCount > 0 ? `${streakCount} day streak` : 'Start your streak today'}
+          >
+            <Animated.View entering={bounceIn(0, 600)}>
+              <View style={s.streakIconWrap}>
+                <Ionicons
+                  name="flame"
+                  size={22}
+                  color={colors.primary}
+                  accessibilityElementsHidden
+                  importantForAccessibility="no"
+                />
               </View>
-              <Text style={[s.streakSub, { color: colors.mutedForeground }]}>
-                {streakCount > 0 ? `Logged ${streakCount} days straight. Keep going!` : 'Log your first symptoms to start your streak.'}
-              </Text>
             </Animated.View>
-            <Animated.View entering={bounceIn(200, 600)}>
-              <View style={s.weekDots} accessibilityElementsHidden importantForAccessibility="no">
-                {[0,1,2,3,4,5,6].map(i => (
-                  <View key={i} style={[s.weekDot, { backgroundColor: i < Math.min(streakCount, 7) ? colors.primary : colors.muted }]}>
-                    <Text style={[s.weekDotText, { color: i < Math.min(streakCount, 7) ? colors.primaryForeground : colors.mutedForeground }]}>
-                      {i < Math.min(streakCount, 7) ? '✓' : '·'}
-                    </Text>
+            <View style={s.streakBody}>
+              <Animated.View entering={bounceIn(100, 600)}>
+                <View style={s.streakTopRow}>
+                  <Text style={[s.streakTitle, { color: colors.foreground }]}>
+                    {streakCount > 0 ? `${streakCount} Day Streak!` : 'Start your streak today'}
+                  </Text>
+                  <View style={s.xpBadge}>
+                    <Text style={[s.xpText, { color: colors.primary }]}>+50 XP</Text>
                   </View>
-                ))}
-              </View>
-            </Animated.View>
+                </View>
+                <Text style={[s.streakSub, { color: colors.mutedForeground }]}>
+                  {streakCount > 0 ? `Logged ${streakCount} days straight. Keep going!` : 'Log your first symptoms to start your streak.'}
+                </Text>
+              </Animated.View>
+              <Animated.View entering={bounceIn(200, 600)}>
+                <View style={s.weekDots} accessibilityElementsHidden importantForAccessibility="no">
+                  {[0,1,2,3,4,5,6].map(i => (
+                    <View key={i} style={[s.weekDot, { backgroundColor: i < Math.min(streakCount, 7) ? colors.primary : colors.muted }]}>
+                      <Text style={[s.weekDotText, { color: i < Math.min(streakCount, 7) ? colors.primaryForeground : colors.mutedForeground }]}>
+                        {i < Math.min(streakCount, 7) ? '✓' : '·'}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </Animated.View>
+            </View>
           </View>
         </View>
 
@@ -808,7 +820,7 @@ export default function Home() {
 
         {/* Smart Fridge entry card */}
         <TouchableOpacity
-          style={{ marginHorizontal: Spacing.xl, marginBottom: Spacing.xl }}
+          style={{ marginHorizontal: Spacing.xl, marginBottom: Spacing.lg }}
           onPress={() => router.push('/(app)/smart-fridge' as any)}
           activeOpacity={0.85}
           accessibilityRole="button"
@@ -842,7 +854,7 @@ export default function Home() {
         </TouchableOpacity>
 
         {/* I feel sick — emergency mode button */}
-        <Animated.View style={[emergencyContainerStyle, { marginHorizontal: Spacing.xl, marginBottom: Spacing.xl }]}>
+        <Animated.View style={[emergencyContainerStyle, { marginHorizontal: Spacing.xl, marginBottom: Spacing.lg }]}>
           <TouchableOpacity
             style={s.emergencyBtn}
             onPress={openEmergencyMode}
@@ -876,59 +888,59 @@ export default function Home() {
           </TouchableOpacity>
         </Animated.View>
 
-        {/* Quick Actions */}
+        {/* Quick Actions — compact icon row */}
         <Text style={[s.actionsTitle, { color: colors.foreground }]} accessibilityRole="header">Quick Actions</Text>
-        <View style={s.actionsGrid}>
+        <View style={s.actionsRow}>
           <TouchableOpacity
-            style={[s.actionCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+            style={s.actionBtn}
             onPress={() => router.push('/(app)/meal-plan' as any)}
             activeOpacity={0.8}
             accessibilityRole="button"
             accessibilityLabel="Meal Plan"
           >
             <View style={[s.actionIcon, { backgroundColor: 'rgba(29,158,117,0.12)' }]}>
-              <Ionicons name="restaurant-outline" size={20} color={colors.primary} accessibilityElementsHidden importantForAccessibility="no" />
+              <Ionicons name="restaurant-outline" size={22} color={colors.primary} accessibilityElementsHidden importantForAccessibility="no" />
             </View>
-            <Text style={[s.actionLabel, { color: colors.foreground }]}>Meal Plan</Text>
+            <Text style={[s.actionLabel, { color: colors.foreground }]} numberOfLines={1}>Meals</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[s.actionCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+            style={s.actionBtn}
             onPress={() => router.push('/(app)/grocery-list' as any)}
             activeOpacity={0.8}
             accessibilityRole="button"
             accessibilityLabel="Grocery List"
           >
             <View style={[s.actionIcon, { backgroundColor: 'rgba(29,158,117,0.12)' }]}>
-              <Ionicons name="cart-outline" size={20} color={colors.accent} accessibilityElementsHidden importantForAccessibility="no" />
+              <Ionicons name="cart-outline" size={22} color={colors.accent} accessibilityElementsHidden importantForAccessibility="no" />
             </View>
-            <Text style={[s.actionLabel, { color: colors.foreground }]}>Grocery List</Text>
+            <Text style={[s.actionLabel, { color: colors.foreground }]} numberOfLines={1}>Grocery</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[s.actionCard, { backgroundColor: 'rgba(29,158,117,0.1)', borderColor: 'rgba(29,158,117,0.2)' }]}
+            style={s.actionBtn}
             onPress={() => router.push('/(app)/symptom-tracker' as any)}
             activeOpacity={0.8}
             accessibilityRole="button"
             accessibilityLabel="Log Symptoms"
           >
             <View style={[s.actionIcon, { backgroundColor: 'rgba(29,158,117,0.15)' }]}>
-              <Ionicons name="clipboard-outline" size={20} color={colors.secondary} accessibilityElementsHidden importantForAccessibility="no" />
+              <Ionicons name="clipboard-outline" size={22} color={colors.secondary} accessibilityElementsHidden importantForAccessibility="no" />
             </View>
-            <Text style={[s.actionLabel, { color: colors.foreground }]}>Log Symptoms</Text>
+            <Text style={[s.actionLabel, { color: colors.foreground }]} numberOfLines={1}>Symptoms</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[s.actionCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+            style={s.actionBtn}
             onPress={() => router.push('/(app)/progress' as any)}
             activeOpacity={0.8}
             accessibilityRole="button"
             accessibilityLabel="View Trends"
           >
             <View style={[s.actionIcon, { backgroundColor: 'rgba(29,158,117,0.12)' }]}>
-              <Ionicons name="trending-up-outline" size={20} color={colors.primary} accessibilityElementsHidden importantForAccessibility="no" />
+              <Ionicons name="trending-up-outline" size={22} color={colors.primary} accessibilityElementsHidden importantForAccessibility="no" />
             </View>
-            <Text style={[s.actionLabel, { color: colors.foreground }]}>View Trends</Text>
+            <Text style={[s.actionLabel, { color: colors.foreground }]} numberOfLines={1}>Trends</Text>
           </TouchableOpacity>
         </View>
 
@@ -1068,13 +1080,13 @@ function makeStyles(c: ThemeColors) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: c.background },
     scroll: { paddingBottom: 120 },
-    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.xl, paddingTop: Spacing.xl, marginBottom: Spacing['2xl'] },
+    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.xl, paddingTop: Spacing.lg, marginBottom: Spacing.lg },
     headerLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
     noriAvatar: { width: 56, height: 56 },
     onlineDot: { position: 'absolute', bottom: 0, right: 0, width: 16, height: 16, borderRadius: 8, borderWidth: 2 },
     greeting: { fontSize: FontSize.sm, color: c.mutedForeground, fontFamily: 'PlusJakartaSans-Medium' },
     name: { fontSize: FontSize['2xl'], fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground },
-    medCard: { marginHorizontal: Spacing.xl, marginBottom: Spacing.lg, padding: 16, borderRadius: Radius.xl, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(29,158,117,0.08)', borderWidth: 1, borderColor: 'rgba(29,158,117,0.2)', overflow: 'hidden' },
+    medCard: { marginHorizontal: Spacing.xl, marginBottom: Spacing.md, padding: 14, borderRadius: Radius.xl, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(29,158,117,0.08)', borderWidth: 1, borderColor: 'rgba(29,158,117,0.2)', overflow: 'hidden' },
     medCardGlowBorder: { borderRadius: Radius.xl, borderWidth: 2, borderColor: c.primary },
     medLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, flex: 1 },
     medIconCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(29,158,117,0.15)', alignItems: 'center', justifyContent: 'center' },
@@ -1084,74 +1096,75 @@ function makeStyles(c: ThemeColors) {
     dotBar: { width: 20, height: 6, borderRadius: 3 },
     nextBadge: { backgroundColor: 'rgba(29,158,117,0.15)', borderRadius: Radius.full, paddingHorizontal: 10, paddingVertical: 6 },
     nextBadgeText: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-Bold' },
-    hydrationBanner: { marginHorizontal: Spacing.xl, marginBottom: Spacing.lg, flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: 14, borderRadius: Radius.xl, backgroundColor: 'rgba(100,180,255,0.1)', borderWidth: 1, borderColor: 'rgba(100,180,255,0.25)' },
+    hydrationBanner: { marginHorizontal: Spacing.xl, marginBottom: Spacing.md, flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: 12, borderRadius: Radius.xl, backgroundColor: 'rgba(100,180,255,0.1)', borderWidth: 1, borderColor: 'rgba(100,180,255,0.25)' },
     hydrationIcon: { marginTop: 2 },
     hydrationBody: { flex: 1 },
     hydrationTitle: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground },
     hydrationSub: { fontSize: FontSize.xs, color: c.mutedForeground, marginTop: 2, lineHeight: 16 },
-    escalationCard: { marginHorizontal: Spacing.xl, marginBottom: Spacing.lg, flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md, padding: 14, borderRadius: Radius.xl, backgroundColor: 'rgba(29,158,117,0.08)', borderWidth: 1, borderColor: 'rgba(29,158,117,0.3)' },
+    escalationCard: { marginHorizontal: Spacing.xl, marginBottom: Spacing.md, flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md, padding: 12, borderRadius: Radius.xl, backgroundColor: 'rgba(29,158,117,0.08)', borderWidth: 1, borderColor: 'rgba(29,158,117,0.3)' },
     escalationTitle: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-ExtraBold', color: c.foreground, marginBottom: 4 },
     escalationSub: { fontSize: FontSize.xs, color: c.mutedForeground, lineHeight: 16 },
-    insightCard: { marginHorizontal: Spacing.xl, marginBottom: Spacing['2xl'], borderRadius: Radius.xl, borderWidth: 1, padding: 16, flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md, backgroundColor: 'rgba(29,158,117,0.1)', borderColor: 'rgba(29,158,117,0.2)' },
+    insightCard: { marginHorizontal: Spacing.xl, marginBottom: Spacing.lg, borderRadius: Radius.xl, borderWidth: 1, padding: 14, flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md, backgroundColor: 'rgba(29,158,117,0.1)', borderColor: 'rgba(29,158,117,0.2)' },
     noriSmall: { width: 36, height: 36, flexShrink: 0, marginTop: 2 },
     insightBody: { flex: 1 },
     insightLabel: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-ExtraBold', marginBottom: 4 },
     insightText: { fontSize: FontSize.sm, lineHeight: 20 },
-    guideStrip: { marginHorizontal: Spacing.xl, marginBottom: Spacing['2xl'] },
+    guideStrip: { marginHorizontal: Spacing.xl, marginBottom: Spacing.lg },
     guideHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.sm },
     guideHeaderLabel: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-ExtraBold', color: c.secondary, textTransform: 'uppercase', letterSpacing: 1 },
     guideHeaderPct: { fontSize: FontSize.xs, color: c.mutedForeground },
-    guideCard: { borderRadius: Radius.xl, borderWidth: 1, padding: 16, flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md },
+    guideCard: { borderRadius: Radius.xl, borderWidth: 1, padding: 14, flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md },
     guideCardIcon: { marginTop: 2 },
     guideCardBody: { flex: 1, gap: Spacing.sm },
     guideCardTitle: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-ExtraBold' },
     guideCardBody2: { fontSize: FontSize.sm, lineHeight: 20 },
     guideCardCta: { alignSelf: 'flex-start', borderRadius: Radius.full, paddingHorizontal: Spacing.lg, paddingVertical: 12, marginTop: 4, minHeight: 44, justifyContent: 'center' },
     guideCardCtaText: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-ExtraBold' },
-    sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.xl, marginBottom: Spacing.md },
+    sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.xl, marginBottom: Spacing.sm },
     sectionTitle: { fontSize: FontSize.lg, fontFamily: 'PlusJakartaSans-ExtraBold' },
     sectionLink: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold' },
     sectionLinkHit: { minHeight: 44, justifyContent: 'center' },
-    ringsScroll: { marginBottom: Spacing['2xl'] },
-    ringsContent: { paddingHorizontal: Spacing.xl, gap: Spacing.md },
-    streakCard: { marginHorizontal: Spacing.xl, marginBottom: Spacing['2xl'], borderRadius: 24, borderWidth: 1, padding: 16, flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
-    streakIconWrap: { width: 56, height: 56, borderRadius: 14, backgroundColor: 'rgba(29,158,117,0.12)', borderWidth: 1, borderColor: 'rgba(29,158,117,0.2)', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+    todayCard: { marginHorizontal: Spacing.xl, marginBottom: Spacing.lg, borderRadius: Radius.xl, borderWidth: 1, padding: 12, gap: Spacing.md },
+    ringsRow: { flexDirection: 'row', gap: Spacing.sm },
+    todayDivider: { height: StyleSheet.hairlineWidth, width: '100%' },
+    streakRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+    streakIconWrap: { width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(29,158,117,0.12)', borderWidth: 1, borderColor: 'rgba(29,158,117,0.2)', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
     streakBody: { flex: 1 },
-    streakTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
-    streakTitle: { fontSize: FontSize.base, fontFamily: 'PlusJakartaSans-ExtraBold' },
+    streakTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 },
+    streakTitle: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-ExtraBold', flexShrink: 1 },
     xpBadge: { backgroundColor: 'rgba(29,158,117,0.1)', borderRadius: Radius.full, paddingHorizontal: 8, paddingVertical: 2 },
     xpText: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-ExtraBold' },
-    streakSub: { fontSize: FontSize.xs, lineHeight: 16, marginBottom: 8 },
-    weekDots: { flexDirection: 'row', gap: 6, marginTop: 4 },
-    weekDot: { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+    streakSub: { fontSize: FontSize.xs, lineHeight: 16, marginBottom: 4 },
+    weekDots: { flexDirection: 'row', gap: 6, marginTop: 2 },
+    weekDot: { width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
     weekDotText: { fontSize: 10, fontFamily: 'PlusJakartaSans-Bold' },
-    mealsScroll: { marginBottom: Spacing.xl },
+    mealsScroll: { marginBottom: Spacing.lg },
     mealsContent: { paddingHorizontal: Spacing.xl, gap: Spacing.md },
-    noMealsCard: { marginHorizontal: Spacing.xl, marginBottom: Spacing.xl, flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: 16, borderRadius: Radius.xl, borderWidth: 1 },
+    noMealsCard: { marginHorizontal: Spacing.xl, marginBottom: Spacing.lg, flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: 14, borderRadius: Radius.xl, borderWidth: 1 },
     noMealsText: { flex: 1, fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Medium' },
     mealCard: { width: 208, borderRadius: 24, overflow: 'hidden', borderWidth: 1 },
-    mealEmojiBg: { height: 96, alignItems: 'center', justifyContent: 'center' },
+    mealEmojiBg: { height: 88, alignItems: 'center', justifyContent: 'center' },
     mealCardBody: { padding: 12 },
     mealCardTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
     mealSlotBadge: { alignSelf: 'flex-start', borderRadius: Radius.full, paddingHorizontal: 8, paddingVertical: 2 },
     mealSlotText: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-Bold' },
     mealName: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-ExtraBold', marginBottom: 2, lineHeight: 18 },
     mealMacros: { fontSize: FontSize.xs },
-    emergencyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderRadius: Radius.xl, backgroundColor: `${c.destructive}12`, borderWidth: 1, borderColor: `${c.destructive}30`, minHeight: 72 },
+    emergencyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 14, borderRadius: Radius.xl, backgroundColor: `${c.destructive}12`, borderWidth: 1, borderColor: `${c.destructive}30`, minHeight: 64 },
     emergencyBtnBorderLayer: { borderRadius: Radius.xl, borderWidth: 2, borderColor: c.destructive },
     emergencyBtnLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, flex: 1 },
     emergencyIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: `${c.destructive}15`, alignItems: 'center', justifyContent: 'center' },
     emergencyBtnTitle: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-ExtraBold', color: c.destructive },
     emergencyBtnSub: { fontSize: FontSize.xs, color: c.mutedForeground, marginTop: 2 },
-    actionsTitle: { fontSize: FontSize.lg, fontFamily: 'PlusJakartaSans-ExtraBold', paddingHorizontal: Spacing.xl, marginBottom: Spacing.md },
-    actionsGrid: { paddingHorizontal: Spacing.xl, flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md, marginBottom: Spacing['2xl'] },
-    actionCard: { width: '47%', padding: 16, borderRadius: Radius.xl, borderWidth: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
-    actionIcon: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-    actionLabel: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-Bold', flex: 1 },
+    actionsTitle: { fontSize: FontSize.lg, fontFamily: 'PlusJakartaSans-ExtraBold', paddingHorizontal: Spacing.xl, marginBottom: Spacing.sm },
+    actionsRow: { paddingHorizontal: Spacing.xl, flexDirection: 'row', justifyContent: 'space-between', gap: Spacing.sm, marginBottom: Spacing.lg },
+    actionBtn: { flex: 1, alignItems: 'center', gap: 6, minHeight: 72, justifyContent: 'flex-start' },
+    actionIcon: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
+    actionLabel: { fontSize: FontSize.xs, fontFamily: 'PlusJakartaSans-Bold', textAlign: 'center' },
     generateError: { textAlign: 'center', fontSize: FontSize.xs, paddingHorizontal: Spacing.xl, marginTop: Spacing.sm },
     genRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, marginTop: Spacing.sm },
     genText: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-SemiBold' },
-    smartFridgeCard: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: 16, borderRadius: Radius.xl, backgroundColor: 'rgba(29,158,117,0.08)', borderWidth: 1, borderColor: 'rgba(29,158,117,0.3)', borderLeftWidth: 4, minHeight: 72 },
+    smartFridgeCard: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: 14, borderRadius: Radius.xl, backgroundColor: 'rgba(29,158,117,0.08)', borderWidth: 1, borderColor: 'rgba(29,158,117,0.3)', borderLeftWidth: 4, minHeight: 64 },
     smartFridgeCardTitle: { fontSize: FontSize.sm, fontFamily: 'PlusJakartaSans-ExtraBold' },
     smartFridgeCardSub: { fontSize: FontSize.xs, marginTop: 2 },
   });
