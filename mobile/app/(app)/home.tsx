@@ -24,6 +24,7 @@ import { computeEscalationStatus } from '@/lib/escalation';
 import { FREE_PLAN_LIMIT } from '@/lib/constants';
 import { generatePlanWithPolling } from '@/lib/generate-plan';
 import { SourcesLink } from '@/components/ui/SourcesLink';
+import { Celebration, CelebrationVariant, NoriPose } from '@/components/ui/Celebration';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -79,16 +80,20 @@ function getInsight(daysSince: number, name: string): string {
 
 function RingCard({
   value, unit, label, subtitle, pct, color, icon, colors, reduceMotion = false, bare = false,
+  flourishKey = 0,
 }: {
   value: string; unit: string; label: string; subtitle: string;
   pct: number; color: string; icon: keyof typeof Ionicons.glyphMap; colors: ThemeColors;
   reduceMotion?: boolean;
   bare?: boolean;
+  /** Increment to play a one-shot scale flourish (protein goal). */
+  flourishKey?: number;
 }) {
   const dash = Math.min(Math.max(pct, 0), 100);
   const dashAnim = useSharedValue(reduceMotion ? dash : 0);
   const ringScale = useSharedValue(1);
   const hasAnimated = useRef(false);
+  const lastFlourish = useRef(0);
 
   useEffect(() => {
     if (reduceMotion) {
@@ -100,8 +105,19 @@ function RingCard({
       hasAnimated.current = true;
       dashAnim.value = withTiming(dash, { duration: 1200, easing: Easing.out(Easing.cubic) });
       ringScale.value = withDelay(1200, withSequence(withSpring(1.03), withSpring(1.0)));
+    } else if (!reduceMotion) {
+      dashAnim.value = withTiming(dash, { duration: 500, easing: Easing.out(Easing.cubic) });
     }
   }, [dash, reduceMotion]);
+
+  useEffect(() => {
+    if (!flourishKey || flourishKey === lastFlourish.current || reduceMotion) return;
+    lastFlourish.current = flourishKey;
+    ringScale.value = withSequence(
+      withSpring(1.12, { damping: 8 }),
+      withSpring(1.0, { damping: 12 }),
+    );
+  }, [flourishKey, reduceMotion]);
 
   const animatedProps = useAnimatedProps(() => ({
     strokeDashoffset: 100 - dashAnim.value,
@@ -199,6 +215,30 @@ export default function Home() {
   // Reduced-motion preference (iOS Accessibility → Motion)
   const [reduceMotion, setReduceMotion] = useState(false);
   const [motionReady, setMotionReady] = useState(false);
+
+  // Celebrations (event-triggered Lottie — never looping)
+  const [celebration, setCelebration] = useState<{
+    playKey: number;
+    variant: CelebrationVariant;
+    noriPose?: NoriPose;
+    countTo?: number;
+  }>({ playKey: 0, variant: 'confetti' });
+  const [proteinFlourishKey, setProteinFlourishKey] = useState(0);
+  const prevStreakRef = useRef<number | null>(null);
+  const prevProteinGoalHitRef = useRef(false);
+  const streakReadyRef = useRef(false);
+
+  function fireCelebration(
+    variant: CelebrationVariant,
+    opts?: { noriPose?: NoriPose; countTo?: number },
+  ) {
+    setCelebration((prev) => ({
+      playKey: prev.playKey + 1,
+      variant,
+      noriPose: opts?.noriPose,
+      countTo: opts?.countTo,
+    }));
+  }
 
   // ── Entry animation values ────────────────────────────────
   const headerAnim    = useSharedValue(0);
@@ -346,6 +386,9 @@ export default function Home() {
       const result = await generatePlanWithPolling();
       if (!result.success) throw new Error(result.error);
       await load();
+      if (mountedRef.current) {
+        fireCelebration('confetti', { noriPose: 'celebrate' });
+      }
     } catch (e: unknown) {
       logError('home:generatePlan', e);
       if (mountedRef.current) setGenerateError(e instanceof Error ? e.message : 'Something went wrong');
@@ -384,6 +427,7 @@ export default function Home() {
       starter_guide_completed: isLast,
     }).eq('id', user.id);
     setGuideStep(nextStep);
+    fireCelebration('success', { noriPose: 'happy' });
     if (card.cta_action === 'meal_plan') router.push('/(app)/meal-plan' as any);
     else if (card.cta_action === 'symptom_tracker') router.push('/(app)/symptom-tracker' as any);
   }
@@ -412,6 +456,45 @@ export default function Home() {
   const proteinPct = Math.round((proteinG / proteinGoal) * 100);
   const caloriePct = Math.round((calories / 1380) * 100);
   const streakCount = streak?.current_streak ?? 0;
+
+  // Streak increment / milestone celebration (skip first load baseline)
+  useEffect(() => {
+    if (streak == null) return;
+    const current = streak.current_streak ?? 0;
+    if (!streakReadyRef.current) {
+      streakReadyRef.current = true;
+      prevStreakRef.current = current;
+      return;
+    }
+    const prev = prevStreakRef.current ?? 0;
+    if (current > prev) {
+      const milestones = [3, 7, 14, 21, 30, 60, 100];
+      const hitMilestone = milestones.includes(current);
+      fireCelebration('flame', {
+        noriPose: hitMilestone ? 'celebrate' : 'happy',
+        countTo: current,
+      });
+    }
+    prevStreakRef.current = current;
+  }, [streak?.current_streak]);
+
+  // Protein goal reached → ring flourish + confetti (skip baseline; once until it drops below)
+  const proteinReadyRef = useRef(false);
+  useEffect(() => {
+    const hit = proteinPct >= 100 && proteinGoal > 0;
+    if (!proteinReadyRef.current) {
+      proteinReadyRef.current = true;
+      prevProteinGoalHitRef.current = hit;
+      return;
+    }
+    if (hit && !prevProteinGoalHitRef.current) {
+      prevProteinGoalHitRef.current = true;
+      setProteinFlourishKey((k) => k + 1);
+      fireCelebration('confetti', { noriPose: 'happy' });
+    } else if (!hit) {
+      prevProteinGoalHitRef.current = false;
+    }
+  }, [proteinPct, proteinGoal]);
 
   const todayMeals: { slot: string; name: string; protein_g: number; calories: number }[] =
     (todayDayData as any)?.meals ?? [];
@@ -452,6 +535,13 @@ export default function Home() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
+      <Celebration
+        playKey={celebration.playKey}
+        variant={celebration.variant}
+        reduceMotion={reduceMotion}
+        noriPose={celebration.noriPose}
+        countTo={celebration.countTo}
+      />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={s.scroll}
@@ -638,6 +728,7 @@ export default function Home() {
               colors={colors}
               reduceMotion={reduceMotion}
               bare
+              flourishKey={proteinFlourishKey}
             />
             <RingCard
               value={`${calories}`}

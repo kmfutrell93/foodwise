@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, RefreshControl, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, RefreshControl, ActivityIndicator, Alert, AccessibilityInfo } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Slider from '@react-native-community/slider';
 import * as Haptics from 'expo-haptics';
@@ -11,6 +11,7 @@ import { trackSymptomLogged, trackInsightViewed } from '@/lib/analytics';
 import { INSIGHT_TIMEOUT_MS } from '@/lib/constants';
 import { logError } from '@/lib/utils';
 import { SourcesLink } from '@/components/ui/SourcesLink';
+import { Celebration } from '@/components/ui/Celebration';
 
 const SYMPTOMS = ['nausea', 'fatigue', 'constipation', 'bloating', 'vomiting', 'headache', 'dizziness', 'heartburn'];
 const SYMPTOM_ICONS: Record<string, string> = {
@@ -87,6 +88,20 @@ export default function SymptomTracker() {
   const [insightError, setInsightError] = useState<string | null>(null);
   const fetchingInsightRef = useRef(false);
   const [foodAversions, setFoodAversions] = useState<string[]>([]);
+  const [celebrateKey, setCelebrateKey] = useState(0);
+  const [reduceMotion, setReduceMotion] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    AccessibilityInfo.isReduceMotionEnabled().then((v) => {
+      if (alive) setReduceMotion(v);
+    });
+    const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion);
+    return () => {
+      alive = false;
+      sub.remove();
+    };
+  }, []);
 
   async function loadLogs() {
     const { data: { user } } = await supabase.auth.getUser();
@@ -157,6 +172,7 @@ export default function SymptomTracker() {
         energy_level: energyLevel,
         has_notes: notesSnapshot.length > 0,
       });
+      setCelebrateKey((k) => k + 1);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
       await loadLogs();
@@ -231,6 +247,12 @@ export default function SymptomTracker() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
+      <Celebration
+        playKey={celebrateKey}
+        variant="success"
+        reduceMotion={reduceMotion}
+        noriPose="happy"
+      />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={s.scroll}
